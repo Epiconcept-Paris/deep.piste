@@ -16,9 +16,9 @@ def read_response(r):
     elif re.search("json", r.headers["content-type"]) != None :
       return r.json(object_hook=lambda d: SimpleNamespace(**d))
     else :
-      raise NotImplementedError(f"Handlin content type { r.headers['content-type'] } is not supported @epi")
+      raise NotImplementedError(f"Handling content type { r.headers['content-type'] } is not supported @epi")
   else :
-    raise ConnectionError(f"Got status {r.status_code}")
+    raise ConnectionError(f"Got status {r.status_code}\n {r.text}")
 
 def voo_parse(value, d_type):
   if value == None :
@@ -35,10 +35,8 @@ def voo_parse(value, d_type):
     return int(value)
   elif d_type == "fkey_dico_ext":
     return str(value)
-  elif d_type == True:
-    return bool(value)
   elif d_type == False:
-    return bool(value)
+    return str(value)
   elif d_type == "date":
     return numpy.datetime64(value)
   elif d_type == "datetime":
@@ -62,9 +60,7 @@ def voo_type(columns):
     elif d_type == "fkey_dico_ext":
       yield (name, "string")
     elif d_type == False:
-      yield (name, "bool")
-    elif d_type == True:
-      yield (name, "bool")
+      yield (name, "string")
     elif d_type == "date":
       yield (name, numpy.datetime64)
     elif d_type == "datetime":

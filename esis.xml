@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataquery id="deep.piste" table_name="{pj}_rdv_data" varset_name = "rdv" table_alias="ap">
+  <column sql="{p.num_bci}" alias="person_id">
+    <field field_name="num_bci" table_name="p" alias="p.num_bci" />
+  </column>
+  <column sql="{ex.date_mammo}" alias = "mammogram_date" >
+    <field field_name="date_mammo" table_name="ex" alias = "ex.date_mammo"/>
+  </column>
+  <column sql="{ap.date_heure}" alias="appointment_date" >
+    <field field_name="date_heure" table_name="ap" alias = "ap.date_heure" />
+  </column>
+  <column_simple field_name="study_instance_uid" table_name="m" />
+  <column_simple field_name="dicom_study_id" table_name="m" />
+  <column_simple field_name="date_study" table_name="m" />
+  <column_simple field_name="file_guid" table_name="d" />
+  <column_simple field_name="id_exam_center" table_name="ap" />  
+  <condition sql="(({search_center} IS NULL OR {center_id} = {search_center}) AND {num_bci} is not null)">
+    <field field_name="id_exam_center" table_name="ap" alias="center_id" />
+    <field field_name="num_bci" table_name="p" alias="num_bci" />
+    <variable alias="search_center" default="NULL">
+      <entry type="param" name="search_center" />
+    </variable>
+  </condition>
+  <join detail_table="{pj}_01_data" detail_varset_name = "assure" detail_alias="p" sql="{p.id_data} = {ap.id_assure}" type="inner" mode="r">
+    <field table_name="p" field_name="id_data" alias="p.id_data"/>
+    <field table_name="ap" field_name="id_assure" alias="ap.id_assure"/>
+  </join>
+  <join detail_table="{pj}_05_data" detail_varset_name = "lecture1" detail_alias="ex" sql="{ap.id_lecture1} = {ex.id_data}" type="left" mode="r">
+    <field table_name="ex" field_name="id_data" alias="ex.id_data"/>
+    <field table_name="ap" field_name="id_lecture1" alias="ap.id_lecture1"/>
+  </join>
+  <join detail_table="{pj}_sdy_data" detail_varset_name = "study" detail_alias="m" sql="{m.id_rdv} = {ap.id_data}" type="left" mode="r">
+    <field table_name="m" field_name="id_rdv" alias="m.id_rdv"/>
+    <field table_name="ap" field_name="id_data" alias="ap.id_data"/>
+  </join>
+  <join detail_table="{pj}_doc_data" detail_varset_name = "document" detail_alias="d" sql="{d.id_study} = {m.id_data}" type="left" mode="r">
+    <field table_name="m" field_name="id_data" alias="m.id_data"/>
+    <field table_name="d" field_name="id_study" alias="d.id_study"/>
+  </join>
+</dataquery>
