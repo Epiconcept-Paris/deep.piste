@@ -6,6 +6,11 @@ init:
 	pip install --upgrade pip;\
 	pip install --upgrade setuptools wheel twine
 
+install:
+	source env/bin/activate;\
+	pip install -e .;\
+	pip install -e ../kskit
+
 package:
 	source env/bin/activate;\
 	rm dist/*;\
