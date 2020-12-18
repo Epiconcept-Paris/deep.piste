@@ -2,12 +2,15 @@ import kskit
 import os
 import base64
 import clipboard
+from tkinter import Tk
+from tkinter import filedialog
 
 def get_home():
   if os.environ.get('DP_HOME') == None :
-    raise AssertionError("DP_HOME must be set to run deep.piste scripts")
-  else :
-    return os.environ.get('DP_HOME')
+    print("Please select the deep.piste home folder")
+    os.environ['DP_HOME'] = filedialog.askdirectory()
+    print(f"you have set  {os.environ.get('DP_HOME')} as epi home")
+  return os.environ.get('DP_HOME')
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -38,4 +41,5 @@ def p02_004_decrypt_neoscope_extractions():
   b64key = kskit.read_webcam_key(auto_close = True, camera_index = 0)
   kskit.decrypt(crypted, orig, b64key)
   print(f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
+
 
