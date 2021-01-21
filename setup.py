@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='deep-piste',
-    version='0.0.1',
+    version='0.0.3',
     description='Evaluating the impact of IA on Breast Cancer Screening Program',
     long_description=readme,
     long_description_content_type='text/markdown',
@@ -19,6 +19,7 @@ setup(
       "kskit",
       "clipboard"
     ],
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    include_package_data=True
 )
 

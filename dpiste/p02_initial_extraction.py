@@ -2,15 +2,11 @@ import kskit
 import os
 import base64
 import clipboard
+import urllib.parse
 from tkinter import Tk
 from tkinter import filedialog
+from .utils import get_home, sparkly_cp
 
-def get_home():
-  if os.environ.get('DP_HOME') == None :
-    print("Please select the deep.piste home folder")
-    os.environ['DP_HOME'] = filedialog.askdirectory()
-    print(f"you have set  {os.environ.get('DP_HOME')} as epi home")
-  return os.environ.get('DP_HOME')
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -32,13 +28,25 @@ def p02_003_encrypt_neoscope_extractions(source):
   kskit.encrypt(source, dest, b64key)
   #cleaning clipboard
   clipboard.copy("")
-  print(f"file has been encrypted and stored on {dest} please proceed delete {source}, send to epiconcept via Epifiles and then remove {source} too")
+  print(f"file has been encrypted and stored on {dest} please proceed delete {source}, send to epiconcept via Epifiles and then remove {dest} too")
 
-def p02_004_decrypt_neoscope_extractions():   
-  """Decrypts the provided file to the dp_home directory using a webcam scanned QR-Code key"""
+def p02_004_send_neoscope_extractions_to_epifiles(epifiles, login, password):
+  """Sends the encrypted neoscope extractions to epifiles"""
+  source = os.path.join(get_home(), "extraction_neoscope.aes")
+  dest = f"epi://{urllib.parse.quote_plus(login)}:{urllib.parse.quote_plus(password)}@{epifiles}/extraction_neoscope.aes"
+  sparkly_cp(source = source, dest = dest) 
+
+def p02_005_get_neoscope_extractions_from_epifiles(epifiles, login, password):
+  """Gets the encrypted neoscope extractions from epifiles"""
+  dest = os.path.join(get_home(), "extraction_neoscope.aes")
+  source = f"epi://{urllib.parse.quote_plus(login)}:{urllib.parse.quote_plus(password)}@{epifiles}/extraction_neoscope.aes"
+  sparkly_cp(source = source, dest = dest) 
+
+def p02_006_decrypt_neoscope_extractions():   
+  """Decrypts the provided file to the dp_home directory using a key pasted on the clipboard"""
   crypted = os.path.join(get_home(), "extraction_neoscope.aes")
-  orig = os.path.join(get_home(), "extraction_neoscope.orig")
-  b64key = kskit.read_webcam_key(auto_close = True, camera_index = 0)
+  orig = os.path.join(get_home(), "extraction_neoscope.zip")
+  b64key = clipboard.paste()
   kskit.decrypt(crypted, orig, b64key)
   print(f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
 

@@ -1,19 +1,116 @@
 import sys
+import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from .p02_initial_extraction import *
+from . import utils
 
+def main(a):
+  # Base argument parser
+  parser = argparse.ArgumentParser()
+  subs = parser.add_subparsers()
+  
+  # extract command
+  extract_parser = subs.add_parser("extract", help = "Invoke initial extractions commands") 
+  extract_subs = extract_parser.add_subparsers()
 
-def main(command):
-  if command == "neoscope_key_to_clipboard" :
-    p02_002_neoscope_key_to_clipboard() 
-  elif command == "encrypt_neoscope_extractions" : 
-    get_home() 
+  # extract neoscope command
+  neoextract_parser = extract_subs.add_parser("neoscope", help = "Invoke neoscope extractions commands") 
+  neoextract_subs = neoextract_parser.add_subparsers()
+
+  # -- get neoscope key to clipboard
+  neokey2clipboard_parser = neoextract_subs.add_parser("readkey", aliases=['key'], help = "Copy the neoscope extraction key from qrcode to clipboard")
+  neokey2clipboard_parser.set_defaults(func = do_neokey2clipboard)
+
+  # -- encrypt neoscope extractions
+  encrypt_neoextract_parser = neoextract_subs.add_parser("encrypt", help = "Encrypt neoscope extractions")
+  encrypt_neoextract_parser.add_argument("-e", "--extractions", required=False, help="Path to a file containing the extraction files to be encryped. If not provided it will be prompted")
+  encrypt_neoextract_parser.set_defaults(func = do_encrypt_neoscope_extractions)
+
+  # -- upload encrypted files to epifiles
+  neoextract2epifiles_parser = neoextract_subs.add_parser("push2epifiles", aliases=["push"], help = "Push neoscope extractions to epifiles")
+  neoextract2epifiles_parser.add_argument(
+    "-e", 
+    "--epifiles-host", 
+    required=False, 
+    help="epifiles base host, default = epifiles.voozanoo.net", 
+    default = "epifiles.voozanoo.net"
+  )
+  neoextract2epifiles_parser.add_argument(
+    "-r", 
+    "--maven-repo", 
+    required=False, 
+    help="maven repository to use to download sparkly and dependencies, default = https://repo1.maven.org/maven2", 
+    default = "https://repo1.maven.org/maven2"
+  )
+  neoextract2epifiles_parser.add_argument("-u", "--epi-user", required=True, help="login for connecting to epifiles")
+  neoextract2epifiles_parser.set_defaults(func = do_neoextract2epifiles)
+
+  # -- download encrypted files from epifiles
+  epifiles2neoextract_parser = neoextract_subs.add_parser("pull2bigdata", aliases=["pull"], help = "Pull neoscope extractions from epifiles to big data infrastructure")
+  epifiles2neoextract_parser.add_argument(
+    "-e", 
+    "--epifiles-host", 
+    required=False, 
+    help="epifiles base host, default = epifiles.voozanoo.net", 
+    default = "epifiles.voozanoo.net"
+  )
+  epifiles2neoextract_parser.add_argument(
+    "-r", 
+    "--maven-repo", 
+    required=False, 
+    help="maven repository to use to download sparkly and dependencies, default = https://repo1.maven.org/maven2", 
+    default = "https://repo1.maven.org/maven2"
+  )
+  epifiles2neoextract_parser.add_argument("-u", "--epi-user", required=True, help="login for connecting to epifiles")
+  epifiles2neoextract_parser.set_defaults(func = do_epifiles2bigdata)
+  
+  # -- decrypt neoscope extractions
+  decrypt_neoextract_parser = neoextract_subs.add_parser("decrypt", help = "Decrypt neoscope extractions")
+  decrypt_neoextract_parser.set_defaults(func = do_decrypt_neoscope_extractions)
+   
+  # calling handlers
+  args = parser.parse_args()
+  try:
+    func = args.func
+  except AttributeError:
+    parser.error("too few arguments add -h to see your options")
+  
+  args.func(args)
+  
+
+# handlers
+def do_neokey2clipboard(args):
+  p02_002_neoscope_key_to_clipboard()
+
+def do_encrypt_neoscope_extractions(args):
+  get_home()
+  if args.extractions == None:
     print("Please chose the file to crypt")
     Tk().withdraw()
     filename = askopenfilename()
-    
-    p02_003_encrypt_neoscope_extractions(filename)   
+  else:
+    filename = args.extractions
+  p02_003_encrypt_neoscope_extractions(filename)   
+
+def do_neoextract2epifiles(args):
+  utils.prepare_sparkly(repo = args.maven_repo)
+  p02_004_send_neoscope_extractions_to_epifiles(
+    epifiles = args.epifiles_host, 
+    login=args.epi_user, 
+    password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
+  )
+def do_epifiles2bigdata(args):
+  utils.prepare_sparkly(repo = args.maven_repo)
+  p02_005_get_neoscope_extractions_from_epifiles(
+    epifiles = args.epifiles_host, 
+    login=args.epi_user, 
+    password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
+  )
+def do_decrypt_neoscope_extractions(args):
+  p02_006_decrypt_neoscope_extractions()   
 
 if __name__ == "__main__":
   main(sys.argv[1])
+
+
