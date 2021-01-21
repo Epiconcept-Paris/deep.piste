@@ -42,11 +42,11 @@ def p02_005_get_neoscope_extractions_from_epifiles(epifiles, login, password):
   source = f"epi://{urllib.parse.quote_plus(login)}:{urllib.parse.quote_plus(password)}@{epifiles}/extraction_neoscope.aes"
   sparkly_cp(source = source, dest = dest) 
 
-def p02_006_decrypt_neoscope_extractions():   
+def p02_006_decrypt_neoscope_extractions(key):   
   """Decrypts the provided file to the dp_home directory using a key pasted on the clipboard"""
   crypted = os.path.join(get_home(), "extraction_neoscope.aes")
   orig = os.path.join(get_home(), "extraction_neoscope.zip")
-  b64key = clipboard.paste()
+  b64key = key 
   kskit.decrypt(crypted, orig, b64key)
   print(f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
 

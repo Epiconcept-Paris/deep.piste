@@ -108,7 +108,7 @@ def do_epifiles2bigdata(args):
     password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
   )
 def do_decrypt_neoscope_extractions(args):
-  p02_006_decrypt_neoscope_extractions()   
+  p02_006_decrypt_neoscope_extractions(key = utils.get_password(f"neo_decrypt", f"Key for Neoscope extractions"))   
 
 if __name__ == "__main__":
   main(sys.argv[1])
