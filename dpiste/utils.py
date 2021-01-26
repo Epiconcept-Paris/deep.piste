@@ -2,8 +2,7 @@ import os
 from tkinter import Tk
 from tkinter import filedialog
 from kskit import java
-import getpass
-
+from kskit import password
 def get_home():
   if os.environ.get('DP_HOME') == None :
     print("Please select the deep.piste home folder")
@@ -11,10 +10,8 @@ def get_home():
     print(f"you have set  {os.environ.get('DP_HOME')} as epi home")
   return os.environ.get('DP_HOME')
 
-def get_password(name, message = None):
-  if os.environ.get(f'DP_PWD_{name.upper()}') == None :
-    return getpass.getpass(prompt=f"{message}:", stream=None)
-  return os.environ.get(f'DP_PWD_{name.upper()}')
+def get_password(prefix, name, message = None):
+  return password.get_password(f"{DP_PWD_}name", message)
 
 def prepare_sparkly(repo):
   home = get_home()

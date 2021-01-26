@@ -69,14 +69,15 @@ def main(a):
   decrypt_neoextract_parser = neoextract_subs.add_parser("decrypt", help = "Decrypt neoscope extractions")
   decrypt_neoextract_parser.set_defaults(func = do_decrypt_neoscope_extractions)
    
-  # calling handlers
-  args = parser.parse_args()
+  #calling handlers
+  func = None
   try:
+    args = parser.parse_args()
     func = args.func
   except AttributeError:
-    parser.error("too few arguments add -h to see your options")
-  
-  args.func(args)
+    parser.print_help()
+  if func != None:
+    args.func(args, parser)
   
 
 # handlers
