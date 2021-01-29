@@ -6,7 +6,7 @@ import urllib.parse
 from tkinter import Tk
 from tkinter import filedialog
 from .utils import get_home, sparkly_cp
-
+from kskit import voo
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -49,5 +49,21 @@ def p02_006_decrypt_neoscope_extractions(key):
   b64key = key 
   kskit.decrypt(crypted, orig, b64key)
   print(f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
+
+def p02_007_get_dicom_guid(esis_host, dataquery, login, password, batch_size):
+  """
+    Executes the esis data query for getting dicomq guids
+    data query source code is located here: https://github.com/Epiconcept-Paris/deep.piste/blob/main/dpiste/data/esis.xml
+  """
+  dest = os.path.join(get_home(), "esis_dicom_guid.parquet")
+  df = voo.get_dataset(
+    voo_url=esis_host, 
+    login=login, 
+    password=password, 
+    dataset = dataquery, 
+    format = "json", 
+    order_by = None, 
+    batch = batch_size)
+  df.to_parquet(dest, "pyarrow")
 
 

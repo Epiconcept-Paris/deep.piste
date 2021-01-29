@@ -28,7 +28,11 @@ def main(a):
   encrypt_neoextract_parser.set_defaults(func = do_encrypt_neoscope_extractions)
 
   # -- upload encrypted files to epifiles
-  neoextract2epifiles_parser = neoextract_subs.add_parser("push2epifiles", aliases=["push"], help = "Push neoscope extractions to epifiles")
+  neoextract2epifiles_parser = neoextract_subs.add_parser(
+    "push2epifiles", 
+    aliases=["push"], 
+    help = "Push neoscope extractions to epifiles. Password will be requested or can be set on environmant variable DP_PWD_EPI_FILES"
+  )
   neoextract2epifiles_parser.add_argument(
     "-e", 
     "--epifiles-host", 
@@ -69,6 +73,30 @@ def main(a):
   decrypt_neoextract_parser = neoextract_subs.add_parser("decrypt", help = "Decrypt neoscope extractions")
   decrypt_neoextract_parser.set_defaults(func = do_decrypt_neoscope_extractions)
    
+  # extract esis command
+  esis_parser = extract_subs.add_parser("esis", help = "Invoke esis command") 
+  esis_subs = esis_parser.add_subparsers()
+
+  # -- get esis data query
+  esis_get_guid = esis_subs.add_parser("dicom-guid", aliases=['guid'], help = "Get the list of dicom guids. Password will be requested or can be set on environmant variable DP_PWD_ESIS")
+  esis_get_guid.add_argument(
+    "-e", 
+    "--esis-host", 
+    required=False, 
+    help="esis application host, default = https://neoesis.preprod.voozanoo.net/neodemat", 
+    default = "https://neoesis.preprod.voozanoo.net/neodemat"
+  )
+  esis_get_guid.add_argument(
+    "-n", 
+    "--data-query", 
+    required=False, 
+    help="name or id of the data query to extract the guids", 
+    default = "deep-piste-extract"
+  )
+  esis_get_guid.add_argument("-u", "--esis-user", required=True, help="login for connecting to esis")
+  esis_get_guid.add_argument("-b", "--batch-size", required=False, help="batch size for data query pooling")
+  esis_get_guid.set_defaults(func = do_get_dicom_guid)
+  
   #calling handlers
   func = None
   try:
@@ -111,7 +139,16 @@ def do_epifiles2bigdata(args):
 def do_decrypt_neoscope_extractions(args):
   p02_006_decrypt_neoscope_extractions(key = utils.get_password(f"neo_decrypt", f"Key for Neoscope extractions"))   
 
+def do_get_dicom_guid(args, *other):
+  p02_007_get_dicom_guid(
+    esis_host = args.esis_host, 
+    dataquery = args.data_query, 
+    login=args.esis_user, 
+    password = utils.get_password(f"esis", f"Esis password for getting dicom guid queries"), 
+    batch_size = args.batch_size
+  )   
+
 if __name__ == "__main__":
-  main(sys.argv[1])
+  main(sys.argv[1] if len(sys.argv)>1 else None)
 
 

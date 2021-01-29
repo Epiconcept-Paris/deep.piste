@@ -10,8 +10,8 @@ def get_home():
     print(f"you have set  {os.environ.get('DP_HOME')} as epi home")
   return os.environ.get('DP_HOME')
 
-def get_password(prefix, name, message = None):
-  return password.get_password(f"{DP_PWD_}name", message)
+def get_password(name, message):
+  return password.get_password(f"DP_PWD_{name}", message)
 
 def prepare_sparkly(repo):
   home = get_home()
