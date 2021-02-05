@@ -7,6 +7,10 @@ from tkinter import Tk
 from tkinter import filedialog
 from .utils import get_home, sparkly_cp
 from kskit import voo
+import tempfile
+import subprocess
+import pandas as pd
+import numpy as np
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -50,20 +54,95 @@ def p02_006_decrypt_neoscope_extractions(key):
   kskit.decrypt(crypted, orig, b64key)
   print(f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
 
-def p02_007_get_dicom_guid(esis_host, dataquery, login, password, batch_size):
+def p02_007_get_dicom_guid(esis_host, dataquery, login, password, batch_size, remote_dest = None):
   """
     Executes the esis data query for getting dicomq guids
     data query source code is located here: https://github.com/Epiconcept-Paris/deep.piste/blob/main/dpiste/data/esis.xml
   """
-  dest = os.path.join(get_home(), "esis_dicom_guid.parquet")
-  df = voo.get_dataset(
-    voo_url=esis_host, 
-    login=login, 
-    password=password, 
-    dataset = dataquery, 
-    format = "json", 
-    order_by = None, 
-    batch = batch_size)
-  df.to_parquet(dest, "pyarrow")
+  tdir = tempfile.TemporaryDirectory()
+  ldest = os.path.join(get_home() if remote_dest == None else tdir.name, "esis_dicom_guid.parquet") 
+  try:
+    df = voo.get_dataset(
+      voo_url=esis_host, 
+      login=login, 
+      password=password, 
+      dataset = dataquery, 
+      format = "json", 
+      order_by = None, 
+      batch = batch_size)
+    df.to_parquet(ldest, "pyarrow")
+    if remote_dest != None:
+      subprocess.run(["scp", ldest, f"{remote_dest}:{os.path.join(get_home(), 'esis_dicom_guid.parquet')}"])
+  finally:
+    tdir.cleanup()
+
+def p02_008_get_dicom():
+  raise NotImplementedError
+
+def p02_009_neo_stats():
+  raise NotImplementedError
+
+def p02_010_dicom_stats():
+  dfile = os.path.join(get_home(), "esis_dicom_guid.parquet")
+  guid = pd.read_parquet(dfile)
+  lines = guid.shape[0]
+  print("----------------------------------------")
+  print("general metrics")
+  print("----------------------------------------")
+  print(f"{lines:,.0f} lines")
+  print(f"{guid[guid.person_id.isnull()].shape[0]/lines:,.0%} without person_id")
+  print(f"{guid[guid.appointment_date.isnull()].shape[0]/lines:,.0%} without appointment_date")
+  print(f"{guid[guid.center_name.isnull()].shape[0]/lines:,.0%} without radiologist")
+  print(f"{guid[guid.mammogram_date.isnull()].shape[0]/lines:,.0%} without mammogram date")
+  guid["esis_links"] = (
+    (guid.file_guid.str.len() > 10) |
+    (guid.study_instance_uid.str.len() > 10) | 
+    (guid.dicom_study_id.str.len() > 10)
+  )
+  without_links = guid[~guid.esis_links].shape[0]
+  print(f"{without_links/lines:,.0%} without link to esis via (file_guid, study_instance_id or dicom_study_id)")
+  print(f"{lines - without_links:,.0f} with link to esis via (file_guid, study_instance_id or dicom_study_id)")
+  print("----------------------------------------")
+  print("")
+  print("")
+  print("----------------------------------------")
+  print("groups of dicom link")
+  print("----------------------------------------")
+  print(
+    pd.DataFrame({
+      "file_guid":np.where(guid.file_guid.str.len() > 10, "Some", "-"),
+      "study_instance_uid":np.where(guid.study_instance_uid.str.len() > 10, "Some", "-"), 
+      "dicom_study_id": np.where(guid.dicom_study_id.str.len() > 10, "Some", "-")
+    }).groupby(
+      ["file_guid", "study_instance_uid", "dicom_study_id"]
+    ).size()
+    .to_string()
+  )
+  print("")
+  print("")
+  print("----------------------------------------")
+  print("mammograms per year with esis links")
+  print("----------------------------------------")
+  linked = guid[guid.esis_links]
+  dates = linked.set_index(linked.appointment_date)
+  print(
+    dates[["person_id"]]
+      .groupby(dates.index.year)
+      .count()
+      .to_string()
+  )
+  print("")
+  print("")
+  print("----------------------------------------")
+  print("mammograms per rediologist with esis links")
+  print("----------------------------------------")
+  print(
+    linked[["person_id"]]
+      .groupby(linked.center_name)
+      .count()
+      .to_string()
+  )
 
 
+def p02_011_dicom_stats():
+  raise NotImplementedError

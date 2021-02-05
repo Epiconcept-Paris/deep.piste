@@ -77,7 +77,7 @@ def main(a):
   esis_parser = extract_subs.add_parser("esis", help = "Invoke esis command") 
   esis_subs = esis_parser.add_subparsers()
 
-  # -- get esis data query
+  # -- get esis data dicom ids
   esis_get_guid = esis_subs.add_parser("dicom-guid", aliases=['guid'], help = "Get the list of dicom guids. Password will be requested or can be set on environmant variable DP_PWD_ESIS")
   esis_get_guid.add_argument(
     "-e", 
@@ -95,8 +95,14 @@ def main(a):
   )
   esis_get_guid.add_argument("-u", "--esis-user", required=True, help="login for connecting to esis")
   esis_get_guid.add_argument("-b", "--batch-size", required=False, help="batch size for data query pooling")
+  esis_get_guid.add_argument("-r", "--remote-dest", required=False, help="remote destination if file has to sent to a remote server via ssh")
   esis_get_guid.set_defaults(func = do_get_dicom_guid)
   
+  # -- analyse esis dicom ids
+  esis_stats = esis_subs.add_parser("stats", help = "Produce a set of aggregation to manually validate de soundness of esis DICOM id validations")
+  esis_stats.set_defaults(func = do_esis_stats)
+
+
   #calling handlers
   func = None
   try:
@@ -145,8 +151,11 @@ def do_get_dicom_guid(args, *other):
     dataquery = args.data_query, 
     login=args.esis_user, 
     password = utils.get_password(f"esis", f"Esis password for getting dicom guid queries"), 
-    batch_size = args.batch_size
+    batch_size = args.batch_size,
+    remote_dest = args.remote_dest
   )   
+def do_esis_stats(args, *other):
+  p02_010_dicom_stats() 
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
