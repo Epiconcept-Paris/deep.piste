@@ -18,7 +18,9 @@ setup(
     install_requires=[
       "kskit",
       "clipboard",
-      "pyarrow"
+      "pyarrow",
+      "docutils",
+      "recommonmark"
     ],
     packages=find_packages(exclude=('tests', 'docs')),
     include_package_data=True
