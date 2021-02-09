@@ -1,14 +1,15 @@
 SHELL = bash
 
 init:
-	python3 -m venv env;\
-	source env/bin/activate;\
-	pip install --upgrade pip;\
+	rm -r env 2> /dev/null 
+	python3 -m venv env;
+	source env/bin/activate;
+	pip install --upgrade pip;
 	pip install --upgrade setuptools wheel twine
 
 install:
-	source env/bin/activate;\
-	pip install -e .;\
+	source env/bin/activate;
+	pip install -e .;
 	pip install -e ../kskit
 
 package:

@@ -11,6 +11,7 @@ import tempfile
 import subprocess
 import pandas as pd
 import numpy as np
+from dpiste import report
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -82,67 +83,8 @@ def p02_008_get_dicom():
 def p02_009_neo_stats():
   raise NotImplementedError
 
-def p02_010_dicom_stats():
-  dfile = os.path.join(get_home(), "esis_dicom_guid.parquet")
-  guid = pd.read_parquet(dfile)
-  lines = guid.shape[0]
-  print("----------------------------------------")
-  print("general metrics")
-  print("----------------------------------------")
-  print(f"{lines:,.0f} lines")
-  print(f"{guid[guid.person_id.isnull()].shape[0]/lines:,.0%} without person_id")
-  print(f"{guid[guid.appointment_date.isnull()].shape[0]/lines:,.0%} without appointment_date")
-  print(f"{guid[guid.center_name.isnull()].shape[0]/lines:,.0%} without radiologist")
-  print(f"{guid[guid.mammogram_date.isnull()].shape[0]/lines:,.0%} without mammogram date")
-  guid["esis_links"] = (
-    (guid.file_guid.str.len() > 10) |
-    (guid.study_instance_uid.str.len() > 10) | 
-    (guid.dicom_study_id.str.len() > 10)
-  )
-  without_links = guid[~guid.esis_links].shape[0]
-  print(f"{without_links/lines:,.0%} without link to esis via (file_guid, study_instance_id or dicom_study_id)")
-  print(f"{lines - without_links:,.0f} with link to esis via (file_guid, study_instance_id or dicom_study_id)")
-  print("----------------------------------------")
-  print("")
-  print("")
-  print("----------------------------------------")
-  print("groups of dicom link")
-  print("----------------------------------------")
-  print(
-    pd.DataFrame({
-      "file_guid":np.where(guid.file_guid.str.len() > 10, "Some", "-"),
-      "study_instance_uid":np.where(guid.study_instance_uid.str.len() > 10, "Some", "-"), 
-      "dicom_study_id": np.where(guid.dicom_study_id.str.len() > 10, "Some", "-")
-    }).groupby(
-      ["file_guid", "study_instance_uid", "dicom_study_id"]
-    ).size()
-    .to_string()
-  )
-  print("")
-  print("")
-  print("----------------------------------------")
-  print("mammograms per year with esis links")
-  print("----------------------------------------")
-  linked = guid[guid.esis_links]
-  dates = linked.set_index(linked.appointment_date)
-  print(
-    dates[["person_id"]]
-      .groupby(dates.index.year)
-      .count()
-      .to_string()
-  )
-  print("")
-  print("")
-  print("----------------------------------------")
-  print("mammograms per rediologist with esis links")
-  print("----------------------------------------")
-  print(
-    linked[["person_id"]]
-      .groupby(linked.center_name)
-      .count()
-      .to_string()
-  )
-
+def p02_010_dicom_guid_report():
+  report.generate(report = "esis-import")
 
 def p02_011_dicom_stats():
   raise NotImplementedError

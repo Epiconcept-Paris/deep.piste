@@ -1,33 +1,17 @@
-from docutils import nodes, utils, core
-from io import StringIO
-from docutils.parsers.rst import roles
 import sys
 import os
 from pathlib import Path
 from .utils import *
+import jupytext
+from nbconvert.preprocessors import ExecutePreprocessor
+from nbconvert.exporters import HTMLExporter
+from traitlets.config import Config
 
-exec_env = {}
 
-def execute_role(role, rawtext, text, lineno, inliner,options={}, content=[]):
-  out0, err0 = sys.stdout, sys.stderr
-  output, err = StringIO(), StringIO()
-  
-  sys.stdout = output
-  sys.stderr = err
-  try:
-    exec(text, exec_env)
-  finally:
-    sys.stdout = out0
-    sys.stderr = err0
+# Configure and run out exporter
 
-  results = list()
-  results.append(output.getvalue())
-  results.append(err.getvalue())
-  results = ''.join(results)
-  node = nodes.Text(results, results)
-  return [node], []
-  
-def generate(source = None, dest = None, env = None):
+
+def generate(source = None, dest = None, report = None):
   """
   generate HTML reports from a folder with structured text files
   python blocs can be evaluated with the :python:`print("hello")` syntax
@@ -42,25 +26,30 @@ def generate(source = None, dest = None, env = None):
   Path(source).mkdir(parents=False, exist_ok=True)
   Path(dest).mkdir(parents=False, exist_ok=True)
 
-  #registering the python role if first call
-  roles.register_local_role("python", execute_role)
-  
-  #setting environment if provided
-  if env != None: 
-    exec_env = env
-  else:
-    exec_env = {}
+  #setting up the jupyter kernel name
+  ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+  c = Config()
 
+  # Configure our tag removal
+  c.TagRemovePreprocessor.remove_cell_tags = ("hide-cell",)
+  c.TagRemovePreprocessor.remove_all_outputs_tags = ('hide-output',)
+  c.TagRemovePreprocessor.remove_input_tags = ('hide-input',)
+  c.HTMLExporter.preprocessors = ["nbconvert.preprocessors.TagRemovePreprocessor"]
+
+  html_exporter = HTMLExporter(config=c)
+  #html_exporter.template_name = 'classic'
+  
   #iterating over all reports
   for path in os.listdir(source):
-    if path.endswith('.rst'):
-      report_name = path[0:len(path)-4]
-      print(f"generating report {report_name}")
-      with open(os.path.join(source, path)) as f:
-        st = f.read() 
-        doc = core.publish_parts(st, writer_name='html')
-      with open(os.path.join(dest, f"{report_name}.html"), 'w') as out:
-        out.write(doc['whole'])
+    if path.endswith('.md'):
+      report_name = path[0:len(path)-3]
+      if report == None or report_name == report:
+        print(f"generating report {report_name}")
+        nb = jupytext.read(os.path.join(source, path))   
+        ep.preprocess(nb)             
+        (body, resources) = html_exporter.from_notebook_node(nb)
+        with open(os.path.join(dest, f"{report_name}.html"), 'w') as out:
+          out.write(body)
   
   exec_env = {} 
 

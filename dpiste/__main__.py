@@ -99,8 +99,8 @@ def main(a):
   esis_get_guid.set_defaults(func = do_get_dicom_guid)
   
   # -- analyse esis dicom ids
-  esis_stats = esis_subs.add_parser("stats", help = "Produce a set of aggregation to manually validate de soundness of esis DICOM id validations")
-  esis_stats.set_defaults(func = do_esis_stats)
+  esis_reports = esis_subs.add_parser("report", help = "Produce a set of aggregation to manually validate de soundness of esis DICOM id validations")
+  esis_reports.set_defaults(func = do_esis_report)
 
 
   #calling handlers
@@ -154,8 +154,8 @@ def do_get_dicom_guid(args, *other):
     batch_size = args.batch_size,
     remote_dest = args.remote_dest
   )   
-def do_esis_stats(args, *other):
-  p02_010_dicom_stats() 
+def do_esis_report(args, *other):
+  p02_010_dicom_guid_report() 
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)

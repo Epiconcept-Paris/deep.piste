@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='deep-piste',
-    version='0.0.11',
+    version='0.0.12',
     description='Evaluating the impact of IA on Breast Cancer Screening Program',
     long_description=readme,
     long_description_content_type='text/markdown',
@@ -19,8 +19,10 @@ setup(
       "kskit",
       "clipboard",
       "pyarrow",
-      "docutils",
-      "recommonmark"
+      "ipykernel",
+      "nbconvert",
+      "jupytext",
+      "plotly",
     ],
     packages=find_packages(exclude=('tests', 'docs')),
     include_package_data=True
