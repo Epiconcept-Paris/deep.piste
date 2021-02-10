@@ -37,6 +37,7 @@ lines = guid.shape[0]
 print(f"{lines:,.0f} lines")
 print(f"{guid[guid.person_id.isnull()].shape[0]/lines:,.0%} without person_id")
 print(f"{guid[guid.appointment_date.isnull()].shape[0]/lines:,.0%} without appointment_date")
+print(f"{guid[guid.date_study.isnull()].shape[0]/lines:,.0%} without study_date")
 print(f"{guid[guid.center_name.isnull()].shape[0]/lines:,.0%} without radiologist")
 print(f"{guid[guid.mammogram_date.isnull()].shape[0]/lines:,.0%} without mammogram date")
 guid["esis_links"] = (
@@ -92,23 +93,46 @@ ret
 ## Distribution of months between appointment date and mammogram date
 ```python tags=["hide-input"]
 months = (linked_and_mammodate.appointment_date - linked_and_mammodate.mammogram_date).map(lambda d: d.days/30)
-n, bins, patches = plt.hist(months, bins = 50)
+negs = months.loc[lambda m: m < 0]
+n, bins, patches = plt.hist(negs/12, bins = 50)
 plt.ylabel('Number of images')
-plt.xlabel('Months between appointment and mammogram date')
+plt.xlabel('mammogram years before appointment date')
 plt.show()
-
 ```
-
-## Number of images per mammogral appointment
+ 
 ```python tags=["hide-input"]
-mammo_count = ( 
-  linked
-    .groupby([linked.person_id, linked.appointment_date])
-    .count()["center_name"] 
-)
-n, bins, patches = plt.hist(mammo_count)
-plt.ylabel('Number of mammogramm per appointment')
-plt.xlabel('Number of images taken')
+less5y = months.loc[lambda m: (m >= 0) & (m <= 12*10)]
+n, bins, patches = plt.hist(less5y, bins = 50)
+plt.ylabel('Number of images')
+plt.xlabel('Mammogram months after appointment date less than 10y')
 plt.show()
 ```
+
+```python tags=["hide-input"]
+more5y = months.loc[lambda m: m > 12*10]
+n, bins, patches = plt.hist(more5y/12, bins = 50)
+plt.ylabel('Number of images')
+plt.xlabel('Mammogram years 10y after appointment date')
+plt.show()
+```
+## Number of images per mammogram appointment
+```python tags=["hide-input"]
+mammo_count = (
+  linked
+      .groupby([linked.person_id, linked.appointment_date])
+          .count()["center_name"]
+          )
+less10 = mammo_count[lambda c: c <= 12]
+more10 = mammo_count[lambda c: c > 12]
+n, bins, patches = plt.hist(less10, bins = 12)
+plt.ylabel('Number of mammogramm per appointment')
+plt.xlabel('Number of images when less than 10')
+plt.show()
+
+n, bins, patches = plt.hist(more10, bins = 50)
+plt.ylabel('Number of mammogramm per appointment')
+plt.xlabel('Number of images taken where more than 12')
+plt.show()
+```
+
 
