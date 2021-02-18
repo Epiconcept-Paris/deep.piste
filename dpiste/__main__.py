@@ -25,6 +25,8 @@ def main(a):
   # -- encrypt neoscope extractions
   encrypt_neoextract_parser = neoextract_subs.add_parser("encrypt", help = "Encrypt neoscope extractions")
   encrypt_neoextract_parser.add_argument("-e", "--extractions", required=False, help="Path to a file containing the extraction files to be encryped. If not provided it will be prompted")
+  encrypt_neoextract_parser.add_argument("-w", "--webcam", required=False, help="Flag to establish that system webcam will be used to get password", action = "store_true", default = False)
+  encrypt_neoextract_parser.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = True)
   encrypt_neoextract_parser.set_defaults(func = do_encrypt_neoscope_extractions)
 
   # -- upload encrypted files to epifiles
@@ -102,7 +104,16 @@ def main(a):
   esis_reports = esis_subs.add_parser("report", help = "Produce a set of aggregation to manually validate de soundness of esis DICOM id validations")
   esis_reports.set_defaults(func = do_esis_report)
 
+  # extract dcm4chee command
+  dcm4chee_parser = extract_subs.add_parser("dcm4chee", help = "Invoke dcm4chee extractions commands") 
+  dcm4chee_subs = dcm4chee_parser.add_subparsers()
 
+  # -- get dicom parser
+  get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
+  get_dicom_parser.add_argument("-s", "--server", required=True, help="Path to a file containing the extraction files to be encryped. If not provided it will be prompted")
+  get_dicom_parser.add_argument("-p", "--port", required=False, help="Flag to establish that system webcam will be used to get password", default = 11112)
+  get_dicom_parser.set_defaults(func = do_get_dicom)
+  
   #calling handlers
   func = None
   try:
@@ -115,10 +126,10 @@ def main(a):
   
 
 # handlers
-def do_neokey2clipboard(args):
+def do_neokey2clipboard(args, *other):
   p02_002_neoscope_key_to_clipboard()
 
-def do_encrypt_neoscope_extractions(args):
+def do_encrypt_neoscope_extractions(args, *other):
   get_home()
   if args.extractions == None:
     print("Please chose the file to crypt")
@@ -126,23 +137,23 @@ def do_encrypt_neoscope_extractions(args):
     filename = askopenfilename()
   else:
     filename = args.extractions
-  p02_003_encrypt_neoscope_extractions(filename)   
+  p02_003_encrypt_neoscope_extractions(source = filename, webcam_pwd = args.webcam, clipboard_pwd = args.clipbord)   
 
-def do_neoextract2epifiles(args):
+def do_neoextract2epifiles(args, *other):
   utils.prepare_sparkly(repo = args.maven_repo)
   p02_004_send_neoscope_extractions_to_epifiles(
     epifiles = args.epifiles_host, 
     login=args.epi_user, 
     password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
   )
-def do_epifiles2bigdata(args):
+def do_epifiles2bigdata(args, *other):
   utils.prepare_sparkly(repo = args.maven_repo)
   p02_005_get_neoscope_extractions_from_epifiles(
     epifiles = args.epifiles_host, 
     login=args.epi_user, 
     password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
   )
-def do_decrypt_neoscope_extractions(args):
+def do_decrypt_neoscope_extractions(args, *other):
   p02_006_decrypt_neoscope_extractions(key = utils.get_password(f"neo_decrypt", f"Key for Neoscope extractions"))   
 
 def do_get_dicom_guid(args, *other):
@@ -154,6 +165,9 @@ def do_get_dicom_guid(args, *other):
     batch_size = args.batch_size,
     remote_dest = args.remote_dest
   )   
+def do_get_dicom(args, *other):
+  p02_008_get_dicom(server = args.server, port = args.port)
+
 def do_esis_report(args, *other):
   p02_010_dicom_guid_report() 
 

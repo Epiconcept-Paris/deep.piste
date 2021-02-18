@@ -13,9 +13,11 @@ from traitlets.config import Config
 
 def generate(source = None, dest = None, report = None):
   """
-  generate HTML reports from a folder with structured text files
-  python blocs can be evaluated with the :python:`print("hello")` syntax
-  other docutils roles are also supported
+  generate jypyter HTML reports from a folder with markdown files
+  python blocs can be evaluated with the the follwing syntax
+  ```python
+  print("hello")
+  ```
   source: de folder containing the st files to transform into html files
   dest: the destination folder to store destination HTML files 
   """

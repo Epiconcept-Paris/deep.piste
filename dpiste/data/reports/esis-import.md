@@ -20,14 +20,13 @@ import os
 import pandas as pd
 import numpy as np
 from dpiste.utils import get_home 
+from dpiste import dal
 import matplotlib.pyplot as plt
 
 
 plt.rcParams['figure.figsize'] = [10, 5]
-dfile = os.path.join(get_home(), "esis_dicom_guid.parquet")
-guid = pd.read_parquet(dfile)
+guid = dal.dicom_guid()
 ```
-
 # Esis import analysis
 
 ## General metrics

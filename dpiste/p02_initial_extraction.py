@@ -7,6 +7,8 @@ from tkinter import Tk
 from tkinter import filedialog
 from .utils import get_home, sparkly_cp
 from kskit import voo
+import kskit.crypto
+import kskit.dicom
 import tempfile
 import subprocess
 import pandas as pd
@@ -22,14 +24,19 @@ def p02_001_generate_neoscope_key():
   
 def p02_002_neoscope_key_to_clipboard():   
   """Use user webcam to copy the neoscope encryption base 64 key to the clipboard"""
-  b64key = kskit.read_webcam_key(auto_close = True, camera_index = 0)
+  b64key = kskit.crypto.read_webcam_key(auto_close = True, camera_index = 0)
   clipboard.copy(b64key)
   print(f"the key has been copied to the clipboard, put it to the server clipboard and call p02_003_encrypt_neoscope_extractions on it")
 
-def p02_003_encrypt_neoscope_extractions(source):   
+def p02_003_encrypt_neoscope_extractions(source, webcam_pwd = True, clipboard_pwd = False):   
   """Encrypts the provided file to the dp_home directory using a clipboard pasted base 64 key"""
   dest = os.path.join(get_home(), "extraction_neoscope.aes")
-  b64key = clipboard.paste()
+  if webcam_pwd:
+    b64key = kskit.crypto.read_webcam_key(auto_close = True, camera_index = 0)
+  elif clipboard_pwd:
+    b64key = clipboard.paste()
+  else:
+    raise ValueError("either webcam or clipboard password has to be usef")
   kskit.encrypt(source, dest, b64key)
   #cleaning clipboard
   clipboard.copy("")
@@ -77,8 +84,14 @@ def p02_007_get_dicom_guid(esis_host, dataquery, login, password, batch_size, re
   finally:
     tdir.cleanup()
 
-def p02_008_get_dicom():
-  raise NotImplementedError
+def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'SERIES'):
+  ids = '1.3.6.1.4.1.9590.100.1.2.25530538411839768118282182472795553760'
+  title = "DCM4CHEE"
+  dest = os.path.join(get_home(), "dicom", ids) 
+  if not os.path.exists(dest):
+    os.makedirs(dest)
+   
+  kskit.dicom.get_dicom(ids = ids, dest = dest, server = server, port = port, title = title, retrieveLevel = 'SERIES')
 
 def p02_009_neo_stats():
   raise NotImplementedError
