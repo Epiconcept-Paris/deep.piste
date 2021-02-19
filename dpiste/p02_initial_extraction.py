@@ -1,5 +1,6 @@
 import kskit
 import os
+import math
 import base64
 import clipboard
 import urllib.parse
@@ -14,6 +15,7 @@ import subprocess
 import pandas as pd
 import numpy as np
 from dpiste import report
+from . import dal
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -84,14 +86,17 @@ def p02_007_get_dicom_guid(esis_host, dataquery, login, password, batch_size, re
   finally:
     tdir.cleanup()
 
-def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'SERIES'):
-  ids = '1.3.6.1.4.1.9590.100.1.2.25530538411839768118282182472795553760'
+def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, page_size = 10):
   title = "DCM4CHEE"
-  dest = os.path.join(get_home(), "dicom", ids) 
-  if not os.path.exists(dest):
-    os.makedirs(dest)
-   
-  kskit.dicom.get_dicom(ids = ids, dest = dest, server = server, port = port, title = title, retrieveLevel = 'SERIES')
+  studies = dal.esis.dicom_instance_uid()
+  chunks = math.floor(studies.size / page_size)
+  uids = [uid for i, uid in enumerate(studies) if i % chunks == page - 1]
+
+  for uid in uids:
+    dest = os.path.join(get_home(), "dicom", uid) 
+    if not os.path.exists(dest):
+      os.makedirs(dest)
+    kskit.dicom.get_dicom(key = uid, dest = dest, server = server, port = port, title = title, retrieveLevel = retrieveLevel)
 
 def p02_009_neo_stats():
   raise NotImplementedError

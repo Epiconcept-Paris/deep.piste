@@ -25,7 +25,7 @@ import matplotlib.pyplot as plt
 
 
 plt.rcParams['figure.figsize'] = [10, 5]
-guid = dal.dicom_guid()
+guid = dal.esis.dicom_guid()
 ```
 # Esis import analysis
 
@@ -34,11 +34,18 @@ guid = dal.dicom_guid()
 ```python tags=["hide-input"]
 lines = guid.shape[0]
 print(f"{lines:,.0f} lines")
-print(f"{guid[guid.person_id.isnull()].shape[0]/lines:,.0%} without person_id")
-print(f"{guid[guid.appointment_date.isnull()].shape[0]/lines:,.0%} without appointment_date")
-print(f"{guid[guid.date_study.isnull()].shape[0]/lines:,.0%} without study_date")
-print(f"{guid[guid.center_name.isnull()].shape[0]/lines:,.0%} without radiologist")
-print(f"{guid[guid.mammogram_date.isnull()].shape[0]/lines:,.0%} without mammogram date")
+
+pd.DataFrame(
+  ([col, 
+    f"{guid[(guid[col].isnull()) | (guid[col] == 'None')].shape[0]/lines:,.0%}", 
+    f"{guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].nunique()}",
+    f"{guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].size/guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].nunique():.2f}"
+    ] for col in guid.columns)
+  ,columns = ("column", "empty", "unique", "avg repetition")
+)
+```
+
+```python tags=["hide-input"]
 guid["esis_links"] = (
   (guid.file_guid.str.len() > 10) |
   (guid.study_instance_uid.str.len() > 10) | 

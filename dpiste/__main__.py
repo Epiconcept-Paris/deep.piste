@@ -110,8 +110,10 @@ def main(a):
 
   # -- get dicom parser
   get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
-  get_dicom_parser.add_argument("-s", "--server", required=True, help="Path to a file containing the extraction files to be encryped. If not provided it will be prompted")
-  get_dicom_parser.add_argument("-p", "--port", required=False, help="Flag to establish that system webcam will be used to get password", default = 11112)
+  get_dicom_parser.add_argument("-s", "--server", required=True, help="Host for dcm4chee")
+  get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
+  get_dicom_parser.add_argument("-n", "--page-number", required=False, help="Page number to get, default 1", default = 1, type = int)
+  get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
   get_dicom_parser.set_defaults(func = do_get_dicom)
   
   #calling handlers
@@ -166,7 +168,7 @@ def do_get_dicom_guid(args, *other):
     remote_dest = args.remote_dest
   )   
 def do_get_dicom(args, *other):
-  p02_008_get_dicom(server = args.server, port = args.port)
+  p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
 
 def do_esis_report(args, *other):
   p02_010_dicom_guid_report() 
