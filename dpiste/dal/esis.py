@@ -11,3 +11,19 @@ def dicom_instance_uid():
     .study_instance_uid
     .loc[lambda uid: uid != "None"]
     .unique()
+
+
+def dicom_df_files() :
+  dicomdf_dir = os.path.join(get_home(), "dicom_df")
+  for root, dirs, files in os.walk(dicomdf_dir):
+    for file in files:
+      yield os.path.join(root, file)
+
+def dicom_df()
+  return = pd.concat(
+    map(
+      lambda f: pandas.read_parquet(f),
+      dicom_df_files()
+    )
+    , ignore_index = True
+  )

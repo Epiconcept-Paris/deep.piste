@@ -108,13 +108,17 @@ def main(a):
   dcm4chee_parser = extract_subs.add_parser("dcm4chee", help = "Invoke dcm4chee extractions commands") 
   dcm4chee_subs = dcm4chee_parser.add_subparsers()
 
-  # -- get dicom parser
+  # -- get dicom 
   get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
   get_dicom_parser.add_argument("-s", "--server", required=True, help="Host for dcm4chee")
   get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
   get_dicom_parser.add_argument("-n", "--page-number", required=False, help="Page number to get, default 1", default = 1, type = int)
   get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
   get_dicom_parser.set_defaults(func = do_get_dicom)
+  
+  # -- analyse esis dicom ids
+  dcm4chee_reports = dcm4chee_subs.add_parser("report", help = "Produce a set of aggregation to manually validate de soundness of dcm4chee DICOM validations")
+  dcm4chee_reports.set_defaults(func = do_dcm4chee_report)
   
   #calling handlers
   func = None
@@ -172,6 +176,10 @@ def do_get_dicom(args, *other):
 
 def do_esis_report(args, *other):
   p02_010_dicom_guid_report() 
+
+def do_dcm4chee_report(args, *other):
+  p02_011_dicom_report() 
+
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)

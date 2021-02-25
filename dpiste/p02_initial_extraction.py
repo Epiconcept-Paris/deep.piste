@@ -92,11 +92,23 @@ def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, p
   chunks = math.floor(studies.size / page_size)
   uids = [uid for i, uid in enumerate(studies) if i % chunks == page - 1]
 
+  print("getting dicoms")
   for uid in uids:
     dest = os.path.join(get_home(), "dicom", uid) 
     if not os.path.exists(dest):
       os.makedirs(dest)
     kskit.dicom.get_dicom(key = uid, dest = dest, server = server, port = port, title = title, retrieveLevel = retrieveLevel)
+  
+  print("producing consolidated dicom dataframe")
+  dicom_dir = os.path.join(get_home(), "dicom")
+  df = kskit.dicom.dicom2df(dicom_dir)
+  
+  print("Saving dicom consolidated dataframe")
+  dicomdf_dir = os.path.join(get_home(), "dicom_df")
+  if not os.path.exists(dicomdf_dir):
+    os.makedirs(dicomdf_dir)
+  df.to_parquet(os.path.join(dicomdf_dir, page), "pyarrow")
+
 
 def p02_009_neo_stats():
   raise NotImplementedError
@@ -104,5 +116,7 @@ def p02_009_neo_stats():
 def p02_010_dicom_guid_report():
   report.generate(report = "esis-import")
 
-def p02_011_dicom_stats():
-  raise NotImplementedError
+def p02_011_dicom_report():
+  report.generate(report = "dcm4chee-import")
+
+  

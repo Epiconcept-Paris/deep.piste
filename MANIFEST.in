@@ -3,3 +3,4 @@ include README.md
 include dpiste/data/esis.xml
 include dpiste/data/sparkly-maven-paths.url
 include dpiste/data/reports/esis-import.md
+include dpiste/data/reports/dcm4chee-import.md

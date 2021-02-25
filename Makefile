@@ -1,7 +1,10 @@
 SHELL = bash
 
 init:
-	rm -r env 2> /dev/null 
+	
+	if [ -f env ]; then\
+	  rm -r env;\
+	fi 
 	python3 -m venv env;
 	source env/bin/activate;
 	pip install --upgrade pip;
