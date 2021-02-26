@@ -7,11 +7,11 @@ def dicom_guid():
   return pd.read_parquet(dfile)
 
 def dicom_instance_uid():
-  return dicom_guid()
+  return (dicom_guid()
     .study_instance_uid
     .loc[lambda uid: uid != "None"]
     .unique()
-
+  )
 
 def dicom_df_files() :
   dicomdf_dir = os.path.join(get_home(), "dicom_df")
@@ -19,10 +19,10 @@ def dicom_df_files() :
     for file in files:
       yield os.path.join(root, file)
 
-def dicom_df()
-  return = pd.concat(
+def dicom_df():
+  return pd.concat(
     map(
-      lambda f: pandas.read_parquet(f),
+      lambda f: pd.read_parquet(f),
       dicom_df_files()
     )
     , ignore_index = True

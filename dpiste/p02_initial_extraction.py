@@ -107,7 +107,7 @@ def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, p
   dicomdf_dir = os.path.join(get_home(), "dicom_df")
   if not os.path.exists(dicomdf_dir):
     os.makedirs(dicomdf_dir)
-  df.to_parquet(os.path.join(dicomdf_dir, page), "pyarrow")
+  df.to_parquet(os.path.join(dicomdf_dir, str(page)), "pyarrow")
 
 
 def p02_009_neo_stats():

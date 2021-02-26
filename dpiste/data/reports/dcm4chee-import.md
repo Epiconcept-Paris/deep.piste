@@ -34,15 +34,18 @@ dicom_df = dal.esis.dicom_df()
 ```python tags=["hide-input"]
 lines = dicom_df.shape[0]
 print(f"{lines:,.0f} lines")
-
-pd.DataFrame(
+df = pd.DataFrame(
   ([col, 
     f"{dicom_df[(dicom_df[col].isnull()) | (dicom_df[col] == 'None')].shape[0]/lines:,.0%}", 
     f"{dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].nunique()}",
-    f"{dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].size/dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].nunique():.2f}"
+    f"{dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].size/dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].nunique():.2f}",
+    f"{', '.join(dicom_df[~((dicom_df[col].isnull()) | (dicom_df[col] == 'None'))][col].value_counts()[:10].index.tolist())}"[0:100]
     ] for col in dicom_df.columns)
-  ,columns = ("column", "empty", "unique", "avg repetition")
+  ,columns = ("column", "empty", "unique", "avg repetition", "samples")
 )
+pd.set_option('display.max_colwidth', None)
+pd.options.display.max_rows = None
+df
 ```
 
 
