@@ -3,12 +3,19 @@ from tkinter import Tk
 from tkinter import filedialog
 from kskit import java
 from kskit import password
-def get_home():
+import os
+
+def get_home(*paths):
   if os.environ.get('DP_HOME') == None :
     print("Please select the deep.piste home folder")
     os.environ['DP_HOME'] = filedialog.askdirectory()
     print(f"you have set  {os.environ.get('DP_HOME')} as epi home")
-  return os.environ.get('DP_HOME')
+  base = os.environ.get('DP_HOME')
+  paths = list(paths)
+  paths.insert(0, base)
+  if len(paths) > 1:
+    os.makedirs(os.path.join(*paths[0:len(paths)-1]), exist_ok = True)
+  return os.path.join(*paths)
 
 def get_password(name, message):
   return password.get_password(f"DP_PWD_{name}", message)

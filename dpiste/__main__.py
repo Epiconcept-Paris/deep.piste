@@ -136,7 +136,6 @@ def do_neokey2clipboard(args, *other):
   p02_002_neoscope_key_to_clipboard()
 
 def do_encrypt_neoscope_extractions(args, *other):
-  get_home()
   if args.extractions == None:
     print("Please chose the file to crypt")
     Tk().withdraw()
