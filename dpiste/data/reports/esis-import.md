@@ -58,9 +58,6 @@ linked_and_mammodate = linked[pd.notna(linked.mammogram_date)]
 print(f"{without_links.shape[0]/lines:,.0%} without link to esis via (file_guid, study_instance_id or dicom_study_id)")
 print(f"{lines - without_links.shape[0]:,.0f} with link to esis via (file_guid, study_instance_id or dicom_study_id)")
 print(f"{linked_and_mammodate.shape[0]/linked.shape[0]:,.0%} have also a mammogram date")
-
-
-
 ```
 
 ## Groups of dicom links

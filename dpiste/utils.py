@@ -4,6 +4,7 @@ from tkinter import filedialog
 from kskit import java
 from kskit import password
 import os
+import datetime
 
 def get_home(*paths):
   if os.environ.get('DP_HOME') == None :
@@ -36,3 +37,6 @@ def sparkly_cp(source, dest):
     Moving files from sparkly supported storage systems
   """ 
   java.java_job(main_class = "fr.epiconcept.sparkly.Command", class_path = f"{os.path.join(get_home(), 'libs', 'jars')}" , memory = "1g", args = ["storage", "cp", "from", source, "to", dest, "force", "true"])
+
+def log(message):
+  print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{message}")
