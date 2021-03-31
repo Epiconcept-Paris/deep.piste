@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import functools
+import json
 
 def get_na_rows(df, pk):
   pk = [pk] if type(pk)==str else pk 
@@ -50,4 +51,5 @@ def check_fks(dfs, fks, pks):
     assert fkcol.dtype == pkcol.dtype, f"different dtypes on {fk} {fkcol.dtype} != {pkcol.dtype}"
     diff = set(fkcol.values).difference({pd.NA}).difference(set(pkcol.values))
     assert len(diff) == 0, f"foreign key {fk} violated by {len(diff)} elements, e.g. {list(diff)[0]}"
+
 

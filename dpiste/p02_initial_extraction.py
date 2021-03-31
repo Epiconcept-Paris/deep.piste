@@ -106,11 +106,14 @@ def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, p
   df.to_parquet(os.path.join(dicomdf_dir, str(page)), "pyarrow")
 
 
-def p02_009_neo_stats():
+def p02_009_neo_report():
   report.generate(report = "neo-stats")
                                                                                                                                                   
-def p02_010_dicom_guid_report():                                                                                                                  
+def p02_010_esis_report():                                                                                                                  
   report.generate(report = "esis-import")                                                                                                         
                                                                                                                                                   
 def p02_011_dicom_report():                                                                                                                       
   report.generate(report = "dcm4chee-import")                                                                                                     
+
+def p02_012_screening_report():                                                                                                                       
+  report.generate(report = "screening-stats")                                                                                                     

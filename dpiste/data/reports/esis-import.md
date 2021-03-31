@@ -23,26 +23,42 @@ from dpiste.utils import get_home
 from dpiste import dal
 import matplotlib.pyplot as plt
 
-
+pd.set_option('display.max_rows', None)
 plt.rcParams['figure.figsize'] = [10, 5]
-guid = dal.esis.dicom_guid()
 ```
 # Esis import analysis
 
-## General metrics
-
-```python tags=["hide-input"]
-lines = guid.shape[0]
-print(f"{lines:,.0f} lines")
-
-pd.DataFrame(
+```python tags=["hide-cell"]
+def stat_df(df):
+ lines = df.shape[0]
+ return pd.DataFrame(
   ([col, 
-    f"{guid[(guid[col].isnull()) | (guid[col] == 'None')].shape[0]/lines:,.0%}", 
-    f"{guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].nunique()}",
-    f"{guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].size/guid[~((guid[col].isnull()) | (guid[col] == 'None'))][col].nunique():.2f}"
-    ] for col in guid.columns)
-  ,columns = ("column", "empty", "unique", "avg repetition")
+    f"{df[(df[col].isnull())].shape[0]/lines:,.0%}", 
+    f"{df[col].dtype}", 
+    f"{df[~df[col].isnull()][col].nunique()}",
+    f"{df[~df[col].isnull()][col].size/df[~df[col].isnull()][col].nunique():.2f}"
+    ] for col in df.columns)
+  ,columns = ("column", "type", "empty", "unique", "avg repetition")
 )
+
+dfs = {}
+guid = dal.esis.dicom_guid(dfs)
+```
+
+## mammogram guid import
+```python tags=["hide-input"]
+stat_df(dfs["dicom_guid"])
+```
+
+## guid na & dup
+```python tags=["hide-input"]
+print(f"NAq: {dfs['dicom_guid_na'].shape[0]}")
+print(f"Duplicated: {dfs['dicom_guid_dup'].shape[0]}")
+```
+
+## mammogram exams
+```python tags=["hide-input"]
+stat_df(dal.esis.dicom_exams(dfs))
 ```
 
 ```python tags=["hide-input"]
@@ -51,6 +67,7 @@ guid["esis_links"] = (
   (guid.study_instance_uid.str.len() > 10) | 
   (guid.dicom_study_id.str.len() > 10)
 )
+lines = guid.shape[0]
 without_links = guid[~guid.esis_links]
 linked = guid[guid.esis_links]
 linked_and_mammodate = linked[pd.notna(linked.mammogram_date)]
@@ -64,9 +81,9 @@ print(f"{linked_and_mammodate.shape[0]/linked.shape[0]:,.0%} have also a mammogr
 
 ```python tags=["hide-input"]
 pd.DataFrame({
-  "file_guid":np.where(guid.file_guid.str.len() > 10, "Some", "-"),
-  "study_instance_uid":np.where(guid.study_instance_uid.str.len() > 10, "Some", "-"), 
-  "dicom_study_id": np.where(guid.dicom_study_id.str.len() > 10, "Some", "-")
+  "file_guid":np.where(pd.notna(guid.file_guid), "Some", "-"),
+  "study_instance_uid":np.where(pd.notna(guid.study_instance_uid), "Some", "-"), 
+  "dicom_study_id": np.where(pd.notna(guid.dicom_study_id), "Some", "-")
 }).groupby(
   ["file_guid", "study_instance_uid", "dicom_study_id"]
 ).size()

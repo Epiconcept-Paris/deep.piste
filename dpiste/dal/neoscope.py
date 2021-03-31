@@ -98,7 +98,7 @@ def read_source_csv(name):
       dtype = {"Age_Mammo":"float", "id_event":pd.Int64Dtype()}
       parse_dates = ["Date_Mammo"]
       b_cols = ["THS", "ATCD_Cancer","ATCD_Cancer_Bilateral", "ATCD_Chir_Esth", "ATCD_Famil_Mere", "ATCD_Famil_Soeur", "ATCD_Famil_Fille", "ATCD_Famil_Autre"]
-      a_cols = ["Age_ATCD_Cancer","Age_ATCD_Cancer_Bilateral", "Age_ATCD_Chir_Esth", "Age_ATCD_Famil_Mere", "Age_ATCD_Famil_Soeur", "Age_ATCD_Famil_Fille", "Age_ATCD_Famil_Autre"]        
+      a_cols = ["Age_Mammo","Age_ATCD_Cancer","Age_ATCD_Cancer_Bilateral", "Age_ATCD_Chir_Esth", "Age_ATCD_Famil_Mere", "Age_ATCD_Famil_Soeur", "Age_ATCD_Famil_Fille", "Age_ATCD_Famil_Autre"]        
     elif name=="dépistage":
       dtype = {
         "Id_event":pd.Int64Dtype(), 
@@ -108,11 +108,12 @@ def read_source_csv(name):
         "L1_ACR_SD":"string", 
         "L2_ACR_SD_SD":"string", 
         "L2_ACR_SD_SG":"string",
-        "BDI":"string",
-        "resultat_global_L1L2":"string"  
+        "BDI":"string" 
       }
       parse_dates = ["Date_Mammo"]
+      b_cols = ["resultat_global_L1L2"]
       to_boolean_cols = [
+        {"col":"BDI", "to":{"Bilan immédiat nécessaire":"BDI", "Pas de BDI":pd.NA}},
         {"col":"comparaison_SD", "to":{"anomalie SD plus suspecte":"comparaison_SD_plus_suspecte"}},
         {"col":"comparaison_SG", "to":{"anomalie SG plus suspecte":"comparaison_SG_plus_suspecte"}},
         {"col":"ECS", "to":{"Normal":"Examen_Clinique_Sein_Normal", "Anormal":"Examen_Clinique_Sein_Anormal", "Refusé":"Examen_Clinique_Sein_Refus"}},
@@ -135,13 +136,13 @@ def read_source_csv(name):
       n_cols = ["L1_Type_Image_SD", "L1_Type_Image_SG", "BDI_Type_Image_SG", "BDI_Type_Image_SD", "L2_Type_Image_SD", "L2_Type_Image_SG"]
       rename = {"L2_ACR_SD_SD":"L2_ACR_SD", "L2_ACR_SD_SG":"L2_ACR_SG", "Id_event":"id_event"}
     elif name=="suivi":
-      dtype = {"id_event":pd.Int64Dtype(), "pT": "string", "pN": "string", "localisation":"string", "k_adicap":"string", "k_adicap2":"string", "Grade_SBR":"string", "HER2":"string"}
+      dtype = {"id_event":pd.Int64Dtype(), "pT": "string", "pN": "string", "localisation":"string", "k_adicap":"string", "k_adicap2":"string", "Grade_SBR":"string"}
       parse_dates = ["Date_Mammo", "Date_Anapath", "Date_Inter_Chir", "Date_Radi", "Date_Horm", "Date_Chim"]
       n_cols = ["M", "Si_Malin", "Si_Benin"]
       to_boolean_cols = [
         {"col":"KS_Confirme", "to":{"KS_confirmé":"KS_confirme"}},
       ]
-      b_cols = ["RH_Progesterone", "RH_Oestreogene", "Trait_Radi", "Trait_Chim", "Trait_Horm"]
+      b_cols = ["RH_Progesterone", "RH_Oestreogene", "Trait_Radi", "Trait_Chim", "Trait_Horm", "HER2"]
     elif name=="adicap":
       dtype = {
         "code":"string", 
@@ -158,12 +159,12 @@ def read_source_csv(name):
                                                                                                                                                   
     # Transforming know boomlean values                                                                                                           
     for bcol in b_cols:                                                                                                                           
-      df[bcol] = df[bcol].map({"Oui": True, "Non": False, "N":False, "O":True, "Négatif":False, "Positif":True, " ":pd.NA})                       
+      df[bcol] = df[bcol].map({"Oui": True, "Non": False, "N":False, "O":True, "Négatif":False, "Positif":True, "+":True, "-":False, "P":True, "I":pd.NA, "A":pd.NA, "9":pd.NA, " ":pd.NA})                       
       df[bcol] = df[bcol].astype("boolean")                                                                                                       
                                                                                                                                                   
     # Replacing invalid ages                                                                                                                    
     for acol in a_cols:                                                                                                                           
-      df[acol] = df[acol].map(lambda v: float(v) if pd.notna(v) and v != " " and float(v) > 0 and float(v) < 120 else np.NaN)                     
+      df[acol] = df[acol].map(lambda v: int(float(v)) if pd.notna(v) and v != " " and float(v) > 0 and float(v) < 120 else pd.NA).astype(pd.Int64Dtype())                     
                                                                                                                                                   
     # Trabsforming empty to NA                                                                                                                    
     for ncol in n_cols:                                                                                                                           

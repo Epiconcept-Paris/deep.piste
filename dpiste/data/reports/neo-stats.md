@@ -34,13 +34,14 @@ def stat_df(df):
   ,columns = ("column", "type", "empty", "unique", "avg repetition")
 )
 
-dfs = dal.neoscope.source_dfs()
+dfs = {}
+dal.neoscope.neo_dfs(dfs)
 ```
 # Neoscope import statistiques
 
 ## Dépistage
 ```python tags=["hide-input"]
-stat_df(dal.neoscope.depistage_df())
+stat_df(dal.neoscope.depistage_df(dfs))
 ```
 
 ## Dépistage na & dup
@@ -51,7 +52,7 @@ print(f"Duplicated: {dfs['dépistage_dup'].shape[0]}")
 
 ## Risque
 ```python tags=["hide-input"]
-stat_df(dal.neoscope.risque_df())
+stat_df(dal.neoscope.risque_df(dfs))
 ```
 
 ## Risque na & dup
@@ -62,7 +63,7 @@ print(f"Duplicated: {dfs['risque_dup'].shape[0]}")
 
 ## Suivi
 ```python tags=["hide-input"]
-stat_df(dal.neoscope.suivi_df())
+stat_df(dal.neoscope.suivi_df(dfs))
 ```
 
 ## Suivi na & dup
@@ -73,7 +74,7 @@ print(f"Duplicated: {dfs['suivi_dup'].shape[0]}")
 
 ## Population 
 ```python tags=["hide-input"]
-stat_df(dal.neoscope.population_df())
+stat_df(dal.neoscope.population_df(dfs))
 ```
 
 ## Population na & dup

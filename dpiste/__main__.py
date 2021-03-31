@@ -174,7 +174,7 @@ def do_get_dicom(args, *other):
   p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
 
 def do_esis_report(args, *other):
-  p02_010_dicom_guid_report() 
+  p02_010_esis_report() 
 
 def do_dcm4chee_report(args, *other):
   p02_011_dicom_report() 
