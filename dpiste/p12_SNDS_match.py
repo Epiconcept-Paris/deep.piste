@@ -1,7 +1,7 @@
 from . import dal
 import pandas as pd
 
-def p13_001_dummy_cnam_extraction(lines = 100):
+def p12_001_dummy_cnam_extraction(lines = 100):
   """Generate a dummy version of CNAM data file"""
   data = {'id_random':range(0, lines)}
   dfcnam = pd.DataFrame(data)
