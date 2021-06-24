@@ -10,6 +10,11 @@ init:
 	pip install --upgrade pip;
 	pip install --upgrade setuptools wheel twine
 
+install-dependencies:
+	sudo apt install python3-tk;
+	sudo apt install python3-venv;
+	sudo apt install libzbar-dev
+
 install:
 	source env/bin/activate;
 	pip install -e .;
