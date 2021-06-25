@@ -1,18 +1,19 @@
 from PIL import Image
-import pytesseract
-from pytesseract import Output
+from easyocr import Reader  #easyocr package
+import pytesseract          #pytesseract package
+from pytesseract import Output  #pytesseract package
 import argparse
 import os
-import cv2
+import cv2      #opencv-python
 
-def highlight_text_on_picture():
+def highlight_text_on_picture_pytesseract():
     #Reads the targeted image
     img = cv2.imread('/home/williammadie/Downloads/radioHD.jpg')
     
     #Converting the image into a gray only version
     img =cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    #Applies a filter in order for the algorithm to see easily the text
+    #Applies a filter in order for the algorithm to recognize easily the text
     cv2.medianBlur(img, 3)
 
     #Converts the image into a data format
@@ -28,6 +29,16 @@ def highlight_text_on_picture():
     cv2.imshow('img', img)
     cv2.waitKey(0)
 
+
+def highlight_text_on_picture_easyocr():
+    print("test")
+    reader = Reader(['fr'])
+    result = reader.readtext('/home/williammadie/images/imgWithTxt.jpg')
+    print(result)
+
+
+
+
 #Adds new arguments (temporary)
 """
 ap = argparse.ArgumentParser()
@@ -40,5 +51,5 @@ args = vars(ap.parse_args())
 """
 
 if __name__ == '__main__':
-    highlight_text_on_picture()
+    highlight_text_on_picture_easyocr()
 
