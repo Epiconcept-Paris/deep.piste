@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import os
 import pydicom
-from pydicom.pixel_data_handlers.util import apply_voi_lut
+from pydicom.pixel_data_handlers.util import apply_color_lut, apply_modality_lut, apply_voi_lut
 
 pathDCM = '/home/williammadie/images/test10/dicom'
 pathPNG = '/home/williammadie/images/test10/png'
@@ -23,17 +23,35 @@ test images before treating them with the OCR module.
 
 
 def main():
-    #ds = dcmread(pathDCM + "/test3.dcm")
-    #pixels = ds.pixel_array
-    pixels = read_xray(pathDCM + "/test3.dcm")
-    print(pixels)
+    #Converts the DICOM into a numpy array and manages the color problems linked to MONOCHROME2
+    count = 0
+    for file in os.listdir(pathDCM):
+        print(file)
+        pixels = read_xray(pathDCM + "/" + file)
+        strObtenue = """
+Nbre de dimensions : {0},
+Taille dim1, dim2 : {1},
+Nbre total d'éléments : {2},
+Taille dimension 1 : {3},
+(vMin, vMax) contenu dans une cellule : {4},
+MONOCHROME : {5}
+        """.format(
+            pixels.ndim,
+            pixels.shape,
+            pixels.size,
+            len(pixels),
+            getVminVmax(pixels),
+            pydicom.read_file(pathDCM + "/" + file).PhotometricInterpretation
+        )
 
-    img = Image.fromarray(pixels)
-    img.save(pathPNG + "/preprocess.png")
-    
-    plt.imsave(pathPNG + "/img1.png", pixels)
+        print("Image n°" + str(count) + "\n" + strObtenue)
+        
+        img = Image.fromarray(pixels)
+        print(file + "-->" + pathPNG + "/preprocess" + str(count) + ".png")
+        img.save(pathPNG + "/preprocess" + str(count) + ".png")
+        count += 1
 
-    rasterWthTxt = addTxt2Raster("premier test", 24, pixels)
+    #rasterWthTxt = addTxt2Raster("premier test", 24, pixels)
     #rasterWthTxt.save(pathPNG + "/img1.png")
     """
     count = 0
@@ -47,6 +65,23 @@ def main():
 
     #textToAdd = generateRandomTxt()
     #addTxt2Png(textToAdd)
+
+
+
+"""
+Gets the minimal and the maximal value in a two-dimensional array.
+Returns a tuple with (Minimal value, Maximal value)
+"""
+def getVminVmax(TwoDimArray):
+    vMax = 0
+    vMin = 0
+    for x in range(len(TwoDimArray)):
+        for y in range(len(TwoDimArray[x])):
+            if TwoDimArray[x][y] > vMax:
+                vMax = TwoDimArray[x][y]
+            if TwoDimArray[x][y] < vMin:
+                vMin = TwoDimArray[x][y]
+    return (vMin, vMax)
 
 
 
@@ -120,9 +155,9 @@ def addTxt2Raster(textToAdd, size, pixels):
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8(cm.bone(pixels)*255))
-    im.convert('RGB')
+    #NB: The following line alters the initial colors. May be removed.
+    #im.convert('RGB') 
     
-
 
     #Adds the text on the pillow image
     draw = ImageDraw.Draw(im)
@@ -148,11 +183,18 @@ def read_xray(path, voi_lut = True, fix_monochrome = True):
         data = apply_voi_lut(dicom.pixel_array, dicom)
     else:
         data = dicom.pixel_array
-               
+
+
     # depending on this value, X-ray may look inverted - fix that:
     if fix_monochrome and dicom.PhotometricInterpretation == "MONOCHROME1":
         data = np.amax(data) - data
-        
+
+    #If the DICOM are not in one of these two formats, it can bring new problems.
+    if dicom.PhotometricInterpretation != "MONOCHROME2" and dicom.PhotometricInterpretation != "MONOCHROME1":
+        raise ValueError("Photométrie imprévue : " + dicom.PhotometricInterpretation)
+    
+
+    #np.seterr(divide='ignore', invalid='ignore')    <-- blocks the warning raised by DivisonByZero
     data = data - np.min(data)
     data = data / np.max(data)
     data = (data * 255).astype(np.uint8)
