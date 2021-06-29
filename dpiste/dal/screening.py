@@ -27,7 +27,8 @@ def check_fks(dfs):
   mail(dfs)
   utils.check_fks(dfs = dfs, fks = screening_fks(), pks = screening_pks())
   
-def screening_path(name): return dputils.get_home("input", "screening", f"{name}.parquet")
+def screening_path(name): return dputils.get_home("transform", "screening", f"{name}.parquet")
+
 def screening_df(name, dfs = {}): 
   if dfs.get(name) is None:
     if os.path.exists(screening_path(f"{name}_orig")):

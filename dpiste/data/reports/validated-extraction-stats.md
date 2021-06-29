@@ -24,11 +24,11 @@ import dpiste.dal.screening
 from dpiste.utils import stat_df
 
 dfs = {}
-dal.screening.check_fks(dfs)
 cnam = dal.screening.cnam(dfs)
 mapping = dal.screening.table_correspondance(dfs)
 screening = dal.screening.depistage_pseudo(dfs)
 mail = dal.screening.mail(dfs) 
+
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_colwidth', -1)
 

@@ -115,5 +115,3 @@ def p02_010_esis_report():
 def p02_011_dicom_report():                                                                                                                       
   report.generate(report = "dcm4chee-import")                                                                                                     
 
-def p02_012_screening_report():                                                                                                                       
-  report.generate(report = "screening-stats")                                                                                                     
