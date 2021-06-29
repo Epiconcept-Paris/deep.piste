@@ -7,6 +7,7 @@ from matplotlib import cm
 import os
 import pydicom
 from pydicom.pixel_data_handlers.util import apply_color_lut, apply_modality_lut, apply_voi_lut
+import cv2 as cv
 
 pathDCM = '/home/williammadie/images/test10/dicom'
 pathPNG = '/home/williammadie/images/test10/png'
@@ -27,7 +28,7 @@ def main():
     count = 0
     for file in os.listdir(pathDCM):
         print(file)
-        pixels = read_xray(pathDCM + "/" + file)
+        pixels = read_xray(pathDCM + "/" + file, count=count)
         strObtenue = """
 Nbre de dimensions : {0},
 Taille dim1, dim2 : {1},
@@ -175,15 +176,23 @@ def addTxt2Raster(textToAdd, size, pixels):
 Converts a DICOM into a NUMPY array. Manages the RGB problems happening during the conversion.
 Returns a numpy array which can be handled by Pillow.
 """
-def read_xray(path, voi_lut = True, fix_monochrome = True):
+def read_xray(path, count, voi_lut = True, fix_monochrome = True):
     dicom = pydicom.read_file(path)
+    
+    #TODO remove the 2 following lines
+    #with open(pathPNG + "/dataset" + str(count) + ".txt", 'w') as file:
+    #    file.write(str(dicom))
     
     # VOI LUT (if available by DICOM device) is used to transform raw DICOM data to "human-friendly" view
     if voi_lut:
         data = apply_voi_lut(dicom.pixel_array, dicom)
     else:
         data = dicom.pixel_array
+        
 
+    #TODO remove the 2 following lines
+    #with open(pathPNG + "/img" + str(count) + ".txt", 'w') as file:
+    #    file.write(str(data))
 
     # depending on this value, X-ray may look inverted - fix that:
     if fix_monochrome and dicom.PhotometricInterpretation == "MONOCHROME1":
@@ -195,9 +204,25 @@ def read_xray(path, voi_lut = True, fix_monochrome = True):
     
 
     #np.seterr(divide='ignore', invalid='ignore')    <-- blocks the warning raised by DivisonByZero
-    data = data - np.min(data)
-    data = data / np.max(data)
-    data = (data * 255).astype(np.uint8)
+    if dicom.Modality == "CT":
+        try:
+            slope = float(dicom.RescaleSlope)
+            intercept = float(dicom.RescaleIntercept)
+        except Exception:
+            slope = 1
+            intercept = 0
+        if slope != 1 or intercept != 0:
+            data = data * slope
+            data = data + intercept
+        
+        data = data.astype(float)
+        data = (np.maximum(data,0) / data.max()) * 255.0
+        data = np.uint8(data)
+        
+    else:    
+        data = data - np.min(data)
+        data = data / np.max(data)
+        data = (data * 255).astype(np.uint8)
         
     return data
 
