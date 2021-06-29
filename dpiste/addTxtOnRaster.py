@@ -179,20 +179,17 @@ Returns a numpy array which can be handled by Pillow.
 def read_xray(path, count, voi_lut = True, fix_monochrome = True):
     dicom = pydicom.read_file(path)
     
-    #TODO remove the 2 following lines
-    #with open(pathPNG + "/dataset" + str(count) + ".txt", 'w') as file:
-    #    file.write(str(dicom))
-    
     # VOI LUT (if available by DICOM device) is used to transform raw DICOM data to "human-friendly" view
     if voi_lut:
-        data = apply_voi_lut(dicom.pixel_array, dicom)
+        #If the modality is CT (Scanner Image) we have to convert the value of the image first with apply_modality
+        #It uses the values of RescaleSlope and RescaleIntercept to convert the values.
+        if dicom.Modality == "CT":
+            data = apply_modality_lut(dicom.pixel_array, dicom)
+            data = apply_voi_lut(data, dicom)
+        else:
+            data = apply_voi_lut(dicom.pixel_array, dicom)
     else:
         data = dicom.pixel_array
-        
-
-    #TODO remove the 2 following lines
-    #with open(pathPNG + "/img" + str(count) + ".txt", 'w') as file:
-    #    file.write(str(data))
 
     # depending on this value, X-ray may look inverted - fix that:
     if fix_monochrome and dicom.PhotometricInterpretation == "MONOCHROME1":
@@ -204,25 +201,9 @@ def read_xray(path, count, voi_lut = True, fix_monochrome = True):
     
 
     #np.seterr(divide='ignore', invalid='ignore')    <-- blocks the warning raised by DivisonByZero
-    if dicom.Modality == "CT":
-        try:
-            slope = float(dicom.RescaleSlope)
-            intercept = float(dicom.RescaleIntercept)
-        except Exception:
-            slope = 1
-            intercept = 0
-        if slope != 1 or intercept != 0:
-            data = data * slope
-            data = data + intercept
-        
-        data = data.astype(float)
-        data = (np.maximum(data,0) / data.max()) * 255.0
-        data = np.uint8(data)
-        
-    else:    
-        data = data - np.min(data)
-        data = data / np.max(data)
-        data = (data * 255).astype(np.uint8)
+    data = data - np.min(data)
+    data = data / np.max(data)
+    data = (data * 255).astype(np.uint8)
         
     return data
 
