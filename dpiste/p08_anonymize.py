@@ -43,17 +43,14 @@ def highlight_text_on_picture_pytesseract():
 """
 Easy OCR Test function. Gets an image at the path below and gets the text of the picture. 
 """
-def get_text_on_picture_easyocr():
-    #Converts the DICOM into PNG
-    #dicom2png.dicom2png('/home/williammadie/images/image-valide.dcm','/home/williammadie/images/1-0.png')
-    
+def get_text_on_picture_easyocr(pixels):
     reader = Reader(['fr'])
-    result = reader.readtext('/home/williammadie/images/test_5.png')
+    result = reader.readtext(pixels)
     
     #Orders the output (= the different text area found in the picture)
     count = 0
     for found in result:
-        print("Zone n°{} | ".format(count), found)
+        print("Zone n°{} | ".format(count), found[1])
         count += 1
 
 
@@ -71,6 +68,5 @@ args = vars(ap.parse_args())
 """
 
 if __name__ == '__main__':
-    #get_text_on_picture_py()
-    highlight_text_on_picture_pytesseract()
+    get_text_on_picture_easyocr()
 
