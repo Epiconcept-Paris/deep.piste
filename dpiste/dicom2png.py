@@ -44,4 +44,3 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
     return data
 
 
-dicom2png('/home/williammadie/images/test20/dicom/image_1.dcm','/home/williammadie/images/test20/png/image_1.png')
