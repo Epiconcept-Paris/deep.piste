@@ -1,14 +1,10 @@
 import random
 from dicom2png import dicom2narray
 import numpy as np
-from pydicom import *
 from PIL import Image, ImageFont, ImageDraw
-import matplotlib.pyplot as plt
-from matplotlib import cm
 import os
 import pydicom
 from pydicom.pixel_data_handlers.util import apply_color_lut, apply_modality_lut, apply_voi_lut
-import cv2 as cv
 from p08_anonymize import *
 
 pathDCM = '/home/williammadie/images/test30/dicom'
@@ -27,6 +23,7 @@ test images before treating them with the OCR module.
 
 def main():
     #Converts the DICOM into a numpy array and manages the color problems linked to MONOCHROME2
+    
     count = 1
     random_text = generateRandomTxt()
     for file in sorted(os.listdir(pathDCM)):
@@ -41,6 +38,7 @@ def main():
         count += 1
 
         get_text_on_picture_easyocr(pixels)
+
 
 """
 Development function which prints useful information of the narray (@param pixels)
