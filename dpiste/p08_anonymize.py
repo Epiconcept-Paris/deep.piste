@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 from easyocr import Reader  #easyocr package
 import pytesseract          #pytesseract package
 from pytesseract import Output  #pytesseract package
@@ -6,10 +6,15 @@ import argparse
 import os
 import cv2      #opencv-python
 import dicom2png
+import numpy as np
 
 """
 At the moment, this module only contains test functions.
 """
+
+pathDCM = '/home/williammadie/images/test30/dicom'
+pathPNG = '/home/williammadie/images/test30/png'
+pathFonts = '/home/williammadie/images/fonts'
 
 """
 Pytesseract Test function. Gets an image a the path below and gets the text of the picture.
@@ -51,22 +56,48 @@ def get_text_on_picture_easyocr(pixels):
     count = 0
     for found in result:
         print("Zone n°{} | ".format(count), found[1])
+        print("Zone n°{} | ".format(count), found[0])
         count += 1
 
+    return result
 
 
-
-#Adds new arguments (temporary)
 """
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True,
-	help="path to input image to be OCR'd")
-    
-ap.add_argument("-p", "--preprocess", type=str, default="thresh",
-	help="type of preprocessing to be done")
-args = vars(ap.parse_args())
+Get a NUMPY array, a list of the coordinates of the different text areas in this array
+and (optional) a mode which can be : "blur" or "black". It returns the modified NUMPY array.
+
+MODES (optional):
+
+"black" mode (default) ==> add a black rectangle on the text areas
+"blur" mode            ==> blur the text areas
 """
+def hide_text(pixels, ocr_data, mode = "black"):
+    #Create a pillow image from the numpy array
+    pixels = pixels/255
+    im = Image.fromarray(np.uint8((pixels)*255))
+
+    for found in ocr_data:
+        print("Tous les points : ", found[0])
+        x1, y1 = int(found[0][0][0]), int(found[0][0][1])
+        x2, y2 = int(found[0][2][0]), int(found[0][2][1])
+        print("Point en haut à gauche : ", x1, y1)
+        print("Point en bas à droite : ", x2, y2)
+
+        box = (x1,y1,x2,y2)
+        
+        if mode == "blur":
+            cut = im.crop(box)
+            for i in range(30):
+                cut = cut.filter(ImageFilter.BLUR)
+            im.paste(cut, box)
+        else:
+            #Add a black rectangle on the targeted text
+            draw = ImageDraw.Draw(im)
+            draw.rectangle([x1, y1, x2, y2], fill=255)
+            del draw
+
+    return np.asarray(im)
 
 if __name__ == '__main__':
-    get_text_on_picture_easyocr()
+    print("test")
 
