@@ -36,7 +36,7 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
 
     #If the DICOM are not in one of these two formats, it can bring new problems.
     if dicom.PhotometricInterpretation != "MONOCHROME2" and dicom.PhotometricInterpretation != "MONOCHROME1":
-        raise ValueError("Photométrie imprévue : " + dicom.PhotometricInterpretation)
+        raise ValueError("Unexpected PhotometricInterpretation  : " + dicom.PhotometricInterpretation)
     
     data = data - np.min(data)
     data = data / np.max(data)
@@ -46,18 +46,12 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
 
 
 def narray2dicom(pixels, dataset, outfile, count):
-    #TODO: remove this tmp step (saving the de_identified DICOM dataset)
-    with open("/home/williammadie/images/test20/png/dicom/datasets/ds" + str(count) + ".txt",'w') as file:
-        file.write(str(dataset))
-    
     #Some sets of DICOM can be in 8 bits
     #We have to adapt the array depending on whether it's 8 or 16 bits
     if dataset.BitsAllocated == 8:
         dataset.PixelData = pixels.astype(np.uint8).tobytes()
     elif dataset.BitsAllocated == 16:   
         dataset.PixelData = pixels.astype(np.uint16).tobytes()
+    else:
+        raise ValueError("Unsupported Bits format in dataset : BitsAllocated = " + str(dataset.PixelData))
     dataset.save_as(outfile)
-    
-    #TODO: remove this tmp step (saving the de_identified DICOM dataset)
-    with open("/home/williammadie/images/test20/png/dicom/datasets/ds_de_identied" + str(count) + ".txt",'w') as file:
-        file.write(str(dataset))
