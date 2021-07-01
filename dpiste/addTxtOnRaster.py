@@ -1,5 +1,5 @@
 import random
-from dicom2png import dicom2narray
+from dicom2png import dicom2narray, narray2dicom
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 import os
@@ -7,8 +7,8 @@ import pydicom
 from pydicom.pixel_data_handlers.util import apply_color_lut, apply_modality_lut, apply_voi_lut
 from p08_anonymize import *
 
-pathDCM = '/home/williammadie/images/test30/dicom'
-pathPNG = '/home/williammadie/images/test30/png'
+pathDCM = '/home/williammadie/images/test20/dicom'
+pathPNG = '/home/williammadie/images/test20/png'
 pathFonts = '/home/williammadie/images/fonts'
 
 
@@ -21,28 +21,31 @@ test images before treating them with the OCR module.
 
 
 
-def main():
-    #Converts the DICOM into a numpy array and manages the color problems linked to MONOCHROME2
-    
+def main():    
     count = 1
     random_text = generateRandomTxt()
     for file in sorted(os.listdir(pathDCM)):
-        pixels = dicom2narray(pathDCM + "/" + file)
+        dicom = dicom2narray(pathDCM + "/" + file)
+        pixels = dicom[0]
         #summarizeDcmInfo(pixels, file, count)
         
         pixels = addTxt2Raster(random_text, random.randint(30,60), pixels, count)
 
         img = Image.fromarray(pixels)
-        print(file + "-->" + pathPNG + "/preprocess" + str(count) + ".png")
-        img.save(pathPNG + "/preprocess" + str(count) + ".png")
+        print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(count) + ".png")
+        img.save(pathPNG + "/preprocess/preprocess" + str(count) + ".png")
         
 
         ocr_data = get_text_on_picture_easyocr(pixels)
         pixels = hide_text(pixels, ocr_data)
 
-        img = Image.fromarray(pixels)
-        print(file + "-->" + pathPNG + "/de_identified" + str(count) + ".png")
-        img.save(pathPNG + "/de_identied" + str(count) + ".png")
+        #TODO: remove this tmp step (saving a de_identified PNG)
+        #img = Image.fromarray(pixels)
+        #print(file + "-->" + pathPNG + "/de_identifed/de_identified" + str(count) + ".png")
+        #img.save(pathPNG + "/de_identified/de_identied" + str(count) + ".png")
+        
+        narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"), count)
+        
         count += 1
 
 """
