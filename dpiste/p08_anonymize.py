@@ -95,7 +95,7 @@ def hide_text(pixels, ocr_data, mode = "black"):
         else:
             #Add a black rectangle on the targeted text
             draw = ImageDraw.Draw(im)
-            draw.rectangle([x1, y1, x2, y2], fill=255)
+            draw.rectangle([x1, y1, x2, y2], fill=0)
             del draw
 
     return np.asarray(im)
