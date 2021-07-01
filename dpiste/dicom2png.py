@@ -1,3 +1,4 @@
+from dpiste.compare_dicom import write_dicom
 from pydicom.pixel_data_handlers.util import apply_modality_lut, apply_voi_lut
 import pydicom
 import numpy as np
@@ -12,7 +13,7 @@ def dicom2png(infile, outfile):
 
 
 """
-Converts a DICOM into a NUMPY array and returns this array.
+Converts a DICOM into a NUMPY array and returns this array and its corresponding dataset.
 """
 def dicom2narray(path, voi_lut = True, fix_monochrome = True):
     dicom = pydicom.read_file(path)
@@ -41,6 +42,22 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
     data = data / np.max(data)
     data = (data * 255).astype(np.uint8)
         
-    return data
+    return (data, dicom)
 
 
+def narray2dicom(pixels, dataset, outfile, count):
+    #TODO: remove this tmp step (saving the de_identified DICOM dataset)
+    with open("/home/williammadie/images/test20/png/dicom/datasets/ds" + str(count) + ".txt",'w') as file:
+        file.write(str(dataset))
+    
+    #Some sets of DICOM can be in 8 bits
+    #We have to adapt the array depending on whether it's 8 or 16 bits
+    if dataset.BitsAllocated == 8:
+        dataset.PixelData = pixels.astype(np.uint8).tobytes()
+    elif dataset.BitsAllocated == 16:   
+        dataset.PixelData = pixels.astype(np.uint16).tobytes()
+    dataset.save_as(outfile)
+    
+    #TODO: remove this tmp step (saving the de_identified DICOM dataset)
+    with open("/home/williammadie/images/test20/png/dicom/datasets/ds_de_identied" + str(count) + ".txt",'w') as file:
+        file.write(str(dataset))
