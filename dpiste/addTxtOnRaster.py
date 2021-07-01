@@ -35,10 +35,15 @@ def main():
         img = Image.fromarray(pixels)
         print(file + "-->" + pathPNG + "/preprocess" + str(count) + ".png")
         img.save(pathPNG + "/preprocess" + str(count) + ".png")
+        
+
+        ocr_data = get_text_on_picture_easyocr(pixels)
+        pixels = hide_text(pixels, ocr_data)
+
+        img = Image.fromarray(pixels)
+        print(file + "-->" + pathPNG + "/de_identified" + str(count) + ".png")
+        img.save(pathPNG + "/de_identied" + str(count) + ".png")
         count += 1
-
-        get_text_on_picture_easyocr(pixels)
-
 
 """
 Development function which prints useful information of the narray (@param pixels)
@@ -85,7 +90,7 @@ def getVminVmax(TwoDimArray):
 
 
 """
-Generates 20 random texts with sample information.
+Generates n random texts with sample information.
 """
 def generateRandomTxt():
     patients = generateRandomPatients()
@@ -103,7 +108,6 @@ Adresse : {3}\n
             patient.get('age'),
             patient.get('adresse')
         )
-        print(txt)
         textToAdd.append(txt)
     
     return textToAdd
@@ -123,8 +127,8 @@ def generateRandomPatients():
     with open('/home/williammadie/images/sample_data/adresse_patient.txt') as file:
         adresses = file.readlines()
 
-    #Creates 20 new sample patients
-    for i in range(20):
+    #Creates 30 new sample patients
+    for i in range(30):
         id_patient = random.randint(0, 99999999999)
         age = random.randint(0, 100)
         #Adds the name and removes the '\n' at each line
@@ -155,15 +159,20 @@ def addTxt2Raster(textToAdd, size, pixels, count):
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
-    #NB: The following line alters the initial colors. May be removed.
-    #im.convert('RGB') 
     
-
-    #Adds the text on the pillow image
+    #Random parameters
     draw = ImageDraw.Draw(im)
-    draw.text((2,5), textToAdd[count-1], fill=255, font=img_font)
-    #draw.text((5,5), textToAdd[0], (255,255,255), font=font)
-    #im.save(pathPNG + "/img_pillow.png")
+    #x = (pixels.shape)[1]-200
+    #y = (pixels.shape)[0]-200
+    #x = random.randint(0, x)
+    #y = random.randint(0, y)
+    #color = random.randint(0, 255)
+    x,y = 2,5 
+    color = 255
+    print("X = ", x, " | Y = ",y)
+    #Adds the text on the pillow image
+    draw.text((x, y), textToAdd[count-1], fill=color, font=img_font)
+    
     del draw
 
     #Converts the pillow image into a numpy array and returns it
