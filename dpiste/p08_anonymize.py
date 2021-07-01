@@ -76,6 +76,7 @@ def hide_text(pixels, ocr_data, mode = "black"):
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
 
+    #Gets the coordinate of the top-left and the bottom-right points
     for found in ocr_data:
         print("Tous les points : ", found[0])
         x1, y1 = int(found[0][0][0]), int(found[0][0][1])
@@ -85,6 +86,7 @@ def hide_text(pixels, ocr_data, mode = "black"):
 
         box = (x1,y1,x2,y2)
         
+        #Applies a hiding effect
         if mode == "blur":
             cut = im.crop(box)
             for i in range(30):
