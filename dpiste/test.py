@@ -39,7 +39,7 @@ def main():
         ocr_data = get_text_areas(pixels)
         pixels = hide_text(pixels, ocr_data)
         
-        narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"), count)
+        narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
         
         count += 1
 
