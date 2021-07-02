@@ -14,8 +14,8 @@ pathFonts = '/home/williammadie/images/fonts'
 
 """
 
-This module aimed at generating partially random texts and adding these texts to
-test images before treating them with the OCR module.
+This module aims at generating partially random texts and adding these texts to
+test images and then treating them with the OCR module.
 
 """
 
@@ -30,19 +30,14 @@ def main():
         #summarizeDcmInfo(pixels, file, count)
         
         pixels = addTxt2Raster(random_text, random.randint(30,60), pixels, count)
-
+        #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
         print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(count) + ".png")
         img.save(pathPNG + "/preprocess/preprocess" + str(count) + ".png")
         
 
-        ocr_data = get_text_on_picture_easyocr(pixels)
+        ocr_data = get_text_areas(pixels)
         pixels = hide_text(pixels, ocr_data)
-
-        #TODO: remove this tmp step (saving a de_identified PNG)
-        #img = Image.fromarray(pixels)
-        #print(file + "-->" + pathPNG + "/de_identifed/de_identified" + str(count) + ".png")
-        #img.save(pathPNG + "/de_identified/de_identied" + str(count) + ".png")
         
         narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"), count)
         
@@ -76,7 +71,7 @@ MONOCHROME : {5}
 
 
 """
-Gets the minimal and the maximal value in a two-dimensional array.
+Get the minimal and the maximal value in a two-dimensional array.
 Returns a tuple with (Minimal value, Maximal value)
 """
 def getVminVmax(TwoDimArray):
@@ -93,7 +88,7 @@ def getVminVmax(TwoDimArray):
 
 
 """
-Generates n random texts with sample information.
+Generate n random texts with sample information.
 """
 def generateRandomTxt():
     patients = generateRandomPatients()
@@ -118,7 +113,7 @@ Adresse : {3}\n
     
     
 """
-Generates each information for each patient (id, age, nom, adresse)
+Generate each information for each patient (id, age, nom, adresse)
 """
 def generateRandomPatients():
 
@@ -150,7 +145,7 @@ def generateRandomPatients():
 
 
 """
-Writes text on each picture located in the folder path.
+Write text on each picture located in the folder path.
 """
 def addTxt2Raster(textToAdd, size, pixels, count):
     
@@ -178,8 +173,30 @@ def addTxt2Raster(textToAdd, size, pixels, count):
     
     del draw
 
+    #Test blur effect
+    box = (x,y,x+650,y+650)            
+    cut = im.crop(box)
+    for i in range(random.randint(3,5)):
+        cut = cut.filter(ImageFilter.BLUR)
+    im.paste(cut, box)
+
     #Converts the pillow image into a numpy array and returns it
     return np.asarray(im)
+
+
+
+"""
+Write the dataset of all the DICOM in the directory_path in a text file.
+"""
+def getDataset(dataset):
+    
+    count = 1
+    for file in sorted(os.listdir(path=pathDCM)):
+        dicom = pydicom.read_file(file)
+
+        with open(pathPNG + "/dataset/dataset" + str(count) + ".txt") as file:
+            file.write(str(dataset))
+        count += 1
 
 
 if __name__ == '__main__':
