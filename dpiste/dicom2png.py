@@ -51,7 +51,7 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
 """
 Converts a NUMPY array into a DICOM and returns this DICOM.
 """
-def narray2dicom(pixels, dataset, outfile, count):
+def narray2dicom(pixels, dataset, outfile):
     #If the modality equals 'CT'. The conversion will be incorrect because it needs a Rescaling operation.
     if dataset.Modality == 'CT':
         raise TypeError("Conversion from NUMPY array to DICOM with Modality CT is not supported by this module.")
