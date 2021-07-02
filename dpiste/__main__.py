@@ -2,14 +2,30 @@ import sys
 import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from .p02_initial_extraction import *
-from . import utils
+from dpiste import p08_anonymize
+#from .p02_initial_extraction import *
+#from . import utils
 
 def main(a):
   # Base argument parser
   parser = argparse.ArgumentParser()
   subs = parser.add_subparsers()
   
+  # anonymize command
+  anonymize_parser = subs.add_parser("anonymize", help = "Anonymize a complete directory of DICOMs ")
+  anonymize_parser.add_argument(
+    "-i", 
+    "--indir", 
+    type=str, 
+    help = "Input directory containing the DICOMs to de-identify", 
+    required = True)
+  anonymize_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Output directory which will contain the DICOMs de-identified", 
+  required = True)
+  anonymize_parser.set_defaults(func = do_anonymize_folder)
+
   # extract command
   extract_parser = subs.add_parser("extract", help = "Invoke initial extractions commands") 
   extract_subs = extract_parser.add_subparsers()
@@ -179,6 +195,8 @@ def do_esis_report(args, *other):
 def do_dcm4chee_report(args, *other):
   p02_011_dicom_report() 
 
+def do_anonymize_folder(args, *other):
+  p08_anonymize.anonymize_folder(indir = args.indir, outdir = args.outdir)
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)

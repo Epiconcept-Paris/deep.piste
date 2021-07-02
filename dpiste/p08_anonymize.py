@@ -5,44 +5,38 @@ from pytesseract import Output  #pytesseract package
 import argparse
 import os
 import cv2      #opencv-python
-import dicom2png
+from dpiste import dicom2png
 import numpy as np
 
-"""
-At the moment, this module only contains test functions.
-"""
-
-pathDCM = '/home/williammadie/images/test30/dicom'
-pathPNG = '/home/williammadie/images/test30/png'
-pathFonts = '/home/williammadie/images/fonts'
 
 """
-Pytesseract Test function. Gets an image a the path below and gets the text of the picture.
-It also add a green line all around the text areas. 
+Anonymize a complete directory of DICOM.
+
+@param
+
+indir = the initial directory of DICOM to de-identify
+outdir = the final director of DICOM which have been de-identied
 """
-def highlight_text_on_picture_pytesseract():
-    #Reads the targeted image
-    img = cv2.imread('/home/williammadie/images/test_5.png')
+def anonymize_folder(indir, outdir):
+    for file in sorted(os.listdir(indir)):
     
-    #Converting the image into a gray only version
-    #img =cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if indir.endswith("/"):
+            input_path = indir + file
+        else:
+            input_path = indir + '/' + file
+        
+        dicom = dicom2png.dicom2narray(input_path)
+        pixels = dicom[0]
 
-    #Applies a filter in order for the algorithm to recognize easily the text
-    #cv2.medianBlur(img, 3)
+        ocr_data = get_text_areas(pixels)
+        pixels = hide_text(pixels, ocr_data)
+        
+        if outdir.endswith("/"):
+            output_path = outdir  + os.path.basename(file)
+        else:
+            output_path = outdir  + '/' + os.path.basename(file)
+        dicom2png.narray2dicom(pixels, dicom[1], output_path)
 
-    #Converts the image into a data format
-    data = pytesseract.image_to_data(img, output_type=Output.DICT)
-    print(data.keys())
-
-    #Get the text areas and draw green rectangle around them
-    n_boxes = len(data['text'])
-    for i in range(n_boxes):
-        if int(data['conf'][i]) > 60:
-            (x, y, w, h) = (data['left'][i], data['top'][i], data['width'][i], data['height'][i])
-            img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-    cv2.imshow('img', img)
-    cv2.waitKey(0)
 
 
 """
@@ -60,6 +54,7 @@ def get_text_areas(pixels):
         count += 1
 
     return result
+
 
 
 """
@@ -109,9 +104,4 @@ def hide_text(pixels, ocr_data, mode = "black"):
 
     return np.asarray(im)
 
-
-
-
-if __name__ == '__main__':
-    print("test")
 
