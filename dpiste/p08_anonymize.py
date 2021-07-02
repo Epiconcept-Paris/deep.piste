@@ -48,7 +48,7 @@ def highlight_text_on_picture_pytesseract():
 """
 Easy OCR Test function. Gets an image at the path below and gets the text of the picture. 
 """
-def get_text_on_picture_easyocr(pixels):
+def get_text_areas(pixels):
     reader = Reader(['fr'])
     result = reader.readtext(pixels)
     
@@ -78,27 +78,39 @@ def hide_text(pixels, ocr_data, mode = "black"):
 
     #Gets the coordinate of the top-left and the bottom-right points
     for found in ocr_data:
-        print("Tous les points : ", found[0])
-        x1, y1 = int(found[0][0][0]), int(found[0][0][1])
-        x2, y2 = int(found[0][2][0]), int(found[0][2][1])
-        print("Point en haut à gauche : ", x1, y1)
-        print("Point en bas à droite : ", x2, y2)
+        #This condition avoids common false positives
+        if found[1] != "" and len(found[1]) > 1:
+            #TODO: remove the following (debug info) 
+            print("Tous les points : ", found[0])
+            x1, y1 = int(found[0][0][0]), int(found[0][0][1])
+            x2, y2 = int(found[0][2][0]), int(found[0][2][1])
+            print("Point en haut à gauche : ", x1, y1)
+            print("Point en bas à droite : ", x2, y2)
 
-        box = (x1,y1,x2,y2)
-        
-        #Applies a hiding effect
-        if mode == "blur":
-            cut = im.crop(box)
-            for i in range(30):
-                cut = cut.filter(ImageFilter.BLUR)
-            im.paste(cut, box)
-        else:
-            #Add a black rectangle on the targeted text
-            draw = ImageDraw.Draw(im)
-            draw.rectangle([x1, y1, x2, y2], fill=0)
-            del draw
+            box = (x1,y1,x2,y2)
+            
+            #Applies a hiding effect
+            if mode == "blur":
+                cut = im.crop(box)
+                for i in range(30):
+                    cut = cut.filter(ImageFilter.BLUR)
+                im.paste(cut, box)
+            else:
+                #Add a black rectangle on the targeted text
+                draw = ImageDraw.Draw(im)
+
+                #If the value is a tuple, the color has to be a tuple (RGB image)
+                if type(pixels[0][0]) == tuple:
+                    color = (0,0,0)
+                else:
+                    color = 0
+                draw.rectangle([x1, y1, x2, y2], fill=color)
+                del draw
 
     return np.asarray(im)
+
+
+
 
 if __name__ == '__main__':
     print("test")
