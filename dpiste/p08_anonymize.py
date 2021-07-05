@@ -18,6 +18,7 @@ indir = the initial directory of DICOM to de-identify
 outdir = the final director of DICOM which have been de-identied
 """
 def anonymize_folder(indir, outdir):
+    count = 1
     for file in sorted(os.listdir(indir)):
     
         if indir.endswith("/"):
@@ -31,10 +32,25 @@ def anonymize_folder(indir, outdir):
         ocr_data = get_text_areas(pixels)
         pixels = hide_text(pixels, ocr_data)
         
+
         if outdir.endswith("/"):
             output_path = outdir  + os.path.basename(file)
+            output_ds = outdir + os.path.basename(file) + ".txt"
         else:
             output_path = outdir  + '/' + os.path.basename(file)
+            output_ds = outdir + "/" + os.path.basename(file) + ".txt"
+
+        with open(output_ds,'a') as f:
+            file_path = indir + file
+            print(file_path)
+            f.write(file_path)
+            f.write('/n')
+            f.write(str(dicom[1]))
+            f.write('/n')
+            f.write(str(ocr_data))
+            f.write('/n')
+            f.write()
+
         dicom2png.narray2dicom(pixels, dicom[1], output_path)
 
 
