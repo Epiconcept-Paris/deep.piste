@@ -29,14 +29,15 @@ def main():
         pixels = dicom[0]
         test_words = generate_random_words(50, 10)
         
-        pixels = add_words_on_image(pixels, test_words, random.randint(30,40))
+        (pixels, words_array) = add_words_on_image(pixels, test_words, random.randint(30,40), blur=0)
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
         print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(count) + ".png")
         img.save(pathPNG + "/preprocess/preprocess" + str(count) + ".png")
         
-
-        #ocr_data = get_text_areas(pixels)
+        ocr_data = get_text_areas(pixels)
+        
+        compare_ocr_data_and_reality(test_words, words_array, ocr_data)
         #pixels = hide_text(pixels, ocr_data)
         
         #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
@@ -105,7 +106,7 @@ def generate_random_words(nb_words, nb_character_max, nb_character_min = 3):
 """
 Write text on each picture located in the folder path.
 """
-def add_words_on_image(pixels, words, text_size, font = 'random', color = 255):
+def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, blur = 0):
     
     if font == 'random':
         font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
@@ -115,7 +116,7 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255):
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
     
-    nb_rows = 20
+    nb_rows = 15
     image_width = pixels.shape[1]
     image_height = pixels.shape[0]
 
@@ -132,6 +133,7 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255):
         x_cell = -1
         y_cell = -1
         is_null = False
+        nb_tries = 0
         while not is_null:
             random_cell = random.randint(0, words_array.size)
             
@@ -145,42 +147,43 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255):
                     num_cell += 1
 
             #The array memorizes the position of the word in the list 'words'
-            if words_array[x_cell][y_cell] == 0 and x_cell != nb_rows-1 and is_the_background_black_enough(x_cell, y_cell, length_cell, height_cell, im):
-                if words_array[x_cell+1][y_cell] == 0:
-                    words_array[x_cell][y_cell] = count
-                    words_array[x_cell+1][y_cell] = count
-                    is_null = True
-                    
-        
-        #x and y coordinates on the image
-        x_cell = x_cell * length_cell
-        y_cell = y_cell * height_cell
-        
-        #Position of the word on the image
-        draw = ImageDraw.Draw(im)
-        
-        print("X = ", x_cell, " | Y = ",y_cell)
-        #Adds the text on the pillow image
-        draw.text((x_cell, y_cell), words[count], fill=color, font=img_font)
-        #draw.rectangle([x_cell, y_cell, x_cell+length_cell, y_cell+height_cell], fill=random.randint(40,255))
-        for x in range(nb_rows):
-                for y in range(nb_rows):
-                    x_cell = x * length_cell
-                    y_cell = y * height_cell
-                    #if x != 7 or y != 0:
-                    #    draw.rectangle([x_cell, y_cell, x_cell+length_cell, y_cell+height_cell], fill=random.randint(40,255))
-        count += 1
-        del draw
+            if words_array[x_cell][y_cell] == 0 and x_cell < nb_rows-2 and is_the_background_black_enough(x_cell, y_cell, length_cell, height_cell, im):
+                if words_array[x_cell+2][y_cell] == 0:
+                    if words_array[x_cell+1][y_cell] == 0:
+                        words_array[x_cell][y_cell] = count+1
+                        words_array[x_cell+1][y_cell] = count+1
+                        words_array[x_cell+2][y_cell] = count+1
+                        is_null = True
+                        nb_tries = 0
+            nb_tries += 1
 
-    #Test blur effect
-    #box = (x,y,x+650,y+650)            
-    #cut = im.crop(box)
-    #for i in range(random.randint(3,5)):
-    #    cut = cut.filter(ImageFilter.BLUR)
-    #im.paste(cut, box)
+            if nb_tries >= 120:
+                break
+                    
+        if nb_tries < 120:
+            #x and y coordinates on the image
+            x_cell = x_cell * length_cell
+            y_cell = y_cell * height_cell
+            
+            #Position of the word on the image
+            draw = ImageDraw.Draw(im)
+            
+            print("X = ", x_cell, " | Y = ",y_cell)
+            #Adds the text on the pillow image
+            draw.text((x_cell, y_cell), words[count], fill=color, font=img_font)
+            
+            #Blur effect
+            box = (int(x_cell), int(y_cell), int(x_cell + 2 * length_cell), int(y_cell + height_cell))            
+            cut = im.crop(box)
+            for i in range(blur):
+                cut = cut.filter(ImageFilter.BLUR)
+            im.paste(cut, box)
+        
+            count += 1
+            del draw
 
     #Converts the pillow image into a numpy array and returns it
-    return np.asarray(im)
+    return (np.asarray(im), words_array)
 
 
 
@@ -223,6 +226,32 @@ def getDataset(dataset):
         with open(pathPNG + "/dataset/dataset" + str(count) + ".txt") as file:
             file.write(str(dataset))
         count += 1
+
+
+
+def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
+    indices_words_reality = []
+    ocr_recognized_words = 0
+
+    #If the array contains an indice different than 0, we add it to a list.
+    for x in range(len(words_array)):
+        for y in range(len(words_array[x])):
+            if words_array[x][y] != 0:
+                indices_words_reality.append(words_array[x][y])
+
+    #Remove duplicates
+    indices_words_reality = list(dict.fromkeys(indices_words_reality))
+
+    #Get the number of words present on the picture
+    total_words = 0
+    for word in indices_words_reality:
+        total_words += 1
+
+    #Get the number of words recognized 
+    for found in ocr_data:
+        if found[1] in test_words:
+            ocr_recognized_words += 1
+    print(ocr_recognized_words, "/", total_words)
 
 
 if __name__ == '__main__':
