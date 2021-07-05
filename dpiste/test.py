@@ -24,9 +24,16 @@ test images and then treating them with the OCR module.
 
 def main():    
     count = 1
+    sum_ocr_recognized_words = 0
+    sum_total_words = 0
     for file in sorted(os.listdir(pathDCM)):
         dicom = dicom2narray(pathDCM + "/" + file)
         pixels = dicom[0]
+
+        #Gets False Positives
+        ocr_data = get_text_areas(pixels)
+        ocr_ghost_words = calculate_false_positive(ocr_data)
+
         test_words = generate_random_words(50, 10)
         
         (pixels, words_array) = add_words_on_image(pixels, test_words, random.randint(30,40), blur=0)
@@ -37,7 +44,26 @@ def main():
         
         ocr_data = get_text_areas(pixels)
         
-        compare_ocr_data_and_reality(test_words, words_array, ocr_data)
+        (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(test_words, words_array, ocr_data)
+        sum_ocr_recognized_words += ocr_recognized_words
+        sum_total_words += total_words
+
+        tp = sum_ocr_recognized_words
+        fn = sum_total_words - sum_ocr_recognized_words
+        fp = ocr_ghost_words
+
+        print("TOTAL : ", sum_ocr_recognized_words, "/", sum_total_words, " words recognized")
+        print("True positive (recognized words): ", tp)
+        print("False negative (unrecognized words): ", fn)
+        print("False positive (ghost words) : ", fp)
+        accuracy = (tp) / (tp + fn + fp)*100
+        precision = tp / (tp+fp)
+        recall = tp / (tp+fn)
+        f1_score = (2 * precision * recall) / (precision + recall)
+        print("Precision : ", round(precision,1))
+        print("Recall : ", round(recall,1))
+        print("F1_Score : ", round(f1_score,1))
+        print("Accuracy : ", round(accuracy, 1), "%")
         #pixels = hide_text(pixels, ocr_data)
         
         #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
@@ -229,6 +255,21 @@ def getDataset(dataset):
 
 
 
+"""
+Calculates the amount of false positive
+"""
+def calculate_false_positive(ocr_data):
+    #Get the number of ghost words (which are inexistant)
+    ocr_ghost_words = 0
+    for found in ocr_data:
+            ocr_ghost_words += 1
+    return ocr_ghost_words
+
+
+
+"""
+Calculates the amount of true positive
+"""
 def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
     indices_words_reality = []
     ocr_recognized_words = 0
@@ -252,7 +293,7 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         if found[1] in test_words:
             ocr_recognized_words += 1
     print(ocr_recognized_words, "/", total_words)
-
+    return (ocr_recognized_words, total_words)
 
 if __name__ == '__main__':
     main()
