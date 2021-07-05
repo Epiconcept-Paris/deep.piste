@@ -1,4 +1,5 @@
 import random
+import string
 from dicom2png import dicom2narray, narray2dicom
 import numpy as np
 from PIL import Image, ImageFont, ImageDraw
@@ -23,11 +24,10 @@ test images and then treating them with the OCR module.
 
 def main():    
     count = 1
-    random_text = generateRandomTxt()
     for file in sorted(os.listdir(pathDCM)):
         dicom = dicom2narray(pathDCM + "/" + file)
         pixels = dicom[0]
-        #summarizeDcmInfo(pixels, file, count)
+        test_words = generate_random_words(50, 10)
         
         pixels = addTxt2Raster(random_text, random.randint(30,60), pixels, count)
         #TODO: remove this step (save preprocess PNG)
@@ -88,90 +88,80 @@ def getVminVmax(TwoDimArray):
 
 
 """
-Generate n random texts with sample information.
+Generate 'nb_words' random words composed from 1 to 'nb_character_max' ASCII characters.
 """
-def generateRandomTxt():
-    patients = generateRandomPatients()
-    textToAdd = []
+def generate_random_words(nb_words, nb_character_max, nb_character_min = 3):
+    words = []
 
-    for patient in patients:
-        txt = """
-Patient n°{0},\n
-{1},\n 
-Âge : {2} ans,\n 
-Adresse : {3}\n
-        """.format(
-            patient.get('id'),
-            patient.get('nom'),
-            patient.get('age'),
-            patient.get('adresse')
-        )
-        textToAdd.append(txt)
+    for i in range(nb_words):
+        word = string.ascii_letters
+        word = ''.join(random.choice(word) for i in range(random.randint(nb_character_min,nb_character_max)))
+        words.append(word)
     
-    return textToAdd
+    return words
         
-    
-    
-"""
-Generate each information for each patient (id, age, nom, adresse)
-"""
-def generateRandomPatients():
-
-    patients = []
-
-    with open('/home/williammadie/images/sample_data/nom_patient.txt') as file:
-        noms = file.readlines()
-
-    with open('/home/williammadie/images/sample_data/adresse_patient.txt') as file:
-        adresses = file.readlines()
-
-    #Creates 30 new sample patients
-    for i in range(30):
-        id_patient = random.randint(0, 99999999999)
-        age = random.randint(0, 100)
-        #Adds the name and removes the '\n' at each line
-        nom = noms[i].replace('\n','')
-        adresse = adresses[i]
-
-        nouv_patient = {
-            "id": id_patient,
-            "nom": nom,
-            "age": age,
-            "adresse": adresse
-        }
-
-        patients.append(nouv_patient)
-    return patients
 
 
 """
 Write text on each picture located in the folder path.
 """
-def addTxt2Raster(textToAdd, size, pixels, count):
+def add_words_on_image(pixels, words, text_size, font = 'random', color = 255):
     
-    #Selects a font and sets font parameters (size...)
-    target_font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
-    print(target_font)
-    img_font = ImageFont.truetype(target_font, size)
+    if font == 'random':
+        font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
+    img_font = ImageFont.truetype(font, text_size)
 
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
     
-    #Random parameters
-    draw = ImageDraw.Draw(im)
-    #x = (pixels.shape)[1]-200
-    #y = (pixels.shape)[0]-200
-    #x = random.randint(0, x)
-    #y = random.randint(0, y)
-    #color = random.randint(0, 255)
-    x,y = 2,5 
-    color = 255
-    print("X = ", x, " | Y = ",y)
-    #Adds the text on the pillow image
-    draw.text((x, y), textToAdd[count-1], fill=color, font=img_font)
-    
-    del draw
+    nb_rows = 40
+    image_width = pixels.shape[0]
+    image_height = pixels.shape[1]
+
+    length_cell = image_width/nb_rows
+    height_cell = image_height/nb_rows
+
+    #Creates an array of 'nb_rows x nb_rows' filled with 0.
+    words_array = words_array = np.full((nb_rows, nb_rows), 0)
+
+    count = 0
+    for word in words:
+        #While the cell is occupied by a word, we keep looking for a free cell
+        random_cell = -1
+        x_cell = -1
+        y_cell = -1
+        while random_cell != 0:
+            random_cell = random.randint(words_array.size)
+            
+            #Gets the x and the y of the random_cell
+            num_cell = 0
+            for x in range(nb_rows):
+                for y in range(nb_rows):
+                    num_cell += 1
+                    if num_cell == random_cell:
+                        x_cell = x
+                        y_cell = y
+        
+        #The array memorizes the position of the word in the list 'words'
+        words_array[x_cell][y_cell] = count
+        
+
+        x_cell = x_cell * length_cell
+        y_cell = y_cell * height_cell
+        #Position of the word on the image
+        draw = ImageDraw.Draw(im)
+        #x = (pixels.shape)[1]-200
+        #y = (pixels.shape)[0]-200
+        #x = random.randint(0, x)
+        #y = random.randint(0, y)
+        #color = random.randint(0, 255)
+        x,y = 2,5
+        print("X = ", x, " | Y = ",y)
+        #Adds the text on the pillow image
+        draw.text((x, y), words[count], fill=color, font=img_font)
+        count += 1
+        del draw
 
     #Test blur effect
     box = (x,y,x+650,y+650)            
@@ -183,6 +173,24 @@ def addTxt2Raster(textToAdd, size, pixels, count):
     #Converts the pillow image into a numpy array and returns it
     return np.asarray(im)
 
+
+
+"""
+Refresh the words array 
+"""
+def add_word_in_words_array():
+    
+    image_width = 1200
+    image_height = 800
+
+    #image_width = pixels.shape[0]
+    #image_height = pixels.shape[1]
+
+    #Creates an array of 'nb_rows x nb_rows' cells filled with 0. 
+    words_array = np.full((nb_rows, nb_rows), 0)
+    print(words_array.shape)
+    print(words_array.size)
+    print(words_array)
 
 
 """
@@ -200,4 +208,4 @@ def getDataset(dataset):
 
 
 if __name__ == '__main__':
-    main()
+    create_words_array(10)
