@@ -1,10 +1,12 @@
 import random
 import string
-from dicom2png import dicom2narray, narray2dicom
-import numpy as np
-from PIL import Image, ImageFont, ImageDraw
 import os
 import pydicom
+import numpy as np
+
+from dicom2png import dicom2narray, narray2dicom
+from PIL import Image, ImageFont, ImageDraw
+
 from p08_anonymize import *
 
 pathDCM = '/home/williammadie/images/test20/dicom'
@@ -21,27 +23,48 @@ test images and then treating them with the OCR module.
 
 
 
-def main():    
+def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 30, blur = 0):    
+    #Default values
+    if font == None:
+        font = 'random'
+    if size == None:
+        size = 30
+    if blur == None:
+        blur = 0
+
     nb_images_tested = 1
     sum_ocr_recognized_words = 0
     sum_total_words = 0
     tp, tn, fp, fn = 0, 0, 0, 0
-    for file in sorted(os.listdir(pathDCM)):
-        dicom = dicom2narray(pathDCM + "/" + file)
+    for file in sorted(os.listdir(indir)):
+        if indir.endswith("/"):
+            dicom = dicom2narray(indir + file)
+            file_path = indir + file
+        else:
+            dicom = dicom2narray(indir + "/" + file)
+            file_path = indir + '/' + file
+        
         pixels = dicom[0]
 
-        #Get False Positives
+        #Get ghost words (in order to calculate False Positives)
         ocr_data = get_text_areas(pixels)
         ghost_words = is_there_ghost_words(ocr_data)
         
-        #Generate 1 to 10 random words of max 10 characters 
+        #Generate 0 to 10 random words of max 10 characters 
         test_words = generate_random_words(random.randint(0,10), 10)
         
-        (pixels, words_array) = add_words_on_image(pixels, test_words, random.randint(30,40), blur=0)
+        (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
+        
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
-        print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(nb_images_tested) + ".png")
-        img.save(pathPNG + "/preprocess/preprocess" + str(nb_images_tested) + ".png")
+        if outdir.endswith('/'):
+            print(file + "-->" + outdir + "preprocess" + str(nb_images_tested) + ".png")
+            img.save(outdir + "preprocess" + str(nb_images_tested) + ".png")
+            output_ds = outdir + os.path.basename(file) + ".txt"
+        else:
+            print(file + "-->" + outdir + "/preprocess" + str(nb_images_tested) + ".png")
+            img.save(outdir + "/preprocess" + str(nb_images_tested) + ".png")
+            output_ds = outdir + "/" + os.path.basename(file) + ".txt"
         
         ocr_data = get_text_areas(pixels)
         
@@ -54,7 +77,18 @@ def main():
         #Calculate test model values
         (tp, tn, fp, fn) = calculate_test_values(ghost_words, total_words, ocr_recognized_words, tp, tn, fp, fn)        
         save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, ocr_recognized_words, total_words, tp, tn, fp, fn)
-        
+
+        #Write the dataset of the image
+        with open(output_ds,'a') as f:
+            print(file_path)
+            f.write(file_path)
+            f.write('/n')
+            f.write(str(dicom[1]))
+            f.write('/n')
+            f.write(str(ocr_data))
+            f.write('/n')
+
+
         #pixels = hide_text(pixels, ocr_data)
         
         #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
@@ -128,7 +162,7 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
     if font == 'random':
         font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
     img_font = ImageFont.truetype(font, text_size)
-
+    print(font)
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
