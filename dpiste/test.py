@@ -248,12 +248,20 @@ def getDataset(dataset):
 Check if there is only a difference of one letter between two words.
 """
 def has_a_one_letter_difference(word_1, word_2):
+    word_1 = str(word_1)
+    word_2 = str(word_2)
+
+    if len(word_1) != len(word_2):
+        return False
+
     differences = []
+    count = 0
     for letter in word_1:
-        if word_2[letter] == letter:
+        if word_2[count] == letter:
             differences.append('*')
         else:
             differences.append(letter)
+        count += 1
     
     nb_differences = 0
     for letter in differences:
@@ -332,10 +340,11 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
     for found in ocr_data:
         if found[1].lower() in test_words:
             ocr_recognized_words += 1
-        #The OCR module has a tendency to confuse i and l or l and i. We help it because it does not matter for our work. 
+        #The OCR module has a tendency to confuse i and l or o and q. We help it because it does not matter for our work. 
         else:
-            for word in range(len(test_words)):
-                if has_a_one_letter_difference(found[1], word):
+            for word_pos in range(len(test_words)):
+                if has_a_one_letter_difference(found[1].lower(), test_words[word_pos]):
+                    print(found[1].lower(), "&&", test_words[word_pos], "==", has_a_one_letter_difference(found[1].lower(), test_words[word_pos]))
                     ocr_recognized_words += 1
                     break
 
