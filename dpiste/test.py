@@ -23,12 +23,12 @@ test images and then treating them with the OCR module.
 
 
 
-def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 30, blur = 0):    
+def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur = 0):    
     #Default values
     if font == None:
         font = 'random'
     if size == None:
-        size = 30
+        size = 'auto'
     if blur == None:
         blur = 0
 
@@ -53,7 +53,8 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 30, blur = 0
         #Generate 0 to 10 random words of max 10 characters 
         test_words = generate_random_words(random.randint(0,10), 10)
         
-        (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
+        if len(test_words) > 0:
+            (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
         
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
@@ -158,14 +159,33 @@ def generate_random_words(nb_words, nb_character_max, nb_character_min = 3):
 Write text on each picture located in the folder path.
 """
 def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, blur = 0):
-    
-    if font == 'random':
-        font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
-    img_font = ImageFont.truetype(font, text_size)
-    print(font)
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
+
+
+    if font == 'random':
+        font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
+    
+    #Auto-scale the size of the text according to the image size
+    if text_size == 'auto':
+        text_size = 1
+        img_font = ImageFont.truetype(font, text_size)
+        img_fraction = 0.0001
+        
+        
+        while img_font.getsize(words[0])[0] < img_fraction*pixels.size:
+            text_size += 1
+            img_font = ImageFont.truetype(font, text_size)
+            print(img_font.getsize(words[0])[0])
+            print(img_fraction*pixels.size)
+        text_size -= 1
+    if text_size < 15:
+        text_size = 15
+    print("TEXT SIZE : ", text_size)
+    img_font = ImageFont.truetype(font, text_size)
+    
+    
     
     nb_rows = 15
     image_width = pixels.shape[1]
@@ -392,7 +412,10 @@ ocr_recognized_words, total_words, tp, tn, fp, fn):
         accuracy = (tp + tn) / (tp + tn + fn + fp)*100
         precision = tp / (tp+fp)
         recall = tp / (tp+fn)
-        f1_score = (2 * precision * recall) / (precision + recall)
+        if precision == 0 and recall == 0:
+            f1_score = -1
+        else:
+            f1_score = (2 * precision * recall) / (precision + recall)
     else:
         accuracy = -1
         precision = -1
