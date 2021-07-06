@@ -3,8 +3,9 @@ import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from dpiste import p08_anonymize
-#from .p02_initial_extraction import *
-#from . import utils
+from dpiste.p02_initial_extraction import *
+from dpiste import utils
+from dpiste import test
 
 def main(a):
   # Base argument parser
@@ -25,6 +26,37 @@ def main(a):
   help = "Output directory which will contain the DICOMs de-identified", 
   required = True)
   anonymize_parser.set_defaults(func = do_anonymize_folder)
+
+  # test command
+  test_parser = subs.add_parser("testOCR", help = "generate text on a copy of the DICOM in the path and tries to recognize it.")
+  test_parser.add_argument(
+    "-i", 
+    "--indir", 
+    type=str, 
+    help = "Input directory containing the DICOMs to test", 
+    required = True)
+  test_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Output directory which will contain the information generated during the test", 
+  required = True)
+  test_parser.add_argument("-f", 
+  "--font", 
+  type=str, 
+  help = "Path of the wanted font (default is random)", 
+  required = False)
+  test_parser.add_argument("-s", 
+  "--size", 
+  type=int, 
+  help = "Size of the text (30, 39, 40, 50, 60...) (default is 30)", 
+  required = False)
+  test_parser.add_argument("-b", 
+  "--blur", 
+  type=int, 
+  help = "Strength of the blurring effect from 1 to 30 (default is 0)", 
+  required = False)
+  test_parser.set_defaults(func = do_test_ocr)
+
 
   # extract command
   extract_parser = subs.add_parser("extract", help = "Invoke initial extractions commands") 
@@ -197,6 +229,9 @@ def do_dcm4chee_report(args, *other):
 
 def do_anonymize_folder(args, *other):
   p08_anonymize.anonymize_folder(indir = args.indir, outdir = args.outdir)
+
+def do_test_ocr(args, *other):
+    test.main(indir = args.indir, outdir = args.outdir, font = args.font, size = args.size, blur = args.blur)
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
