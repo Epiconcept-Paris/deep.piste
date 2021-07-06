@@ -5,11 +5,10 @@ import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 import os
 import pydicom
-from pydicom.pixel_data_handlers.util import apply_color_lut, apply_modality_lut, apply_voi_lut
 from p08_anonymize import *
 
-pathDCM = '/home/williammadie/images/test1/dicom'
-pathPNG = '/home/williammadie/images/test1/png'
+pathDCM = '/home/williammadie/images/test20/dicom'
+pathPNG = '/home/williammadie/images/test20/png'
 pathFonts = '/home/williammadie/images/fonts'
 
 
@@ -23,52 +22,44 @@ test images and then treating them with the OCR module.
 
 
 def main():    
-    count = 1
+    nb_images_tested = 1
     sum_ocr_recognized_words = 0
     sum_total_words = 0
+    tp, tn, fp, fn = 0, 0, 0, 0
     for file in sorted(os.listdir(pathDCM)):
         dicom = dicom2narray(pathDCM + "/" + file)
         pixels = dicom[0]
 
-        #Gets False Positives
+        #Get False Positives
         ocr_data = get_text_areas(pixels)
-        ocr_ghost_words = calculate_false_positive(ocr_data)
-
-        test_words = generate_random_words(50, 10)
+        ghost_words = is_there_ghost_words(ocr_data)
+        
+        #Generate 1 to 10 random words of max 10 characters 
+        test_words = generate_random_words(random.randint(0,10), 10)
         
         (pixels, words_array) = add_words_on_image(pixels, test_words, random.randint(30,40), blur=0)
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
-        print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(count) + ".png")
-        img.save(pathPNG + "/preprocess/preprocess" + str(count) + ".png")
+        print(file + "-->" + pathPNG + "/preprocess/preprocess" + str(nb_images_tested) + ".png")
+        img.save(pathPNG + "/preprocess/preprocess" + str(nb_images_tested) + ".png")
         
         ocr_data = get_text_areas(pixels)
         
         (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(test_words, words_array, ocr_data)
+        
+        #Test numbers :
         sum_ocr_recognized_words += ocr_recognized_words
         sum_total_words += total_words
 
-        tp = sum_ocr_recognized_words
-        fn = sum_total_words - sum_ocr_recognized_words
-        fp = ocr_ghost_words
-
-        print("TOTAL : ", sum_ocr_recognized_words, "/", sum_total_words, " words recognized")
-        print("True positive (recognized words): ", tp)
-        print("False negative (unrecognized words): ", fn)
-        print("False positive (ghost words) : ", fp)
-        accuracy = (tp) / (tp + fn + fp)*100
-        precision = tp / (tp+fp)
-        recall = tp / (tp+fn)
-        f1_score = (2 * precision * recall) / (precision + recall)
-        print("Precision : ", round(precision,1))
-        print("Recall : ", round(recall,1))
-        print("F1_Score : ", round(f1_score,1))
-        print("Accuracy : ", round(accuracy, 1), "%")
+        #Calculate test model values
+        (tp, tn, fp, fn) = calculate_test_values(ghost_words, total_words, ocr_recognized_words, tp, tn, fp, fn)        
+        save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, ocr_recognized_words, total_words, tp, tn, fp, fn)
+        
         #pixels = hide_text(pixels, ocr_data)
         
         #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
         
-        count += 1
+        nb_images_tested += 1
 
 """
 Development function which prints useful information of the narray (@param pixels)
@@ -194,7 +185,6 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
             #Position of the word on the image
             draw = ImageDraw.Draw(im)
             
-            print("X = ", x_cell, " | Y = ",y_cell)
             #Adds the text on the pillow image
             draw.text((x_cell, y_cell), words[count], fill=color, font=img_font)
             
@@ -254,26 +244,72 @@ def getDataset(dataset):
         count += 1
 
 
+"""
+Check if there is only a difference of one letter between two words.
+"""
+def has_a_one_letter_difference(word_1, word_2):
+    differences = []
+    for letter in word_1:
+        if word_2[letter] == letter:
+            differences.append('*')
+        else:
+            differences.append(letter)
+    
+    nb_differences = 0
+    for letter in differences:
+        if nb_differences > 1:
+            return False
+
+        if letter != '*':
+            nb_differences += 1
+
+    return True
+        
 
 """
-Calculates the amount of false positive
+Calculates the amount of ghost words on the image.
+Ghost words refers to words or letters recognized by the OCR module where there is actually
+no word or letter. 
 """
-def calculate_false_positive(ocr_data):
-    #Get the number of ghost words (which are inexistant)
-    ocr_ghost_words = 0
+def is_there_ghost_words(ocr_data):
     for found in ocr_data:
-            ocr_ghost_words += 1
-    return ocr_ghost_words
+            return True
 
 
 
 """
-Calculates the amount of true positive
+Calculates the model test values :
+TP : True Positive  (There are words and every word has been recognized)
+TN : True Negative  (There is no word and no word has been recognized)
+FP : False Positive (There is no word but a word (or more) has been recognized)
+FN : False Negative (There are words and NOT every word has been recognized)
+"""
+def calculate_test_values(ghost_words, total_words, ocr_recognized_words, tp, tn, fp, fn): 
+    if ghost_words:
+        fp += 1
+    else:
+        if total_words == 0:
+            tn += 1
+        else:
+            if ocr_recognized_words/total_words == 1:
+                tp += 1
+            else:
+                fn += 1
+    return (tp, tn, fp, fn)
+
+
+
+"""
+Calculates the amount of recognized words compared to the total of words on the image
 """
 def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
     indices_words_reality = []
     ocr_recognized_words = 0
 
+    print(test_words)
+
+    for found in ocr_data:
+        print(found[1])
     #If the array contains an indice different than 0, we add it to a list.
     for x in range(len(words_array)):
         for y in range(len(words_array[x])):
@@ -288,12 +324,76 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
     for word in indices_words_reality:
         total_words += 1
 
+    #Set each word to lower case
+    for word in range(len(test_words)):
+        test_words[word] = test_words[word].lower()
+
     #Get the number of words recognized 
     for found in ocr_data:
-        if found[1] in test_words:
+        if found[1].lower() in test_words:
             ocr_recognized_words += 1
-    print(ocr_recognized_words, "/", total_words)
+        #The OCR module has a tendency to confuse i and l or l and i. We help it because it does not matter for our work. 
+        else:
+            for word in range(len(test_words)):
+                if has_a_one_letter_difference(found[1], word):
+                    ocr_recognized_words += 1
+                    break
+
     return (ocr_recognized_words, total_words)
+
+
+def save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, 
+ocr_recognized_words, total_words, tp, tn, fp, fn):
+    #Counter Division by zero
+    if tp != 0 or fp != 0:
+        accuracy = (tp + tn) / (tp + tn + fn + fp)*100
+        precision = tp / (tp+fp)
+        recall = tp / (tp+fn)
+        f1_score = (2 * precision * recall) / (precision + recall)
+    else:
+        accuracy = -1
+        precision = -1
+        recall = -1
+        f1_score = -1
+
+    accuracy = round(accuracy, 1)
+    precision = round(precision, 1)
+    recall = round(recall, 1)
+    f1_score = round(f1_score, 1)
+    result = """
+\n
+===========================================================================
+Amount of images tested: {nb_images_tested}
+TOTAL: {ocr_recognized_words}/{total_words} words recognized (last image)
+GRAND TOTAL: {sum_ocr_recognized_words}/{sum_total_words} words recognized
+True Positive (totally recognized images): {tp}
+False Negative (NOT totally recognized images): {fn}
+False Positive (Images with ghost words): {fp}
+True Negative (Images with NO ghost words): {tn}
+Precision: {precision}
+Recall: {recall}
+F1_Score: {f1_score}
+Accuracy: {accuracy} % 
+===========================================================================
+\n
+    """.format(
+        nb_images_tested = nb_images_tested,
+        ocr_recognized_words = ocr_recognized_words,
+        total_words = total_words,
+        sum_ocr_recognized_words = sum_ocr_recognized_words, 
+        sum_total_words = sum_total_words,
+        tp = tp,
+        fn = fn, 
+        fp = fp,
+        tn = tn, 
+        precision = precision, 
+        recall = recall, 
+        f1_score = f1_score, 
+        accuracy = accuracy)
+    print(result)
+
+    with open(pathPNG + "/test_info.txt", 'a') as f:
+        f.write(result)
 
 if __name__ == '__main__':
     main()
