@@ -1,12 +1,11 @@
-from PIL import Image, ImageDraw, ImageFilter
-from easyocr import Reader  #easyocr package
-import pytesseract          #pytesseract package
-from pytesseract import Output  #pytesseract package
-import argparse
 import os
-import cv2      #opencv-python
-from dpiste import dicom2png
 import numpy as np
+
+from PIL import Image, ImageDraw, ImageFilter
+from easyocr import Reader
+
+from dpiste import dicom2png
+
 
 
 """
@@ -65,8 +64,8 @@ def get_text_areas(pixels):
     #Orders the output (= the different text area found in the picture)
     count = 0
     for found in result:
-        print("Zone n°{} | ".format(count), found[1])
-        print("Zone n°{} | ".format(count), found[0])
+        #print("Zone n°{} | ".format(count), found[1])
+        #print("Zone n°{} | ".format(count), found[0])
         count += 1
 
     return result
