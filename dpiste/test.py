@@ -1,6 +1,7 @@
 import random
 import string
 import os
+from typing import Type
 import pydicom
 import numpy as np
 
@@ -50,11 +51,16 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur
         ocr_data = get_text_areas(pixels)
         ghost_words = is_there_ghost_words(ocr_data)
         
-        #Generate 0 to 10 random words of max 10 characters 
-        test_words = generate_random_words(random.randint(0,10), 10)
+        if pixels.size < 100000:
+            #Security mechanism in the case where the image is too small to host 10 words of 10 char
+            #Generate 0 to 1 random word of max 5 characters 
+            test_words = generate_random_words(random.randint(0,1), 5)
+        else:
+            #Generate 0 to 10 random words of max 10 characters 
+            test_words = generate_random_words(random.randint(0,10), 10)
+            
         
-        if len(test_words) > 0:
-            (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
+        (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
         
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
@@ -71,6 +77,7 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur
         
         (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(test_words, words_array, ocr_data)
         
+
         #Test numbers :
         sum_ocr_recognized_words += ocr_recognized_words
         sum_total_words += total_words
@@ -159,6 +166,12 @@ def generate_random_words(nb_words, nb_character_max, nb_character_min = 3):
 Write text on each picture located in the folder path.
 """
 def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, blur = 0):
+    nb_rows = 15
+    #No words = empty array
+    if len(words) == 0:
+        words_array = words_array = np.full((nb_rows, nb_rows), 0)
+        return (pixels, words_array)
+    
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
@@ -167,27 +180,24 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
     if font == 'random':
         font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
     
-    #Auto-scale the size of the text according to the image size
+    #Auto-scale the size of the text according to the image width
     if text_size == 'auto':
         text_size = 1
         img_font = ImageFont.truetype(font, text_size)
-        img_fraction = 0.0001
+        img_fraction = 0.1
         
-        
-        while img_font.getsize(words[0])[0] < img_fraction*pixels.size:
+        print("LARGEUR IMAGE : ", pixels.shape[1])
+        while img_font.getsize(max(words, key=len))[0] < img_fraction*pixels.shape[1]:
             text_size += 1
             img_font = ImageFont.truetype(font, text_size)
-            print(img_font.getsize(words[0])[0])
-            print(img_fraction*pixels.size)
+            
         text_size -= 1
     if text_size < 15:
         text_size = 15
     print("TEXT SIZE : ", text_size)
     img_font = ImageFont.truetype(font, text_size)
     
-    
-    
-    nb_rows = 15
+
     image_width = pixels.shape[1]
     image_height = pixels.shape[0]
 
@@ -301,12 +311,20 @@ def getDataset(dataset):
 """
 Check if there is only a difference of one letter between two words.
 """
-def has_a_one_letter_difference(word_1, word_2):
+def has_a_two_letters_difference(word_1, word_2):
     word_1 = str(word_1)
     word_2 = str(word_2)
 
-    if len(word_1) != len(word_2):
+    #Word_1 has to be the shortest for this function and has to be one char max bigger than word_2
+    if len(word_1) > len(word_2):
+        tmp = word_1
+        word_1 = word_2
+        word_2 = tmp
+    
+    if len(word_1)+1 < len(word_2):
         return False
+
+    
 
     differences = []
     count = 0
@@ -319,7 +337,7 @@ def has_a_one_letter_difference(word_1, word_2):
     
     nb_differences = 0
     for letter in differences:
-        if nb_differences > 1:
+        if nb_differences > 2:
             return False
 
         if letter != '*':
@@ -371,6 +389,11 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
     print(test_words)
 
     for found in ocr_data:
+        if ' ' in found[1]:
+            print(found[1])
+            new_tuple = (found[0], found[1].replace(' ',''), found[2])
+            ocr_data.remove(found)
+            ocr_data.append(new_tuple)
         print(found[1])
     #If the array contains an indice different than 0, we add it to a list.
     for x in range(len(words_array)):
@@ -397,8 +420,8 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         #The OCR module has a tendency to confuse i and l or o and q. We help it because it does not matter for our work. 
         else:
             for word_pos in range(len(test_words)):
-                if has_a_one_letter_difference(found[1].lower(), test_words[word_pos]):
-                    print(found[1].lower(), "&&", test_words[word_pos], "==", has_a_one_letter_difference(found[1].lower(), test_words[word_pos]))
+                if has_a_two_letters_difference(found[1].lower(), test_words[word_pos]):
+                    print(found[1].lower(), "&&", test_words[word_pos], "==", has_a_two_letters_difference(found[1].lower(), test_words[word_pos]))
                     ocr_recognized_words += 1
                     break
 
