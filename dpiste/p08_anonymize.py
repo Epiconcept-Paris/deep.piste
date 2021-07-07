@@ -92,7 +92,7 @@ def hide_text(pixels, ocr_data, mode = "black"):
                 draw = ImageDraw.Draw(im)
 
                 #If the value is a tuple, the color has to be a tuple (RGB image)
-                color = (0,0,0) if type(pixels[0][0]) == tuple else color = 0
+                color = (0,0,0) if type(pixels[0][0]) == tuple else 0
                     
                 draw.rectangle([x1, y1, x2, y2], fill=color)
                 del draw
