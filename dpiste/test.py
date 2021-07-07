@@ -1,19 +1,17 @@
 import random
 import string
+from datetime import datetime
 import os
 from typing import Type
 import pydicom
 import numpy as np
-
 from dicom2png import dicom2narray, narray2dicom
 from PIL import Image, ImageFont, ImageDraw
-
 from p08_anonymize import *
 
-pathDCM = '/home/williammadie/images/test20/dicom'
-pathPNG = '/home/williammadie/images/test20/png'
-pathFonts = '/home/williammadie/images/fonts'
-
+PATH_DCM = '/home/williammadie/images/test20/dicom'
+PATH_PNG = '/home/williammadie/images/test20/png'
+PATH_FONTS = '/home/williammadie/images/fonts'
 
 """
 
@@ -22,9 +20,7 @@ test images and then treating them with the OCR module.
 
 """
 
-
-
-def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur = 0):    
+def main(indir = PATH_DCM, outdir = PATH_PNG, font = 'random', size = 'auto', blur = 0):    
     #Default values
     if font == None:
         font = 'random'
@@ -33,10 +29,9 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur
     if blur == None:
         blur = 0
 
-    nb_images_tested = 1
-    sum_ocr_recognized_words = 0
-    sum_total_words = 0
+    sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
+
     for file in sorted(os.listdir(indir)):
         if indir.endswith("/"):
             dicom = dicom2narray(indir + file)
@@ -60,17 +55,17 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur
             test_words = generate_random_words(random.randint(0,10), 10)
             
         
-        (pixels, words_array) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
+        (pixels, words_array, test_words) = add_words_on_image(pixels, test_words, size, font=font, blur=blur)
         
         #TODO: remove this step (save preprocess PNG)
         img = Image.fromarray(pixels)
         if outdir.endswith('/'):
-            print(file + "-->" + outdir + "preprocess" + str(nb_images_tested) + ".png")
-            img.save(outdir + "preprocess" + str(nb_images_tested) + ".png")
+            print(file + "-->" + outdir + os.path.basename(file) + ".png")
+            img.save(outdir + os.path.basename(file) + ".png")
             output_ds = outdir + os.path.basename(file) + ".txt"
         else:
-            print(file + "-->" + outdir + "/preprocess" + str(nb_images_tested) + ".png")
-            img.save(outdir + "/preprocess" + str(nb_images_tested) + ".png")
+            print(file + "-->" + outdir + "/" + os.path.basename(file) + ".png")
+            img.save(outdir + "/" + os.path.basename(file) + ".png")
             output_ds = outdir + "/" + os.path.basename(file) + ".txt"
         
         ocr_data = get_text_areas(pixels)
@@ -84,29 +79,24 @@ def main(indir = pathDCM, outdir = pathPNG, font = 'random', size = 'auto', blur
 
         #Calculate test model values
         (tp, tn, fp, fn) = calculate_test_values(ghost_words, total_words, ocr_recognized_words, tp, tn, fp, fn)        
-        save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, ocr_recognized_words, total_words, tp, tn, fp, fn)
+        save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, ocr_recognized_words, total_words, tp, tn, fp, fn, outdir)
 
         #Write the dataset of the image
         with open(output_ds,'a') as f:
             print(file_path)
-            f.write(file_path)
-            f.write('/n')
-            f.write(str(dicom[1]))
-            f.write('/n')
-            f.write(str(ocr_data))
-            f.write('/n')
-
-
+            f.write(datetime.now().strftime("%d/%m/%Y %H:%M:%S") + '\n' + file_path + '\n' + str(dicom[1]) + '\n' + str(ocr_data))
+            
         #pixels = hide_text(pixels, ocr_data)
-        
         #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
         
         nb_images_tested += 1
 
+
+
 """
 Development function which prints useful information of the narray (@param pixels)
 """
-def summarizeDcmInfo(pixels, file, count):
+def summarize_dcm_info(pixels, file, count):
     strObtenue = """
 Nbre de dimensions : {0},
 Taille dim1, dim2 : {1},
@@ -121,12 +111,11 @@ MONOCHROME : {5}
             pixels.shape,
             pixels.size,
             len(pixels),
-            getVminVmax(pixels),
-            pydicom.read_file(pathDCM + "/" + file).PhotometricInterpretation
+            get_vmin_vmax(pixels),
+            pydicom.read_file(PATH_DCM + "/" + file).PhotometricInterpretation
         )
     print("==================================================\n")
     print("Image n°" + str(count) + " : " + file + "\n" + strObtenue )
-
 
 
 
@@ -134,16 +123,16 @@ MONOCHROME : {5}
 Get the minimal and the maximal value in a two-dimensional array.
 Returns a tuple with (Minimal value, Maximal value)
 """
-def getVminVmax(TwoDimArray):
-    vMax = 0
-    vMin = 0
-    for x in range(len(TwoDimArray)):
-        for y in range(len(TwoDimArray[x])):
-            if TwoDimArray[x][y] > vMax:
-                vMax = TwoDimArray[x][y]
-            if TwoDimArray[x][y] < vMin:
-                vMin = TwoDimArray[x][y]
-    return (vMin, vMax)
+def get_vmin_vmax(two_dim_array):
+    v_min, v_max = 0, 0
+
+    for x in range(len(two_dim_array)):
+        for y in range(len(two_dim_array[x])):
+            if two_dim_array[x][y] > v_max:
+                v_max = two_dim_array[x][y]
+            if two_dim_array[x][y] < v_min:
+                v_min = two_dim_array[x][y]
+    return (v_min, v_max)
 
 
 
@@ -167,42 +156,29 @@ Write text on each picture located in the folder path.
 """
 def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, blur = 0):
     nb_rows = 15
+    
     #No words = empty array
     if len(words) == 0:
         words_array = words_array = np.full((nb_rows, nb_rows), 0)
-        return (pixels, words_array)
-    
+        return (pixels, words_array, words)
+
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
 
 
     if font == 'random':
-        font = os.listdir(pathFonts)[random.randint(0,len(os.listdir(pathFonts))-1)]
+        font = os.listdir(PATH_FONTS)[random.randint(0,len(os.listdir(PATH_FONTS))-1)]
     
     #Auto-scale the size of the text according to the image width
     if text_size == 'auto':
-        text_size = 1
-        img_font = ImageFont.truetype(font, text_size)
-        img_fraction = 0.1
-        
-        print("LARGEUR IMAGE : ", pixels.shape[1])
-        while img_font.getsize(max(words, key=len))[0] < img_fraction*pixels.shape[1]:
-            text_size += 1
-            img_font = ImageFont.truetype(font, text_size)
-            
-        text_size -= 1
-    if text_size < 15:
-        text_size = 15
-    print("TEXT SIZE : ", text_size)
+        text_size = auto_scale_font_size(pixels, words, font)
+        print(text_size)
     img_font = ImageFont.truetype(font, text_size)
     
-
-    image_width = pixels.shape[1]
-    image_height = pixels.shape[0]
-
-    length_cell = image_width/nb_rows
-    height_cell = image_height/nb_rows
+    #Intialize the information for 'words_array' 
+    image_width, image_height = pixels.shape[1], pixels.shape[0]
+    length_cell, height_cell = image_width/nb_rows, image_height/nb_rows
 
     #Creates an array of 'nb_rows x nb_rows' filled with 0.
     words_array = words_array = np.full((nb_rows, nb_rows), 0)
@@ -210,11 +186,8 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
     count = 0
     for word in words:
         #While the cell is occupied by a word or too luminous, we keep looking for anoter free cell
-        random_cell = -1
-        x_cell = -1
-        y_cell = -1
+        random_cell, x_cell, y_cell, nb_tries = -1, -1, -1, 0
         is_null = False
-        nb_tries = 0
         while not is_null:
             random_cell = random.randint(0, words_array.size)
             
@@ -223,8 +196,7 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
             for x in range(nb_rows):
                 for y in range(nb_rows):
                     if num_cell == random_cell:
-                        x_cell = x
-                        y_cell = y
+                        x_cell, y_cell = x, y
                     num_cell += 1
 
             #The array memorizes the position of the word in the list 'words'
@@ -238,9 +210,10 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
                         nb_tries = 0
             nb_tries += 1
 
+            #If the number of tries exceeds the limit, we remove the word from the list
             if nb_tries >= 120:
                 break
-                    
+           
         if nb_tries < 120:
             #x and y coordinates on the image
             x_cell = x_cell * length_cell
@@ -253,17 +226,53 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
             draw.text((x_cell, y_cell), words[count], fill=color, font=img_font)
             
             #Blur effect
-            box = (int(x_cell), int(y_cell), int(x_cell + 2 * length_cell), int(y_cell + height_cell))            
-            cut = im.crop(box)
-            for i in range(blur):
-                cut = cut.filter(ImageFilter.BLUR)
-            im.paste(cut, box)
-        
+            if blur != 0:
+                im = blur_it(im, blur, x_cell, y_cell, length_cell, height_cell)
+            
             count += 1
             del draw
 
     #Converts the pillow image into a numpy array and returns it
-    return (np.asarray(im), words_array)
+    return (np.asarray(im), words_array, words)
+
+
+
+"""
+Rescale the text depending on the the width of an image.
+Parameters : pixels (narray of the image)
+words : a list of the words to add on the picture
+font : the path of the font to use 
+"""
+def auto_scale_font_size(pixels, words, font):
+    text_size = 1
+    img_font = ImageFont.truetype(font, text_size)
+    img_fraction = 0.1
+    
+    while img_font.getsize(max(words, key=len))[0] < img_fraction*pixels.shape[1]:
+        text_size += 1
+        img_font = ImageFont.truetype(font, text_size)
+    text_size -= 1
+
+    if text_size < 18:
+        text_size = 18
+
+    return text_size
+
+
+
+"""
+Blur a specified rectangle area on a picture. Parameters :
+Image to blur, strength of the blur effect, x and y of the top-left corner of the area,
+length_cell and height_cell : length and height of the rectangle.  
+"""
+def blur_it(image, blur, x, y, length_cell, height_cell):
+    box = (int(x), int(y), int(x + 2 * length_cell), int(y + height_cell))            
+    cut = image.crop(box)
+    for i in range(blur):
+        cut = cut.filter(ImageFilter.BLUR)
+    image.paste(cut, box)
+
+    return image
 
 
 
@@ -295,36 +304,33 @@ def is_the_background_black_enough(x_cell, y_cell, length_cell, height_cell, im)
 
 
 """
-Write the dataset of all the DICOM in the directory_path in a text file.
+Export the dataset in text files for each the DICOM in the directory_path.
 """
 def getDataset(dataset):
     
     count = 1
-    for file in sorted(os.listdir(path=pathDCM)):
+    for file in sorted(os.listdir(path=PATH_DCM)):
         dicom = pydicom.read_file(file)
 
-        with open(pathPNG + "/dataset/dataset" + str(count) + ".txt") as file:
+        with open(PATH_PNG + "/dataset/dataset" + str(count) + ".txt") as file:
             file.write(str(dataset))
         count += 1
 
 
+
 """
-Check if there is only a difference of one letter between two words.
+Check if there is a difference of max two letters between two words of the same size OR
+a difference of two letters plus an extra letter for one of the two words.
 """
 def has_a_two_letters_difference(word_1, word_2):
-    word_1 = str(word_1)
-    word_2 = str(word_2)
+    word_1, word_2 = str(word_1), str(word_2)
 
     #Word_1 has to be the shortest for this function and has to be one char max bigger than word_2
     if len(word_1) > len(word_2):
-        tmp = word_1
-        word_1 = word_2
-        word_2 = tmp
+        word_1, word_2 = word_2, word_1
     
     if len(word_1)+1 < len(word_2):
         return False
-
-    
 
     differences = []
     count = 0
@@ -345,6 +351,7 @@ def has_a_two_letters_difference(word_1, word_2):
 
     return True
         
+
 
 """
 Calculates the amount of ghost words on the image.
@@ -400,7 +407,7 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         for y in range(len(words_array[x])):
             if words_array[x][y] != 0:
                 indices_words_reality.append(words_array[x][y])
-
+    
     #Remove duplicates
     indices_words_reality = list(dict.fromkeys(indices_words_reality))
 
@@ -421,15 +428,20 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         else:
             for word_pos in range(len(test_words)):
                 if has_a_two_letters_difference(found[1].lower(), test_words[word_pos]):
-                    print(found[1].lower(), "&&", test_words[word_pos], "==", has_a_two_letters_difference(found[1].lower(), test_words[word_pos]))
+                    print(found[1].lower(), "&&", test_words[word_pos], 
+                    "==", has_a_two_letters_difference(found[1].lower(), test_words[word_pos]))
                     ocr_recognized_words += 1
                     break
 
     return (ocr_recognized_words, total_words)
 
 
+
+"""
+Save the test information in a .txt file. It contains main values linked to the past test.
+"""
 def save_test_information(nb_images_tested, sum_ocr_recognized_words, sum_total_words, 
-ocr_recognized_words, total_words, tp, tn, fp, fn):
+ocr_recognized_words, total_words, tp, tn, fp, fn, outdir):
     #Counter Division by zero
     if tp != 0 or fp != 0:
         accuracy = (tp + tn) / (tp + tn + fn + fp)*100
@@ -440,15 +452,10 @@ ocr_recognized_words, total_words, tp, tn, fp, fn):
         else:
             f1_score = (2 * precision * recall) / (precision + recall)
     else:
-        accuracy = -1
-        precision = -1
-        recall = -1
-        f1_score = -1
+        accuracy, precision, recall, f1_score = -1, -1, -1, -1
 
-    accuracy = round(accuracy, 1)
-    precision = round(precision, 1)
-    recall = round(recall, 1)
-    f1_score = round(f1_score, 1)
+    accuracy, precision = round(accuracy, 1), round(precision, 1)
+    recall, f1_score = round(recall, 1), round(f1_score, 1)
     result = """
 \n
 ===========================================================================
@@ -481,8 +488,15 @@ Accuracy: {accuracy} %
         accuracy = accuracy)
     print(result)
 
-    with open(pathPNG + "/test_info.txt", 'a') as f:
+    if outdir.endswith('/'):
+        file_path = outdir + "test_info.txt" 
+    else:
+        file_path = outdir + "/test_info.txt"
+        
+    with open(file_path, 'a') as f:
         f.write(result)
+
+
 
 if __name__ == '__main__':
     main()
