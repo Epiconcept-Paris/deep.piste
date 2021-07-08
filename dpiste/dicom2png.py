@@ -13,16 +13,21 @@ def dicom2png(infile, outfile):
 
 
 
-"""
-Converts a DICOM into a NUMPY array and returns this array and its corresponding dataset.
-"""
+
 def dicom2narray(path, voi_lut = True, fix_monochrome = True):
+    """
+    Converts a DICOM into a NUMPY array and returns this array and 
+    its corresponding dataset.
+    """
     dicom = pydicom.read_file(path)
 
-    # VOI LUT (if available by DICOM device) is used to transform raw DICOM data to "human-friendly" view
+    # VOI LUT (if available by DICOM device) is used to transform raw DICOM data
+    # to "human-friendly" view 
     if voi_lut:
-        #If the modality is CT (Scanner Image) we have to convert the values of the image first with apply_modality
-        #It uses the values of RescaleSlope and RescaleIntercept to convert the values or the attribute LUT Sequence
+        # If the modality is CT (Scanner Image) we have to convert the values of 
+        # the image first with apply_modality
+        # It uses the values of RescaleSlope and RescaleIntercept to convert the 
+        # values or the attribute LUT Sequence
         if dicom.Modality == "CT":
             data = apply_modality_lut(dicom.pixel_array, dicom)
             data = apply_voi_lut(data, dicom)
@@ -36,8 +41,10 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
         data = np.amax(data) - data
 
     #If the DICOM are not in one of these two formats, it can bring new problems.
-    if dicom.PhotometricInterpretation != "MONOCHROME2" and dicom.PhotometricInterpretation != "MONOCHROME1":
-        warnings.warn("PhotometricInterpretation " + dicom.PhotometricInterpretation + " can cause unexpected behaviors.\n" +
+    if dicom.PhotometricInterpretation != "MONOCHROME2" and \
+        dicom.PhotometricInterpretation != "MONOCHROME1":
+        warnings.warn("PhotometricInterpretation " + 
+        dicom.PhotometricInterpretation + " can cause unexpected behaviors.\n" +
         "File concerned : " + path)
     
     data = data - np.min(data)
@@ -48,20 +55,23 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
 
 
 
-"""
-Converts a NUMPY array into a DICOM and returns this DICOM.
-"""
+
 def narray2dicom(pixels, dataset, outfile):
-    #If the modality equals 'CT'. The conversion will be incorrect because it needs a Rescaling operation.
+    """Converts a NUMPY array into a DICOM and returns this DICOM."""
+    # If the modality equals 'CT'. The conversion will be incorrect because it 
+    # needs a Rescaling operation.
     if dataset.Modality == 'CT':
-        raise TypeError("Conversion from NUMPY array to DICOM with Modality CT is not supported by this module.")
+        raise TypeError("""
+Conversion from NUMPY array to DICOM with Modality CT is not supported by this module.
+""")
     
-    #Some sets of DICOM can be in 8 bits
-    #We have to adapt the array depending on whether it's 8 or 16 bits
+    # Some sets of DICOM can be in 8 bits
+    # We have to adapt the array depending on whether it's 8 or 16 bits
     if dataset.BitsAllocated == 8:
         dataset.PixelData = pixels.astype(np.uint8).tobytes()
     elif dataset.BitsAllocated == 16:   
         dataset.PixelData = pixels.astype(np.uint16).tobytes()
     else:
-        raise ValueError("Unsupported Bits format in dataset : BitsAllocated = " + str(dataset.BitsAllocated))
+        raise ValueError("Unsupported Bits format in dataset : BitsAllocated = " + 
+        str(dataset.BitsAllocated))
     dataset.save_as(outfile)
