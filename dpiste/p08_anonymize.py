@@ -4,15 +4,16 @@ from PIL import Image, ImageDraw, ImageFilter
 from easyocr import Reader
 from dpiste import dicom2png
 
-"""
-Anonymize a complete directory of DICOM.
 
-@param
-
-indir = the initial directory of DICOM to de-identify
-outdir = the final director of DICOM which have been de-identied
-"""
 def anonymize_folder(indir, outdir):
+    """
+    Anonymize a complete directory of DICOM.
+
+    @param
+
+    indir = the initial directory of DICOM to de-identify
+    outdir = the final director of DICOM which have been de-identied
+    """
     count = 1
     for file in sorted(os.listdir(indir)):
     
@@ -50,25 +51,28 @@ def anonymize_folder(indir, outdir):
 
 
 
-"""
-Easy OCR Test function. Gets an image at the path below and gets the text of the picture. 
-"""
+
 def get_text_areas(pixels):
+    """
+    Easy OCR function. Gets an image at the path below and gets the 
+    text of the picture. 
+    """
     reader = Reader(['fr'])
     return reader.readtext(pixels)
 
 
 
-"""
-Get a NUMPY array, a list of the coordinates of the different text areas in this array
-and (optional) a mode which can be : "blur" or "black". It returns the modified NUMPY array.
-
-MODES (optional):
-
-"black" mode (default) ==> add a black rectangle on the text areas
-"blur" mode            ==> blur the text areas
-"""
 def hide_text(pixels, ocr_data, mode = "black"):
+    """
+    Get a NUMPY array, a list of the coordinates of the different text areas 
+    in this array and (optional) a mode which can be : 
+    blur" or "black". It returns the modified NUMPY array.
+
+    MODES (optional):
+
+    "black" mode (default) ==> add a black rectangle on the text areas
+    "blur" mode            ==> blur the text areas
+    """
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
