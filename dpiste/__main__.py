@@ -55,6 +55,11 @@ def main(a):
   type=int, 
   help = "Strength of the blurring effect from 1 to 30 (default is 0)", 
   required = False)
+  test_parser.add_argument("-r", 
+  "--repetition", 
+  type=int, 
+  help = "Number of test repetition per criteria (default is 1)", 
+  required = False)
   test_parser.set_defaults(func = do_test_ocr)
 
 
@@ -231,7 +236,9 @@ def do_anonymize_folder(args, *other):
   p08_anonymize.anonymize_folder(indir = args.indir, outdir = args.outdir)
 
 def do_test_ocr(args, *other):
-    test.main(indir = args.indir, outdir = args.outdir, font = args.font, size = args.size, blur = args.blur)
+    test.main(
+      indir = args.indir, outdir = args.outdir, font = args.font, 
+      size = args.size, blur = args.blur, repetition = args.repetition)
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
