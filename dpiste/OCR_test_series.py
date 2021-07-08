@@ -1,5 +1,6 @@
 import random
 import string
+import time
 from datetime import datetime
 import os
 from typing import Type
@@ -21,6 +22,7 @@ test images and then treating them with the OCR module.
 """
 
 def main(indir, outdir, font, size, blur, repetition):    
+    start_time = time.time()
     #Default values
     if font is None:
         font = 'random'
@@ -106,8 +108,9 @@ def main(indir, outdir, font, size, blur, repetition):
                          + str(os.path.basename(font[index_font])) + " | B = " \
                              + str(blur[index_blur]) + " | S = " + str(size[index_size])
                     nb_images_tested += 1
-
+    time_taken = time.time() - start_time
     with open(outdir + "/test_summary.txt", 'w') as f:
+        f.write(str(round(time_taken, 2)) + " seconds taken to process all images.")
         f.write(summary)
 
 
@@ -403,6 +406,10 @@ def getDataset(dataset):
 
 
 def levenshtein_distance(word_1, word_2):
+    """
+    Calculates the levenshtein distance (= the number of letters to add/
+    substitute/interchange in order to pass from word_1 to word_2)
+    """
     array = [[0 for i in range(len(word_2)+1)] for y in range(len(word_1)+1)]
 
     for i in range(len(word_1)+1):
@@ -418,44 +425,8 @@ def levenshtein_distance(word_1, word_2):
                 array[i][j-1] + 1,
                 array[i-1][j-1] + cost
                 )
-            print("""array[{}][{}] = """.format(i, j), array[i][j])
-    return array[len(word_1)][len(word_2)]
 
-
-def has_a_two_letters_difference(word_1, word_2):
-    """
-    Check if there is a difference of max two letters between two words of 
-    the same size OR a difference of two letters plus an extra letter for 
-    one of the two words.
-    """
-    word_1, word_2 = str(word_1), str(word_2)
-
-    #Word_1 has to be the shortest for this function and has to be one char max bigger than word_2
-    if len(word_1) > len(word_2):
-        word_1, word_2 = word_2, word_1
-    
-    if len(word_1)+1 < len(word_2):
-        return False
-
-    differences = []
-    count = 0
-    for letter in word_1:
-        if word_2[count] == letter:
-            differences.append('*')
-        else:
-            differences.append(letter)
-        count += 1
-    
-    nb_differences = 0
-    for letter in differences:
-        if nb_differences > 2:
-            return False
-
-        if letter != '*':
-            nb_differences += 1
-
-    return True
-        
+    return array[len(word_1)][len(word_2)]        
 
 
 
@@ -490,7 +461,6 @@ def calculate_test_values(
         else:
             fn += 1
     return (tp, tn, fn)
-
 
 
 
@@ -535,9 +505,10 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         #The OCR module has a tendency to confuse i and l or o and q. We help it because it does not matter for our work. 
         else:
             for word_pos in range(len(test_words)):
-                if has_a_two_letters_difference(found[1].lower(), test_words[word_pos]):
+                difference = levenshtein_distance(found[1].lower(), test_words[word_pos])
+                if difference < 2:
                     print(found[1].lower(), "&&", test_words[word_pos], 
-                    "==", has_a_two_letters_difference(found[1].lower(), test_words[word_pos]))
+                    "==", difference)
                     ocr_recognized_words += 1
                     break
 
@@ -612,5 +583,4 @@ Accuracy: {accuracy} %
 
 
 if __name__ == '__main__':
-    #main(PATH_DCM, PATH_PNG, [PATH_FONTS+"/FreeMono.ttf", PATH_FONTS+"/NimbusSansNarrow-Regular.otf"], [1, 3, 5], [1, 4], 3)
-    print(levenshtein_distance("exem","niche"))
+    main(PATH_DCM, PATH_PNG, [PATH_FONTS+"/FreeMono.ttf", PATH_FONTS+"/NimbusSansNarrow-Regular.otf"], [1, 3, 5], [1, 4], 3)
