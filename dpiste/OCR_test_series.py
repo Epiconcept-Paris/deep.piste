@@ -10,8 +10,8 @@ from dpiste.dicom2png import dicom2narray, narray2dicom
 from PIL import Image, ImageFont, ImageDraw
 from dpiste.p08_anonymize import *
 
-PATH_DCM = '/home/williammadie/images/test20/dicom'
-PATH_PNG = '/home/williammadie/images/test20/png'
+PATH_DCM = '/home/williammadie/images/test_mix/dicom'
+PATH_PNG = '/home/williammadie/images/test_mix/png'
 PATH_FONTS = '/home/williammadie/images/fonts'
 
 """
@@ -27,7 +27,7 @@ def main(indir, outdir, font, size, blur, repetition):
     if font is None:
         font = 'random'
     if size is None:
-        size = [0.1]
+        size = [2]
     if blur is None:
         blur = [0]
     if repetition is None:
@@ -36,6 +36,7 @@ def main(indir, outdir, font, size, blur, repetition):
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
     list_dicom, list_chosen = sorted(os.listdir(indir)), []
+    result = ""
 
     #Tests for false positives
     summary = "\nF stands for the FONT path" + \
@@ -51,7 +52,7 @@ def main(indir, outdir, font, size, blur, repetition):
             tn += 1
         save_dicom_info(
             outdir + '/' + os.path.basename(dicom) + ".txt", 
-            file_path, ds, ocr_data
+            file_path, ds, ocr_data, [], 0
             )
         summary += "\n" + file_path + "\n↪parameters : F = - | B = - | S = -"
         nb_images_tested += 1
@@ -65,15 +66,15 @@ def main(indir, outdir, font, size, blur, repetition):
             for index_blur in range(len(blur)):
                 for r in range(repetition):
                     (pixels, ds, dicom, file_path, list_chosen) = get_random_dicom_ds_array(
-                        list_dicom, indir
+                        list_dicom, indir, list_chosen
                         )
                     
                     if pixels.size < 100000:
-                        test_words = generate_random_words(random.randint(0,1), 5)
+                        test_words = generate_random_words(random.randint(1,1), 5)
                     elif size[index_size] > 3:
-                        test_words = generate_random_words(random.randint(0,5), 5)
+                        test_words = generate_random_words(random.randint(1,5), 5)
                     else:
-                        test_words = generate_random_words(random.randint(0,10), 10)
+                        test_words = generate_random_words(random.randint(1,10), 10)
 
                     (pixels, words_array, test_words) = add_words_on_image(
                         pixels, test_words, size[index_size], 
@@ -97,11 +98,14 @@ def main(indir, outdir, font, size, blur, repetition):
                     (tp, tn, fn) = calculate_test_values(
                         total_words, ocr_recognized_words, tp, tn, fn
                         )        
-                    save_test_information(
+                    result = save_test_information(
                         nb_images_tested, nb_images_total, sum_ocr_recognized_words, sum_total_words, 
-                        ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path
+                        ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path, result
                         )
-                    save_dicom_info(outdir + '/' + os.path.basename(dicom) + ".txt", file_path, ds, ocr_data)
+                    save_dicom_info(
+                        outdir + '/' + os.path.basename(dicom) + ".txt", 
+                        file_path, ds, ocr_data, test_words, total_words)
+                    
                     summary += "\n" + file_path + "\n↪parameters : F = " \
                          + str(os.path.basename(font[index_font])) + " | B = " \
                              + str(blur[index_blur]) + " | S = " + str(size[index_size])
@@ -109,7 +113,7 @@ def main(indir, outdir, font, size, blur, repetition):
     
     time_taken = time.time() - start_time
     with open(outdir + "/test_summary.txt", 'w') as f:
-        f.write(str(round(time_taken, 2)) + " seconds taken to process all images.")
+        f.write(str(round(time_taken/60)) + " minutes taken to process all images.")
         f.write(summary)
             
     #pixels = hide_text(pixels, ocr_data)
@@ -134,20 +138,26 @@ def get_random_dicom_ds_array(list_dicom, indir, list_chosen):
 
 
 
-def save_dicom_info(output_ds, file_path, ds, ocr_data):
+def save_dicom_info(output_ds, file_path, ds, ocr_data, test_words, total_words):
     """Write the dataset of the image"""
     with open(output_ds,'a') as f:
         f.write(
             datetime.now().strftime(
                 "%d/%m/%Y %H:%M:%S"
-                ) + '\n' + file_path + '\n' + str(ds) + '\n')
+                ) + '\n' + file_path + '\n' + str(ds) + "\nRecognized words :\n")
+        ocr_words = []
         for found in ocr_data:
             if ' ' in found[1]:
                 new_tuple = (found[0], found[1].replace(' ',''), found[2])
                 ocr_data.remove(found)
                 ocr_data.append(new_tuple)
-        for found in ocr_data:
-            f.write(found[1] + "|")
+            ocr_words.append(found[1])
+        for found in sorted(ocr_words):
+            f.write(found.lower() + " |")
+        f.write("\nReal words :\n")
+        if total_words == len(test_words):
+            for word in sorted(test_words):
+                f.write(word + " |")
 
 
 def summarize_dcm_info(pixels, file, count):
@@ -247,13 +257,21 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
             #The array memorizes the position of the word in the list 'words'
             if words_array[x_cell][y_cell] == 0 and x_cell < nb_rows-2 \
                 and is_the_background_black_enough(x_cell, y_cell, length_cell, height_cell, im):
-                if words_array[x_cell+2][y_cell] == 0:
-                    if words_array[x_cell+1][y_cell] == 0:
-                        words_array[x_cell][y_cell] = count+1
-                        words_array[x_cell+1][y_cell] = count+1
-                        words_array[x_cell+2][y_cell] = count+1
-                        is_null = True
-                        nb_tries = 0
+                
+                occupied = False
+                for cell in range(5, 0, -1):
+                    if x_cell+cell >= len(words_array):
+                        occupied = True
+                        break
+                    if words_array[x_cell+cell][y_cell] != 0:
+                        occupied = True
+                        break
+                
+                if not occupied:
+                    for cell in range(5, 0, -1):
+                        words_array[x_cell+cell][y_cell] = count+1
+                    is_null = True
+                    nb_tries = 0
             nb_tries += 1
 
             #If the number of tries exceeds the limit, we remove the word from the list
@@ -480,7 +498,7 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
 
 
 def save_test_information(nb_images_tested, nb_images_total, sum_ocr_recognized_words, sum_total_words, 
-ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path):
+ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path, result):
     """
     Save the test information in a .txt file. 
     It contains main values linked to the past test.
@@ -500,7 +518,7 @@ ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path):
     accuracy, precision = round(accuracy, 1), round(precision, 1)
     recall, f1_score = round(recall, 1), round(f1_score, 1)
     hour = datetime.now().strftime("%H:%M:%S")
-    result = """
+    result += """
 \n
 ===========================================================================
 Image : {file_path}
@@ -537,13 +555,16 @@ Accuracy: {accuracy} %
         accuracy = accuracy)
     print(result)
 
-    if outdir.endswith('/'):
-        file_path = outdir + "test_info.txt" 
+    if nb_images_tested == nb_images_total:
+        if outdir.endswith('/'):
+            file_path = outdir + "test_info.txt" 
+        else:
+            file_path = outdir + "/test_info.txt"
+            
+        with open(file_path, 'a') as f:
+            f.write(result)
     else:
-        file_path = outdir + "/test_info.txt"
-        
-    with open(file_path, 'a') as f:
-        f.write(result)
+        return result
 
 
 
@@ -551,7 +572,7 @@ if __name__ == '__main__':
     main(
         PATH_DCM, 
         PATH_PNG, 
-        [PATH_FONTS+"/FreeMono.ttf", PATH_FONTS+"/NimbusSansNarrow-Regular.otf"], 
-        [1, 3, 5], 
+        [PATH_FONTS+"/FreeMonoBoldOblique.ttf", PATH_FONTS+"/FreeSerif.ttf"], 
+        [1, 4], 
         [0], 
         3)
