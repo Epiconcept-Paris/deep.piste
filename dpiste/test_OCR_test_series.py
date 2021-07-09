@@ -8,3 +8,4 @@ def test_levenshtein_distance():
     assert OCR_test_series.levenshtein_distance("sturgeon","urgently") == 6
     assert OCR_test_series.levenshtein_distance("difference","distance") == 5
     assert OCR_test_series.levenshtein_distance("example","samples") == 3
+    assert OCR_test_series.levenshtein_distance("bsfhebfkrn","bsthebtkrn") == 2
