@@ -7,7 +7,7 @@ import warnings
 
 def dicom2png(infile, outfile):
   pixels = dicom2narray(infile)
-  img = Image.fromarray(pixels)
+  img = Image.fromarray(pixels[0])
   img.save(outfile + ".png")
   print(f"file {outfile} written")
 
