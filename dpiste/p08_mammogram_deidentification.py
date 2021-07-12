@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from easyocr import Reader
@@ -14,7 +15,13 @@ def p08_001_anonymize_folder(indir, outdir):
     indir = the initial directory of DICOM to de-identify
     outdir = the final director of DICOM which have been de-identied
     """
-    count = 1
+    start_time = time.time()
+    nb_images_processed = 1
+    summary = """\n\n\n
+    Here is a summary of the DICOMs that have been de-identified ONLY.
+    (The DICOMs that had no text area have been moved to the output directory
+    so they are not listed in this file.)\n\n\n
+    """
     for file in sorted(os.listdir(indir)):
     
         if indir.endswith("/"):
@@ -26,15 +33,19 @@ def p08_001_anonymize_folder(indir, outdir):
         pixels = dicom[0]
 
         ocr_data = p08_002_get_text_areas(pixels)
-        pixels = p08_003_hide_text(pixels, ocr_data)
+        
+        if not len(ocr_data):
+            pixels = p08_003_hide_text(pixels, ocr_data)
         
 
         if outdir.endswith("/"):
             output_path = outdir  + os.path.basename(file)
             output_ds = outdir + os.path.basename(file) + ".txt"
+            output_summary = outdir + "summary.log"
         else:
             output_path = outdir  + '/' + os.path.basename(file)
             output_ds = outdir + "/" + os.path.basename(file) + ".txt"
+            output_summary = outdir + "/summary.log"
 
         with open(output_ds,'a') as f:
             file_path = indir + file
@@ -47,7 +58,17 @@ def p08_001_anonymize_folder(indir, outdir):
             f.write('/n')
             f.write()
 
+        summary = p08_004_update_summary(summary, file_path, ocr_data)
+
         dicom2png.narray2dicom(pixels, dicom[1], output_path)
+        
+        nb_images_processed += 1
+
+    
+        time_taken = time.time() - start_time
+    with open(output_summary, 'w') as f:
+        f.write(str(round(time_taken/60)) + " minutes taken to de-identify all images.")
+        f.write(summary)
 
 
 
@@ -104,3 +125,15 @@ def p08_003_hide_text(pixels, ocr_data, mode = "black"):
     return np.asarray(im)
 
 
+def p08_004_update_summary(summary, file_path, ocr_data):
+    summary += "\n" + file_path + "\n↪words : "
+    ocr_words = []
+    for found in ocr_data:
+        if ' ' in found[1]:
+            new_tuple = (found[0], found[1].replace(' ',''), found[2])
+            ocr_data.remove(found)
+            ocr_data.append(new_tuple)
+        ocr_words.append(found[1])
+    for found in sorted(ocr_words):
+        summary += found.lower() + " |"
+    return summary
