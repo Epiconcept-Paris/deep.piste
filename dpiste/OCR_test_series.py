@@ -8,7 +8,7 @@ import pydicom
 import numpy as np
 from dpiste.dicom2png import dicom2narray, narray2dicom
 from PIL import Image, ImageFont, ImageDraw
-from dpiste.p08_anonymize import *
+from dpiste.p08_mammogram_deidentification import *
 
 PATH_DCM = '/home/williammadie/images/test_mix/dicom'
 PATH_PNG = '/home/williammadie/images/test_mix/png'
@@ -21,11 +21,13 @@ test images and then treating them with the OCR module.
 
 """
 
-def main(indir, outdir, font, size, blur, repetition):    
+def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):    
     start_time = time.time()
     #Default values
     if font is None:
-        font = 'random'
+        font = PATH_FONTS + '/FreeMono.ttf'
+    else:
+        check_file_existence(font)
     if size is None:
         size = [2]
     if blur is None:
@@ -45,7 +47,7 @@ def main(indir, outdir, font, size, blur, repetition):
     summary += "\n\n\nTested for detecting possible false positives x" + str(repetition) + "\n\n\n"
     for i in range(repetition):
         (pixels, ds, dicom, file_path, list_chosen) = get_random_dicom_ds_array(list_dicom, indir, list_chosen)
-        ocr_data = get_text_areas(pixels)
+        ocr_data = p08_002_get_text_areas(pixels)
         if is_there_ghost_words(ocr_data):
             fp += 1
         else:
@@ -84,7 +86,7 @@ def main(indir, outdir, font, size, blur, repetition):
                     img = Image.fromarray(pixels)
                     img.save(outdir + '/' + os.path.basename(dicom) + ".png")
 
-                    ocr_data = get_text_areas(pixels)
+                    ocr_data = p08_002_get_text_areas(pixels)
             
                     (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(
                         test_words, words_array, ocr_data
@@ -118,6 +120,14 @@ def main(indir, outdir, font, size, blur, repetition):
             
     #pixels = hide_text(pixels, ocr_data)
     #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
+
+
+
+def check_file_existence(font):
+    """Checks if all font resources are existing"""
+    for f in font:
+        if not os.path.isfile(f):
+            raise TypeError("Font " + f + " does not exist. Please check spelling.") 
 
 
 
@@ -206,7 +216,7 @@ def generate_random_words(nb_words, nb_character_max, nb_character_min = 3):
 
 
 
-def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, blur = 0):
+def add_words_on_image(pixels, words, text_size, font, color = 255, blur = 0):
     """Writes text on each picture located in the folder path."""
     nb_rows = 15
     
@@ -218,10 +228,6 @@ def add_words_on_image(pixels, words, text_size, font = 'random', color = 255, b
     #Create a pillow image from the numpy array
     pixels = pixels/255
     im = Image.fromarray(np.uint8((pixels)*255))
-
-
-    if font == 'random':
-        font = os.listdir(PATH_FONTS)[random.randint(0,len(os.listdir(PATH_FONTS))-1)]
     
     #Auto-scale the size of the text according to the image width
     if text_size == 'auto':
@@ -480,9 +486,11 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         test_words[word] = test_words[word].lower()
 
     #Get the number of words recognized 
+    unrecognized_words = []
     for found in ocr_data:
         if found[1].lower() in test_words:
             ocr_recognized_words += 1
+            test_words.remove(found[1].lower())
         #The OCR module has a tendency to confuse i and l or o and q. We help it because it does not matter for our work. 
         else:
             for word_pos in range(len(test_words)):
@@ -491,7 +499,20 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
                     print(found[1].lower(), "&&", test_words[word_pos], 
                     "==", difference)
                     ocr_recognized_words += 1
+                    test_words.remove(test_words[word_pos])
                     break
+                else:
+                    unrecognized_words.append(found[1])
+
+    if len(unrecognized_words) != 0:
+        sum_words = ""
+        for word in unrecognized_words:
+            sum_words += word
+        for word in test_words:
+            if sum_words.find(word) != -1:
+                ocr_recognized_words += 1
+                test_words.remove(word)
+                print(word, "is contained in", sum_words)
 
     return (ocr_recognized_words, total_words)
 
@@ -569,10 +590,10 @@ Accuracy: {accuracy} %
 
 
 if __name__ == '__main__':
-    main(
+    p08_000_test_OCR(
         PATH_DCM, 
         PATH_PNG, 
-        [PATH_FONTS+"/FreeMonoBoldOblique.ttf", PATH_FONTS+"/FreeSerif.ttf"], 
-        [1, 4], 
-        [0], 
+        [PATH_FONTS+"/FreeSerif.ttf", PATH_FONTS+"/P052-Roman.otf"], 
+        [1, 2, 3], 
+        [1], 
         3)
