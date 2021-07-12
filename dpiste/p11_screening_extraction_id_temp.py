@@ -2,78 +2,76 @@ import gnupg
 import os
 from dpiste import utils
 import pandas as pd
+from PIL import Image, ImageDraw, ImageFont
 
-path=utils.get_home("transform","hdh")
-gpg = gnupg.GPG(gnupghome = path)
-#gpg = gnupg.GPG()
+def p11_getGpg():
+  path=utils.get_home("transform","hdh", "gpg")
+  os.makedirs(name = path, exist_ok = True)
+  return gnupg.GPG(gnupghome = path)
 
-def p11_001_generate_encryption_key():
-  #randomly generate new private-public RSA key
-  #store generaed keys in data/output/hdh/crypting-key-public.rsa
-  #store generaed keys in data/output/hdh/crypting-key-private.rsa
-  path_key_public=utils.get_home("data","output","hdh","crypting_key_public.rsa")
-  path_key_private=utils.get_home("data","output","hdh","crypting_key_private.rsa")
-
-  input_data = gpg.gen_key_input(key_type="RSA", key_length=4096, expire_date='2y')
-  key = gpg.gen_key(input_data)
-
-  if not os.path.isfile(path_key_public) :
-    ascii_armored_public_keys = gpg.export_keys(key.fingerprint,passphrase='secret')
-    public = open(path_key_public, "a")
-    public.write(ascii_armored_public_keys)
-    public.close()
-  if not os.path.isfile(path_key_private) : 
-    ascii_armored_private_keys = gpg.export_keys(key.fingerprint, True,passphrase='secret')
-    private = open(path_key_private, "a")
-    private.write(ascii_armored_private_keys)
-    private.close()
-
-def p11_002_generate_signing_key():
+def p11_001_generate_transfer_keys():
   #randomly generate new private-public RSA key
   #store generaed keys in data/output/hdh/signing-key-public.rsa
   #store generaed keys in data/output/hdh/signing-key-private.rsa
-  path_key_public=utils.get_home("data","output","hdh","signing_key_public.rsa")
-  path_key_private=utils.get_home("data","output","hdh","signing_key_private.rsa")
+  gpg = p11_getGpg()
   
-  input_data = gpg.gen_key_input(key_type="RSA", key_length=4096, expire_date='2y')
-  key = gpg.gen_key(input_data)
+  if not os.path.isfile(p11_public_transfer_key_path())  or not os.path.isfile(p11_private_transfer_key_path()) : 
+    # creating the key
+    input_data = gpg.gen_key_input(key_type="RSA", key_length=4096, expire_date='2y', name_real='Deep.pistep_11 ', name_email='deep.piste.p11@epiconcept.fr')
+    key = gpg.gen_key(input_data)
 
-  if not os.path.isfile(path_key_public) :
-    ascii_armored_public_keys = gpg.export_keys(key.fingerprint,passphrase='secret')
-    public = open(path_key_public, "a")
+    #exporting public key
+    ascii_armored_public_keys = gpg.export_keys(key.fingerprint)
+    public = open(p11_public_transfer_key_path(), "w")
     public.write(ascii_armored_public_keys)
     public.close()
-  if not os.path.isfile(path_key_private) : 
-    ascii_armored_private_keys = gpg.export_keys(key.fingerprint, True,passphrase='secret')
-    private = open(path_key_private, "a")
+    
+    #exporting private key
+    ascii_armored_private_keys = gpg.export_keys(key.fingerprint, secret = True, expect_passphrase = False)
+    private = open(p11_private_transfer_key_path(), "w")
     private.write(ascii_armored_private_keys)
     private.close()
+  else:
+    print("Keys exists already, skipping creation")
+
 
 def p11_003_encrypt_hdh_extraction_test():
-  entetes = [u'name',u'sexe',u'power']
-  valeurs = [
-       [u'Superman', u'm', u'Fly'],
-       [u'Superwoman', u'f', u'Fly'],
-       [u'Hulk', u'm', u'Super Force'],
-       [u'Bathman', u'm', u'Fight']
-  ]
+  # Generating file to crypt
+  test_file_path = utils.get_home("transform","hdh", "crypto_test.png")
+  fnt = ImageFont.truetype('arial.ttf', 15)
+  image = Image.new(mode = "RGB", size = (200,70), color = "white")
+  draw = ImageDraw.Draw(image)
+  draw.text((10,10), "Hi HDH! from Deep.piste", font=fnt, fill=(0,0,0))
+  image.save(test_file_path)
 
-  f = open(utils.get_home("data","transform","mon_fichier.parquet"), 'w')
-  ligneEntete = ";".join(entetes) + "\n"
-  f.write(ligneEntete)
-  for valeur in valeurs:
-       ligne = ";".join(valeur) + "\n"
-       f.write(ligne)
+  gpg = p11_getGpg()
+  with open(p11_private_transfer_key_path()) as key_file:
+    signing_key = gpg.import_keys(key_file.read())
 
-  f.close()
-  df=pd.read_csv(utils.get_home("data","transform","mon_fichier.parquet"))
-  print(df)
+  with open(p11_public_hdh_key_path()) as hdh_file:
+    encrypt_key = gpg.import_keys(hdh_file.read())
+
+  with open(test_file_path, 'rb') as test_file:
+    to_crypt = test_file.read()
+
+  #Doing encryption
+  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], always_trust=True)
+  
+  with open(p11_test_crypted_path(), 'w') as crypted_file:
+    crypted_file.write(str(encrypted_data))
+
+
+def p11_public_transfer_key_path(): return utils.get_home("output","hdh","p_11_transfer_public_key.rsa")
+def p11_private_transfer_key_path(): return utils.get_home("output","hdh","p_11_transfer_private_key.rsa")
+def p11_public_hdh_key_path(): return utils.get_home("input", "hdh", "p11_encryption_public.rsa")
+def p11_test_crypted_path(): return utils.get_home("output", "hdh", "p11_test_crypted.png")
 
 
 def p11_004_sygn_hdh_extraction_test():
   raise NotImplementedError()
 
 def p11_005_encrypt_hdh_extraction():
+  raise NotImplementedError()
   #generation d un fichier csv data/output/hdh/screening_extraction.csv a partir du resulat de la fonction dal.screening.depistage_pseudo
   #pour developement remplacer le fichier data/transform/screening/depistage_pseudo.parquet par un fichier parquet fige.
 

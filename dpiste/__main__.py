@@ -4,6 +4,7 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from .p02_initial_extraction import *
 from .p03_validated_extraction import *
+from .p11_screening_extraction_id_temp import *
 from . import utils
 
 def main(a):
@@ -18,6 +19,10 @@ def main(a):
   # validate command
   transform_parser = subs.add_parser("transform", help = "Perform transformation on input data") 
   transform_subs = transform_parser.add_subparsers()
+  
+  # export command
+  export_parser = subs.add_parser("export", help = "Seding data") 
+  export_subs = export_parser.add_subparsers()
   
   # extract neoscope command
   neoextract_parser = extract_subs.add_parser("neoscope", help = "Invoke neoscope extractions commands") 
@@ -130,7 +135,16 @@ def main(a):
   dcm4chee_reports = dcm4chee_subs.add_parser("report", help = "Produce a set of aggregation to manually validate de soundness of dcm4chee DICOM validations")
   dcm4chee_reports.set_defaults(func = do_dcm4chee_report)
   
-  #calling handlers
+  # exporting data to HHD command
+  hdhout_parser = export_subs.add_parser("hdh", help = "Invoke hdh export commands") 
+  hdhout_subs = hdhout_parser.add_subparsers()
+  
+  # -- get dicom 
+  get_dicom_parser = hdhout_subs.add_parser("test-sftp", help = "Test sftp channel by sending a test file. This command will generate the keys and the file to send if needed")
+  get_dicom_parser.add_argument("-s", "--sftp-server", required=True, help="Host to the hdh dedicated sftp")
+  get_dicom_parser.set_defaults(func = do_send_crypted_hdh_test)
+
+#calling handlers
   func = None
   try:
     args = parser.parse_args()
@@ -193,6 +207,9 @@ def do_validated_initial_extraction(args, *other):
   p03_001_generate_validated_extraction()
   p03_002_validated_extraction_report()
 
+def do_send_crypted_hdh_test(args, *other):
+  p11_001_generate_transfer_keys()
+  p11_003_encrypt_hdh_extraction_test() 
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
