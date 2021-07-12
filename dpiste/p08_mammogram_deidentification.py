@@ -5,7 +5,7 @@ from easyocr import Reader
 from dpiste import dicom2png
 
 
-def anonymize_folder(indir, outdir):
+def p08_001_anonymize_folder(indir, outdir):
     """
     Anonymize a complete directory of DICOM.
 
@@ -25,8 +25,8 @@ def anonymize_folder(indir, outdir):
         dicom = dicom2png.dicom2narray(input_path)
         pixels = dicom[0]
 
-        ocr_data = get_text_areas(pixels)
-        pixels = hide_text(pixels, ocr_data)
+        ocr_data = p08_002_get_text_areas(pixels)
+        pixels = p08_003_hide_text(pixels, ocr_data)
         
 
         if outdir.endswith("/"):
@@ -52,7 +52,7 @@ def anonymize_folder(indir, outdir):
 
 
 
-def get_text_areas(pixels):
+def p08_002_get_text_areas(pixels):
     """
     Easy OCR function. Gets an image at the path below and gets the 
     text of the picture. 
@@ -62,7 +62,7 @@ def get_text_areas(pixels):
 
 
 
-def hide_text(pixels, ocr_data, mode = "black"):
+def p08_003_hide_text(pixels, ocr_data, mode = "black"):
     """
     Get a NUMPY array, a list of the coordinates of the different text areas 
     in this array and (optional) a mode which can be : 
