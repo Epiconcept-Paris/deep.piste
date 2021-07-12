@@ -16,8 +16,9 @@ PATH_FONTS = '/home/williammadie/images/fonts'
 
 """
 
-This module aims at generating partially random texts and adding these texts to
-test images and then treating them with the OCR module.
+This module aims at evaluating the OCR package abilities. 
+It generates and adds random texts to test images and then treats them with 
+the OCR module.
 
 """
 
@@ -25,15 +26,15 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
     start_time = time.time()
     #Default values
     if font is None:
-        font = PATH_FONTS + '/FreeMono.ttf'
-    else:
-        check_file_existence(font)
+        font = [PATH_FONTS + '/FreeMono.ttf']
     if size is None:
         size = [2]
     if blur is None:
         blur = [0]
     if repetition is None:
         repetition = 1
+
+    check_resources(font, size, blur)
 
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
@@ -123,11 +124,17 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
 
 
 
-def check_file_existence(font):
-    """Checks if all font resources are existing"""
+def check_resources(font, size, blur):
+    """Checks if all font resources are existing and correct"""
     for f in font:
         if not os.path.isfile(f):
             raise TypeError("Font " + f + " does not exist. Please check spelling.") 
+
+    if max(size) > 5 or min(size) < 1:
+        raise ValueError("Possible text sizes are [1, 2, 3, 4, 5]")
+    
+    if max(blur) > 10 or min(blur) < 0:
+        raise ValueError("Possible blur strengths are [0..10]")
 
 
 
@@ -231,10 +238,10 @@ def add_words_on_image(pixels, words, text_size, font, color = 255, blur = 0):
     
     #Auto-scale the size of the text according to the image width
     if text_size == 'auto':
-        text_size = auto_scale_font_size(pixels, words, font, 1)
+        text_size = auto_scale_font_size(pixels, font, 1)
         print(text_size)
     else:
-        text_size = auto_scale_font_size(pixels, words, font, text_size)
+        text_size = auto_scale_font_size(pixels, font, text_size)
     img_font = ImageFont.truetype(font, text_size)
     
     #Intialize the information for 'words_array' 
@@ -308,7 +315,7 @@ def add_words_on_image(pixels, words, text_size, font, color = 255, blur = 0):
 
 
 
-def auto_scale_font_size(pixels, words, font, rescale_size):
+def auto_scale_font_size(pixels, font, rescale_size):
     """
     Rescale the text depending on the the width of an image.
     Parameters : pixels (narray of the image)
@@ -495,19 +502,23 @@ def compare_ocr_data_and_reality(test_words, words_array, ocr_data):
         else:
             for word_pos in range(len(test_words)):
                 difference = levenshtein_distance(found[1].lower(), test_words[word_pos])
-                if difference <= 2:
+                if (difference <= 3 and min(len(found[1]), len(test_words[word_pos])) > 3) or \
+                    (difference <= 1 and min(len(found[1]), len(test_words[word_pos])) <= 3) :
                     print(found[1].lower(), "&&", test_words[word_pos], 
                     "==", difference)
                     ocr_recognized_words += 1
                     test_words.remove(test_words[word_pos])
                     break
-                else:
-                    unrecognized_words.append(found[1])
+                elif word_pos == len(test_words)-1:
+                    if found[1] not in unrecognized_words:
+                        unrecognized_words.append(found[1])
 
+    print("Unrecognized :", unrecognized_words)
     if len(unrecognized_words) != 0:
         sum_words = ""
         for word in unrecognized_words:
             sum_words += word
+            print(sum_words)
         for word in test_words:
             if sum_words.find(word) != -1:
                 ocr_recognized_words += 1
@@ -539,7 +550,7 @@ ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path, result):
     accuracy, precision = round(accuracy, 1), round(precision, 1)
     recall, f1_score = round(recall, 1), round(f1_score, 1)
     hour = datetime.now().strftime("%H:%M:%S")
-    result += """
+    prompt = """
 \n
 ===========================================================================
 Image : {file_path}
@@ -574,7 +585,8 @@ Accuracy: {accuracy} %
         recall = recall, 
         f1_score = f1_score, 
         accuracy = accuracy)
-    print(result)
+    print(prompt)
+    result += prompt
 
     if nb_images_tested == nb_images_total:
         if outdir.endswith('/'):
@@ -593,7 +605,8 @@ if __name__ == '__main__':
     p08_000_test_OCR(
         PATH_DCM, 
         PATH_PNG, 
-        [PATH_FONTS+"/FreeSerif.ttf", PATH_FONTS+"/P052-Roman.otf"], 
-        [1, 2, 3], 
-        [1], 
+        [PATH_FONTS+"/FreeSansBoldOblique.ttf", PATH_FONTS+"/P052-Roman.otf", 
+        PATH_FONTS+"/NimbusRoman-Regular.otf", PATH_FONTS+"/FreeSerif.ttf"], 
+        [1, 2, 5], 
+        [0, 1], 
         3)
