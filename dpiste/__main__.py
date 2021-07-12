@@ -1,19 +1,20 @@
+import p08_mammogram_deidentification
 import sys
 import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from dpiste import p08_anonymize
+from dpiste import p08_mammogram_deidentification
 from dpiste.p02_initial_extraction import *
 from dpiste import utils
-from dpiste import test
+from dpiste import OCR_test_series
 
 def main(a):
   # Base argument parser
   parser = argparse.ArgumentParser()
   subs = parser.add_subparsers()
   
-  # anonymize command
-  anonymize_parser = subs.add_parser("anonymize", help = "Anonymize a complete directory of DICOMs ")
+  # deidentify command
+  anonymize_parser = subs.add_parser("deidentify", help = "De-identify a complete directory of DICOMs ")
   anonymize_parser.add_argument(
     "-i", 
     "--indir", 
@@ -27,8 +28,8 @@ def main(a):
   required = True)
   anonymize_parser.set_defaults(func = do_anonymize_folder)
 
-  # test command
-  test_parser = subs.add_parser("testOCR", help = "generate text on a copy of the DICOM in the path and tries to recognize it.")
+  # testOCR command
+  test_parser = subs.add_parser("testOCR", help = "Evaluate the ability of the OCR to recognize words and generate test data.")
   test_parser.add_argument(
     "-i", 
     "--indir", 
@@ -233,10 +234,10 @@ def do_dcm4chee_report(args, *other):
   p02_011_dicom_report() 
 
 def do_anonymize_folder(args, *other):
-  p08_anonymize.anonymize_folder(indir = args.indir, outdir = args.outdir)
+  p08_mammogram_deidentification.p08_001_anonymize_folder(indir = args.indir, outdir = args.outdir)
 
 def do_test_ocr(args, *other):
-    test.main(
+    OCR_test_series.p08_000_test_OCR(
       indir = args.indir, outdir = args.outdir, font = args.font, 
       size = args.size, blur = args.blur, repetition = args.repetition)
 
