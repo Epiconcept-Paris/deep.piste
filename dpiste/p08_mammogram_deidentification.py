@@ -1,5 +1,7 @@
 import os
 import time
+import utils
+import shutil
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 from easyocr import Reader
@@ -18,26 +20,24 @@ def p08_001_anonymize_folder(indir, outdir):
     start_time = time.time()
     nb_images_processed = 1
     summary = """\n\n\n
-    Here is a summary of the DICOMs that have been de-identified ONLY.
-    (The DICOMs that had no text area have been moved to the output directory
-    so they are not listed in this file.)\n\n\n
+Here is a summary of the DICOMs that have been de-identified.
+(The DICOMs that had no text area have been moved to the output directory.
+They are the ones with no words listed and they were not modified)\n\n\n
     """
-    for file in sorted(os.listdir(indir)):
+
+    if indir is None:
+        indir = utils.get_home('input', 'dcm4chee', 'dicom')
+
+    list_dicom = sorted(os.listdir(indir))
+    for file in list_dicom:
     
+        nb_files = len(list_dicom)
+        
         if indir.endswith("/"):
             input_path = indir + file
         else:
             input_path = indir + '/' + file
         
-        dicom = dicom2png.dicom2narray(input_path)
-        pixels = dicom[0]
-
-        ocr_data = p08_002_get_text_areas(pixels)
-        
-        if not len(ocr_data):
-            pixels = p08_003_hide_text(pixels, ocr_data)
-        
-
         if outdir.endswith("/"):
             output_path = outdir  + os.path.basename(file)
             output_ds = outdir + os.path.basename(file) + ".txt"
@@ -47,28 +47,38 @@ def p08_001_anonymize_folder(indir, outdir):
             output_ds = outdir + "/" + os.path.basename(file) + ".txt"
             output_summary = outdir + "/summary.log"
 
+        dicom = dicom2png.dicom2narray(input_path)
+        pixels = dicom[0]
+
+        ocr_data = p08_002_get_text_areas(pixels)
+        
+        if len(ocr_data):
+            print("\n___________A text area has been detected : " + input_path + "___________\n")
+            pixels = p08_003_hide_text(pixels, ocr_data)
+            dicom2png.narray2dicom(pixels, dicom[1], output_path)
+        else:
+            print("\nNo text area detected\n")
+            print(input_path, output_path)
+            shutil.copy2(input_path, output_path)
+
+        print(nb_images_processed, "/", nb_files, "DICOM(s) de-identified")
+
         with open(output_ds,'a') as f:
             file_path = indir + file
-            print(file_path)
-            f.write(file_path)
-            f.write('/n')
-            f.write(str(dicom[1]))
-            f.write('/n')
-            f.write(str(ocr_data))
-            f.write('/n')
-            f.write()
+            text = input_path + '\n' + str(dicom[1]) + '\n' + "Words recognized : " + \
+               str(ocr_data) + '\n'
+            f.write(text)
 
         summary = p08_004_update_summary(summary, file_path, ocr_data)
-
-        dicom2png.narray2dicom(pixels, dicom[1], output_path)
-        
         nb_images_processed += 1
 
     
-        time_taken = time.time() - start_time
+    time_taken = time.time() - start_time
     with open(output_summary, 'w') as f:
-        f.write(str(round(time_taken/60)) + " minutes taken to de-identify all images.")
-        f.write(summary)
+        f.write(
+          str(round(time_taken/60)) + " minutes taken to de-identify all images.\n" + \
+            summary
+        )
 
 
 
