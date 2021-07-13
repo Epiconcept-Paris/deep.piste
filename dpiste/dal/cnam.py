@@ -54,13 +54,10 @@ def nir_to_cnam_format(df):
     return df
 
 def cnam_path_transform(name):
-    return dputils.get_home("transform", f"{name}.csv")
+    return dputils.get_home("data", "transform", "cnam",  f"{name}.csv")
 
 def cnam_path_transform_screening(name):
-    return dputils.get_home("transform", "screening", f"{name}.parquet")
-
-def cnam_path_output(name):
-    return dputils.get_home("output", "safe", f"{name}.parquet")
+    return dputils.get_home("data", "transform", "screening", f"{name}.parquet")
 
 def cnam_dfs(name,dfs={}):
     if(dfs.get(name) is not None):
@@ -82,43 +79,3 @@ def cnam_dfs(name,dfs={}):
     dfs[name]=df
     return df
 
-"""
-  if name == "safe_test":
-    #source: dummy_cnam pour transformer en safe
-    #action: transromer en safe
-    #output: data/output/cnam/safe_test --> 01/07 :  On retourne plutôt le dataframe nécessaire à la cNAM
-
-    #path2nirlist = chemin_emplacment_crea
-    #path2nirlist = chemin_list_nir
-    args = script_cnam.parse_args()
-    conf = script_cnam.Config(args)
-    #"path2nirlist" : dputils.get_home("transform","test_cnam.csv")
-
-    return dfs[name]
-
-  elif name == "safe":
-    #source  dal.screening.cnam pour transformer en safe
-    #  pour developpement il faut saugfgarder le fichier dummy_cnam dans data/transform/screening/cnam.parquet
-    #action: transromer en safe
-    #output: data/output/cnam/safe
-    args = script_cnam.parse_args()
-    conf = script_cnam.Config(args)
-    # avoir un fichier parquet cnam.parquet dans transform/screening DONE
-    #puis ajouter une étape pour sauvegarder le fichier au format csv qui sera utilisé ici :
-    nirlist_parquet =  dputils.get_home("transform","screening","cnam.parquet")
-    #print(nirlist_parquet)
-    conf.path2nirlist = dputils.get_home("transform","screening","cnam.csv")
-    conf.path2output = dputils.get_home("output","cnam", "safe")
-    conf.date_depot = datetime.today().strftime('%d/%m/%Y')
-    conf.num_projet = "799" # à modifier
-    conf.nom_projet = "DP799"  # à modifier
-    with open(conf.path2nirlist, 'r') as csvfile:
-        dialect = csv.Sniffer().sniff(csvfile.readline(),delimiters=[',',';','|'])
-        delimiter = dialect.delimiter
-    nir_list = pd.read_csv(
-                    conf.path2nirlist,
-                    sep=delimiter,
-                    dtype='string'
-                    )
-    script_cnam.generate_normed_file(nir_list,conf)
-"""

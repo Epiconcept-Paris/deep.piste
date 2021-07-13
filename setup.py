@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='deep-piste',
-    version='0.0.15',
+    version='0.0.16',
     description='Evaluating the impact of IA on Breast Cancer Screening Program',
     long_description=readme,
     long_description_content_type='text/markdown',
@@ -23,6 +23,7 @@ setup(
       "nbconvert",
       "jupytext",
       "plotly",
+      "python-gnupg"
     ],
     packages=find_packages(exclude=('tests', 'docs')),
     include_package_data=True
