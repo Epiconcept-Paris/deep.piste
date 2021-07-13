@@ -43,18 +43,20 @@ def main(a):
   required = True)
   test_parser.add_argument("-f", 
   "--font", 
-  type=str, 
-  help = "Path of the wanted font (default is random)", 
+  nargs="+", 
+  help = "(list) Path of the wanted font(s)", 
   required = False)
   test_parser.add_argument("-s", 
   "--size", 
-  type=int, 
-  help = "Size of the text (30, 39, 40, 50, 60...) (default is 30)", 
+  type=int,
+  nargs="+", 
+  help = "(list) Size of the text (30 39 40 50 60...) (default is 30)", 
   required = False)
   test_parser.add_argument("-b", 
   "--blur", 
-  type=int, 
-  help = "Strength of the blurring effect from 1 to 30 (default is 0)", 
+  type=int,
+  nargs="+", 
+  help = "(list) Strength of the blurring effect from 1 to 30 (default is 0)", 
   required = False)
   test_parser.add_argument("-r", 
   "--repetition", 
@@ -240,6 +242,7 @@ def do_test_ocr(args, *other):
     OCR_test_series.p08_000_test_OCR(
       indir = args.indir, outdir = args.outdir, font = args.font, 
       size = args.size, blur = args.blur, repetition = args.repetition)
+    
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
