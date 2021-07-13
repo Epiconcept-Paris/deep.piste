@@ -5,7 +5,7 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
 def p11_getGpg():
-  path=utils.get_home("transform","hdh", "gpg")
+  path=utils.get_home("data", "transform","hdh", "gpg")
   os.makedirs(name = path, exist_ok = True)
   return gnupg.GPG(gnupghome = path)
 
@@ -37,7 +37,7 @@ def p11_001_generate_transfer_keys():
 
 def p11_003_encrypt_hdh_extraction_test():
   # Generating file to crypt
-  test_file_path = utils.get_home("transform","hdh", "crypto_test.png")
+  test_file_path = utils.get_home("data", "transform","hdh", "crypto_test.png")
   fnt = ImageFont.truetype('arial.ttf', 15)
   image = Image.new(mode = "RGB", size = (200,70), color = "white")
   draw = ImageDraw.Draw(image)
@@ -61,10 +61,10 @@ def p11_003_encrypt_hdh_extraction_test():
     crypted_file.write(str(encrypted_data))
 
 
-def p11_public_transfer_key_path(): return utils.get_home("output","hdh","p_11_transfer_public_key.rsa")
-def p11_private_transfer_key_path(): return utils.get_home("output","hdh","p_11_transfer_private_key.rsa")
-def p11_public_hdh_key_path(): return utils.get_home("input", "hdh", "p11_encryption_public.rsa")
-def p11_test_crypted_path(): return utils.get_home("output", "hdh", "p11_test_crypted.png")
+def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
+def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_private_key.rsa")
+def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_encryption_public.rsa")
+def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
 
 
 def p11_004_sygn_hdh_extraction_test():
