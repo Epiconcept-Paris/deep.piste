@@ -27,7 +27,7 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
     start_time = time.time()
     #Default values
     if indir is None:
-        indir = utils.get_home('input', 'dcm4chee','dicom')
+        indir = utils.get_home('input', 'dcm4chee', 'dicom')
     if font is None:
         font = [PATH_FONTS + '/FreeMono.ttf']
     if size is None:
@@ -119,8 +119,9 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
     
     time_taken = time.time() - start_time
     with open(outdir + "/test_summary.txt", 'w') as f:
-        f.write(str(round(time_taken/60)) + " minutes taken to process all images.")
-        f.write(summary)
+        f.write(
+          str(round(time_taken/60)) + " minutes taken to process all images.\n" + \
+          summary)
             
     #pixels = hide_text(pixels, ocr_data)
     #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
@@ -572,22 +573,11 @@ Accuracy: {accuracy} %
 ===========================================================================
 \n
     """.format(
-        file_path = file_path,
-        hour = hour,
-        nb_images_tested = nb_images_tested,
-        nb_images_total = nb_images_total,
-        ocr_recognized_words = ocr_recognized_words,
-        total_words = total_words,
-        sum_ocr_recognized_words = sum_ocr_recognized_words, 
-        sum_total_words = sum_total_words,
-        tp = tp,
-        fn = fn, 
-        fp = fp,
-        tn = tn, 
-        precision = precision, 
-        recall = recall, 
-        f1_score = f1_score, 
-        accuracy = accuracy)
+        file_path = file_path, hour = hour, nb_images_tested = nb_images_tested,
+        nb_images_total = nb_images_total, ocr_recognized_words = ocr_recognized_words,
+        total_words = total_words, sum_ocr_recognized_words = sum_ocr_recognized_words, 
+        sum_total_words = sum_total_words, tp = tp, fn = fn, fp = fp, tn = tn, 
+        precision = precision, recall = recall, f1_score = f1_score, accuracy = accuracy)
     print(prompt)
     result += prompt
 
@@ -606,15 +596,10 @@ Accuracy: {accuracy} %
 
 if __name__ == '__main__':
     
-    test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    print(test_list[0:8])
-    """
     p08_000_test_OCR(
-        PATH_DCM, 
-        PATH_PNG, 
+        PATH_DCM, PATH_PNG, 
         [PATH_FONTS+"/FreeSansBoldOblique.ttf", PATH_FONTS+"/P052-Roman.otf", 
         PATH_FONTS+"/NimbusRoman-Regular.otf", PATH_FONTS+"/FreeSerif.ttf"], 
-        [1, 2, 5], 
-        [0, 1], 
-        3)
-    """
+        [1, 2, 5], [0, 1], 3
+        )
+    

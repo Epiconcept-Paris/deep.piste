@@ -3,10 +3,10 @@ import sys
 import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from dpiste import p08_mammogram_deidentification
 from dpiste.p02_initial_extraction import *
 from dpiste import utils
-from dpiste import OCR_test_series
+from dpiste import p08_mammogram_deidentification
+from dpiste import p08_mammogram_test_ocr
 
 def main(a):
   # Base argument parser
@@ -19,8 +19,8 @@ def main(a):
     "-i", 
     "--indir", 
     type=str, 
-    help = "Input directory containing the DICOMs to de-identify", 
-    required = True)
+    help = "Input directory containing the DICOMs to de-identify (default DP_HOME)", 
+    required = False)
   anonymize_parser.add_argument("-o", 
   "--outdir", 
   type=str, 
@@ -35,7 +35,7 @@ def main(a):
     "--indir", 
     type=str, 
     help = "Input directory containing the DICOMs to test", 
-    required = True)
+    required = False)
   test_parser.add_argument("-o", 
   "--outdir", 
   type=str, 
