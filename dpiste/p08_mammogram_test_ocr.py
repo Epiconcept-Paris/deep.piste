@@ -1,6 +1,7 @@
 import random
 import string
 import time
+import utils
 from datetime import datetime
 import os
 from typing import Type
@@ -25,6 +26,8 @@ the OCR module.
 def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):    
     start_time = time.time()
     #Default values
+    if indir is None:
+        indir = utils.get_home('input', 'dcm4chee','dicom')
     if font is None:
         font = [PATH_FONTS + '/FreeMono.ttf']
     if size is None:
@@ -590,9 +593,9 @@ Accuracy: {accuracy} %
 
     if nb_images_tested == nb_images_total:
         if outdir.endswith('/'):
-            file_path = outdir + "test_info.txt" 
+            file_path = outdir + "test_info.log" 
         else:
-            file_path = outdir + "/test_info.txt"
+            file_path = outdir + "/test_info.log"
             
         with open(file_path, 'a') as f:
             f.write(result)
@@ -602,6 +605,10 @@ Accuracy: {accuracy} %
 
 
 if __name__ == '__main__':
+    
+    test_list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    print(test_list[0:8])
+    """
     p08_000_test_OCR(
         PATH_DCM, 
         PATH_PNG, 
@@ -610,3 +617,4 @@ if __name__ == '__main__':
         [1, 2, 5], 
         [0, 1], 
         3)
+    """
