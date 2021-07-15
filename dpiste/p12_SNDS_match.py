@@ -1,18 +1,35 @@
 from . import dal
 import pandas as pd
+from . import utils as dputils
+from . import script_cnam
+from types import SimpleNamespace
+import zipfile
+import os
 
-def p12_001_dummy_cnam_extraction(lines = 100):
-  """Generate a dummy version of CNAM data file"""
-  data = {'id_random':range(0, lines)}
-  dfcnam = pd.DataFrame(data)
-  dfcnam.index.rename('pk', inplace = True)
-  dfcnam['NNI_2'] = ("2" + dfcnam['id_random'].astype(str)+ '12345678901234').str.slice(0, 13)
-  dfcnam['nom'] = "nom"+dfcnam['id_random'].astype(str)
-  dfcnam['nom_jf'] = "nom_jf"+dfcnam['id_random'].astype(str)
-  dfcnam['prenom'] = "prenom"+dfcnam['id_random'].astype(str)
-  dfcnam['date_naiss'] = pd.to_datetime('now').date() + pd.DateOffset(days=-20000)
-  return dfcnam
+def p12_001_safe_test(date_depot, nom_projet, num_projet):
+  file_name = dputils.get_home("data", "output", "cnam", "safe_test")
+  conf = {
+    "path2output" : file_name,
+    "date_depot" : date_depot,
+    "num_projet" : num_projet,
+    "nom_projet" : nom_projet
+  }
+  script_cnam.generate_normed_file(dal.cnam.dummy_cnam_for_safe(),SimpleNamespace(**conf))
 
+  with zipfile.ZipFile("{file_name}.zip".format(**locals()), 'w', compresslevel=9, compression =  zipfile.ZIP_DEFLATED) as zipf:
+    zipf.write(file_name, arcname="deep-piste-test.safe")
+  os.remove(file_name)
+
+def p12_002_safe(date_depot, nom_projet, num_projet):
+  file_name = dputils.get_home("data", "output", "cnam", "safe")
+  conf = {
+    "path2output" : dputils.get_home("data", "output", "cnam", "safe_test"),
+    "date_depot" : date_depot,
+    "num_projet" : num_projet,
+    "nom_projet" : nom_projet
+  }
+  script_cnam.generate_normed_file(dal.cnam.cnam_for_safe(),SimpleNamespace(**conf))
   
-
-
+  with zipfile.ZipFile("{file_name}.zip".format(**locals()), 'w', compresslevel=9, compression =  zipfile.ZIP_DEFLATED) as zipf:
+    zipf.write(file_name, arcname="deep-piste-test.safe")
+  os.remove(file_name)
