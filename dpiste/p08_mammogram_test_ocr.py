@@ -22,12 +22,17 @@ It generates and adds random texts to test images and then treats them with
 the OCR module.
 
 """
+#TODO: replace sourceXXX by the name of the folder according to ...
 
 def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):    
     start_time = time.time()
     #Default values
     if indir is None:
-        indir = utils.get_home('input', 'dcm4chee', 'dicom')
+        utils.get_home('data', 'input', 'dicom')
+        indir = os.environ.get('DP_HOME') + "/data/input/hdh"
+    if outdir is None:
+        utils.get_home('data','output','sourceXXX','dicom')
+        outdir = os.environ.get('DP_HOME') + "/data/output/hdh"
     if font is None:
         font = [PATH_FONTS + '/FreeMono.ttf']
     if size is None:
@@ -45,23 +50,8 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
     result = ""
 
     #Tests for false positives
-    summary = "\nF stands for the FONT path" + \
-        "\nB stands for the BLUR strength" + \
-            "\nS stands for the text SIZE"
-    summary += "\n\n\nTested for detecting possible false positives x" + str(repetition) + "\n\n\n"
-    for i in range(repetition):
-        (pixels, ds, dicom, file_path, list_chosen) = get_random_dicom_ds_array(list_dicom, indir, list_chosen)
-        ocr_data = p08_002_get_text_areas(pixels)
-        if is_there_ghost_words(ocr_data):
-            fp += 1
-        else:
-            tn += 1
-        save_dicom_info(
-            outdir + '/' + os.path.basename(dicom) + ".txt", 
-            file_path, ds, ocr_data, [], 0
-            )
-        summary += "\n" + file_path + "\n↪parameters : F = - | B = - | S = -"
-        nb_images_tested += 1
+    (nb_images_tested, list_chosen, summary, fp, tn) = search_false_positives(
+        indir, list_dicom, list_chosen, outdir, repetition, nb_images_tested, fp, tn)
     
     #Tests for criteria FONT, SIZE & BLUR
     nb_images_total = len(font)*len(size)*len(blur)*3 + 3
@@ -118,13 +108,37 @@ def p08_000_test_OCR(indir, outdir, font, size, blur, repetition):
                     nb_images_tested += 1
     
     time_taken = time.time() - start_time
-    with open(outdir + "/test_summary.txt", 'w') as f:
+    utils.get_home('data','transform','sourceXXX','dicom')
+    with open(os.environ.get('DP_HOME') + "/data/transform/hdh/test_summary.txt", 'w') as f:
         f.write(
           str(round(time_taken/60)) + " minutes taken to process all images.\n" + \
           summary)
             
     #pixels = hide_text(pixels, ocr_data)
     #narray2dicom(pixels, dicom[1], (pathPNG + "/dicom/de_identified" + str(count) + ".dcm"))
+
+
+
+def search_false_positives(indir, list_dicom, list_chosen, outdir, repetition, nb_images_tested, fp, tn):
+    summary = "\nF stands for the FONT path" + \
+        "\nB stands for the BLUR strength" + \
+            "\nS stands for the text SIZE"
+    summary += "\n\n\nTested for detecting possible false positives x" + str(repetition) + "\n\n\n"
+    for i in range(repetition):
+        (pixels, ds, dicom, file_path, list_chosen) = get_random_dicom_ds_array(list_dicom, indir, list_chosen)
+        ocr_data = p08_002_get_text_areas(pixels)
+        if is_there_ghost_words(ocr_data):
+            fp += 1
+        else:
+            tn += 1
+        save_dicom_info(
+            outdir + '/' + os.path.basename(dicom) + ".txt", 
+            file_path, ds, ocr_data, [], 0
+            )
+        summary += "\n" + file_path + "\n↪parameters : F = - | B = - | S = -"
+        nb_images_tested += 1
+
+    return (nb_images_tested, list_chosen, summary, fp, tn)
 
 
 
@@ -551,6 +565,16 @@ ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path, result):
     else:
         accuracy, precision, recall, f1_score = -1, -1, -1, -1
 
+    if total_words != 0:
+        percentage_recognized = (ocr_recognized_words/total_words)*100
+    else:
+        percentage_recognized = 100
+
+    if sum_total_words != 0:
+        percentage_total_recognized = (sum_ocr_recognized_words/sum_total_words)*100
+    else:
+        percentage_total_recognized = 100
+
     accuracy, precision = round(accuracy, 1), round(precision, 1)
     recall, f1_score = round(recall, 1), round(f1_score, 1)
     hour = datetime.now().strftime("%H:%M:%S")
@@ -560,8 +584,8 @@ ocr_recognized_words, total_words, tp, tn, fp, fn, outdir, file_path, result):
 Image : {file_path}
 Image tested at : {hour}
 Amount of images tested: {nb_images_tested}/{nb_images_total}
-TOTAL: {ocr_recognized_words}/{total_words} words recognized (last image)
-GRAND TOTAL: {sum_ocr_recognized_words}/{sum_total_words} words recognized
+TOTAL: {ocr_recognized_words}/{total_words} words recognized (last image) ({percentage_recognized}%)
+GRAND TOTAL: {sum_ocr_recognized_words}/{sum_total_words} words recognized ({percentage_total_recognized}%)
 True Positive (totally recognized images): {tp}
 False Negative (NOT totally recognized images): {fn}
 False Positive (Images with ghost words): {fp}
@@ -594,12 +618,10 @@ Accuracy: {accuracy} %
 
 
 
-if __name__ == '__main__':
-    
-    p08_000_test_OCR(
+if __name__ == '__main__':  
+    p08_000_test_OCR(    
         PATH_DCM, PATH_PNG, 
         [PATH_FONTS+"/FreeSansBoldOblique.ttf", PATH_FONTS+"/P052-Roman.otf", 
         PATH_FONTS+"/NimbusRoman-Regular.otf", PATH_FONTS+"/FreeSerif.ttf"], 
-        [1, 2, 5], [0, 1], 3
+        [1, 2, 5], [0], 3
         )
-    
