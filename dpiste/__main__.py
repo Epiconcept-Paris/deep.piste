@@ -40,7 +40,7 @@ def main(a):
   "--outdir", 
   type=str, 
   help = "Output directory which will contain the information generated during the test", 
-  required = True)
+  required = False)
   test_parser.add_argument("-f", 
   "--font", 
   nargs="+", 
@@ -239,7 +239,7 @@ def do_anonymize_folder(args, *other):
   p08_mammogram_deidentification.p08_001_anonymize_folder(indir = args.indir, outdir = args.outdir)
 
 def do_test_ocr(args, *other):
-    OCR_test_series.p08_000_test_OCR(
+    p08_mammogram_test_ocr.p08_000_test_OCR(
       indir = args.indir, outdir = args.outdir, font = args.font, 
       size = args.size, blur = args.blur, repetition = args.repetition)
     
