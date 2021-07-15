@@ -57,7 +57,7 @@ def main(a):
   "--font", 
   nargs="+", 
   help = "(list) Path of the wanted font(s)", 
-  required = False)
+  required = True)
   test_dicom_deid_parser.add_argument("-s", 
   "--size", 
   type=int,
