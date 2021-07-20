@@ -14,7 +14,7 @@ def dicom2png(infile, outfile):
 
 
 
-def dicom2narray(path, voi_lut = True, fix_monochrome = True):
+def dicom2narray(path, voi_lut = False, fix_monochrome = True):
     """
     Converts a DICOM into a NUMPY array and returns this array and 
     its corresponding dataset.
@@ -50,7 +50,7 @@ def dicom2narray(path, voi_lut = True, fix_monochrome = True):
     data = data - np.min(data)
     data = data / np.max(data)
     data = (data * 255).astype(np.uint8)
-        
+    
     return (data, dicom)
 
 
@@ -67,6 +67,7 @@ Conversion from NUMPY array to DICOM with Modality CT is not supported by this m
     
     # Some sets of DICOM can be in 8 bits
     # We have to adapt the array depending on whether it's 8 or 16 bits
+   
     if dataset.BitsAllocated == 8:
         dataset.PixelData = pixels.astype(np.uint8).tobytes()
     elif dataset.BitsAllocated == 16:   
