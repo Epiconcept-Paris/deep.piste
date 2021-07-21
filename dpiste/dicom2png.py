@@ -1,5 +1,5 @@
-from dpiste.compare_dicom import write_dicom
 from pydicom.pixel_data_handlers.util import apply_modality_lut, apply_voi_lut
+import skimage
 import pydicom
 import numpy as np
 from PIL import Image
@@ -46,7 +46,7 @@ def dicom2narray(path, voi_lut = False, fix_monochrome = True):
         warnings.warn("PhotometricInterpretation " + 
         dicom.PhotometricInterpretation + " can cause unexpected behaviors.\n" +
         "File concerned : " + path)
-    
+        
     data = data - np.min(data)
     data = data / np.max(data)
     data = (data * 255).astype(np.uint8)
@@ -60,17 +60,18 @@ def narray2dicom(pixels, dataset, outfile):
     """Converts a NUMPY array into a DICOM and returns this DICOM."""
     # If the modality equals 'CT'. The conversion will be incorrect because it 
     # needs a Rescaling operation.
-    if dataset.Modality == 'CT':
+    if dataset.Modality in ['CT','DX','MR']:
         raise TypeError("""
-Conversion from NUMPY array to DICOM with Modality CT is not supported by this module.
-""")
+Conversion from NUMPY array to DICOM with Modality {} is not supported by this module.
+File concerned : {}
+""".format(dataset.Modality, outfile))
     
     # Some sets of DICOM can be in 8 bits
     # We have to adapt the array depending on whether it's 8 or 16 bits
-   
+    
     if dataset.BitsAllocated == 8:
         dataset.PixelData = pixels.astype(np.uint8).tobytes()
-    elif dataset.BitsAllocated == 16:   
+    elif dataset.BitsAllocated == 16:  
         dataset.PixelData = pixels.astype(np.uint16).tobytes()
     else:
         raise ValueError("Unsupported Bits format in dataset : BitsAllocated = " + 
