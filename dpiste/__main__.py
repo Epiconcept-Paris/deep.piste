@@ -62,7 +62,7 @@ def main(a):
   "--size", 
   type=int,
   nargs="+", 
-  help = "(list) Size of the text (30 39 40 50 60...) (default is 30)", 
+  help = "(list) Size of the text (1 2 3 4 5) (default is 2)", 
   required = False)
   test_dicom_deid_parser.add_argument("-b", 
   "--blur", 
