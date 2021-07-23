@@ -1,0 +1,1842 @@
+{
+    "AccessionNumber": [
+        "Z",
+        "(0008,0050)"
+    ],
+    "AcquisitionComments": [
+        "X",
+        "(0018,4000)"
+    ],
+    "AcquisitionContextSequence": [
+        "X/Z",
+        "(0040,0555)"
+    ],
+    "AcquisitionDate": [
+        "X/Z",
+        "(0008,0022)"
+    ],
+    "AcquisitionDateTime": [
+        "X/Z/D",
+        "(0008,002A)"
+    ],
+    "AcquisitionDeviceProcessingDescription": [
+        "X/D",
+        "(0018,1400)"
+    ],
+    "AcquisitionFieldOfViewLabel": [
+        "D",
+        "(0018,11BB)"
+    ],
+    "AcquisitionProtocolDescription": [
+        "X",
+        "(0018,9424)"
+    ],
+    "AcquisitionTime": [
+        "X/Z",
+        "(0008,0032)"
+    ],
+    "ActualHumanPerformersSequence": [
+        "X",
+        "(0040,4035)"
+    ],
+    "AdditionalPatientHistory": [
+        "X",
+        "(0010,21B0)"
+    ],
+    "Address": [
+        "X",
+        "(0040,A353)"
+    ],
+    "AdmissionID": [
+        "X",
+        "(0038,0010)"
+    ],
+    "AdmittingDate": [
+        "X",
+        "(0038,0020)"
+    ],
+    "AdmittingDiagnosesCodeSequence": [
+        "X",
+        "(0008,1084)"
+    ],
+    "AdmittingDiagnosesDescription": [
+        "X",
+        "(0008,1080)"
+    ],
+    "AdmittingTime": [
+        "X",
+        "(0038,0021)"
+    ],
+    "AffectedSOPInstanceUID": [
+        "X",
+        "(0000,1000)"
+    ],
+    "Allergies": [
+        "X",
+        "(0010,2110)"
+    ],
+    "Arbitrary": [
+        "X",
+        "(4000,0010)"
+    ],
+    "AuthorObserverSequence": [
+        "X",
+        "(0040,A078)"
+    ],
+    "BarcodeValue": [
+        "X/Z",
+        "(2200,0005)"
+    ],
+    "BeamDescription": [
+        "X",
+        "(300A,00C3)"
+    ],
+    "BolusDescription": [
+        "X",
+        "(300A,00DD)"
+    ],
+    "BranchofService": [
+        "X",
+        "(0010,1081)"
+    ],
+    "CameraOwnerName": [
+        "X",
+        "(0016,004D)"
+    ],
+    "CassetteID": [
+        "X",
+        "(0018,1007)"
+    ],
+    "ClinicalTrialCoordinatingCenterName": [
+        "Z",
+        "(0012,0060)"
+    ],
+    "ClinicalTrialProtocolEthicsCommitteeApprovalNumber": [
+        "X",
+        "(0012,0082)"
+    ],
+    "ClinicalTrialProtocolEthicsCommitteeName": [
+        "D",
+        "(0012,0081)"
+    ],
+    "ClinicalTrialProtocolID": [
+        "D",
+        "(0012,0020)"
+    ],
+    "ClinicalTrialProtocolName": [
+        "Z",
+        "(0012,0021)"
+    ],
+    "ClinicalTrialSeriesDescription": [
+        "X",
+        "(0012,0072)"
+    ],
+    "ClinicalTrialSeriesID": [
+        "X",
+        "(0012,0071)"
+    ],
+    "ClinicalTrialSiteID": [
+        "Z",
+        "(0012,0030)"
+    ],
+    "ClinicalTrialSiteName": [
+        "Z",
+        "(0012,0031)"
+    ],
+    "ClinicalTrialSponsorName": [
+        "D",
+        "(0012,0010)"
+    ],
+    "ClinicalTrialSubjectID": [
+        "D",
+        "(0012,0040)"
+    ],
+    "ClinicalTrialSubjectReadingID": [
+        "D",
+        "(0012,0042)"
+    ],
+    "ClinicalTrialTimePointDescription": [
+        "X",
+        "(0012,0051)"
+    ],
+    "ClinicalTrialTimePointID": [
+        "Z",
+        "(0012,0050)"
+    ],
+    "CommentsonRadiationDose": [
+        "X",
+        "(0040,0310)"
+    ],
+    "CommentsonthePerformedProcedureStep": [
+        "X",
+        "(0040,0280)"
+    ],
+    "CompensatorDescription": [
+        "X",
+        "(300A,02EB)"
+    ],
+    "ConcatenationUID": [
+        "U",
+        "(0020,9161)"
+    ],
+    "ConceptualVolumeCombinationDescription": [
+        "Z",
+        "(3010,000F)"
+    ],
+    "ConceptualVolumeDescription": [
+        "Z",
+        "(3010,0017)"
+    ],
+    "ConceptualVolumeUID": [
+        "U",
+        "(3010,0006)"
+    ],
+    "ConfidentialityConstraintonPatientDataDescription": [
+        "X",
+        "(0040,3001)"
+    ],
+    "ConstituentConceptualVolumeUID": [
+        "U",
+        "(3010,0013)"
+    ],
+    "ConsultingPhysicianName": [
+        "Z",
+        "(0008,009C)"
+    ],
+    "ConsultingPhysicianIdentificationSequence": [
+        "X",
+        "(0008,009D)"
+    ],
+    "ContainerComponentID": [
+        "X",
+        "(0050,001B)"
+    ],
+    "ContainerDescription": [
+        "X",
+        "(0040,051A)"
+    ],
+    "ContainerIdentifier": [
+        "D",
+        "(0040,0512)"
+    ],
+    "ContentCreatorIdentificationCodeSequence": [
+        "X",
+        "(0070,0086)"
+    ],
+    "ContentCreatorName": [
+        "Z/D",
+        "(0070,0084)"
+    ],
+    "ContentDate": [
+        "Z/D",
+        "(0008,0023)"
+    ],
+    "ContentSequence": [
+        "D",
+        "(0040,A730)"
+    ],
+    "ContentTime": [
+        "Z/D",
+        "(0008,0033)"
+    ],
+    "Contrast/BolusAgent": [
+        "Z/D",
+        "(0018,0010)"
+    ],
+    "ContributionDescription": [
+        "X",
+        "(0018,A003)"
+    ],
+    "CountryofResidence": [
+        "X",
+        "(0010,2150)"
+    ],
+    "CurrentObserver": [
+        "X",
+        "(0040,A307)"
+    ],
+    "CurrentPatientLocation": [
+        "X",
+        "(0038,0300)"
+    ],
+    "CurveData": [
+        "X",
+        "(50xx,xxxx)"
+    ],
+    "CurveDate": [
+        "X",
+        "(0008,0025)"
+    ],
+    "CurveTime": [
+        "X",
+        "(0008,0035)"
+    ],
+    "CustodialOrganizationSequence": [
+        "X",
+        "(0040,A07C)"
+    ],
+    "DataSetTrailingPadding": [
+        "X",
+        "(FFFC,FFFC)"
+    ],
+    "DecompositionDescription": [
+        "X",
+        "(0018,937F)"
+    ],
+    "DerivationDescription": [
+        "X",
+        "(0008,2111)"
+    ],
+    "DetectorID": [
+        "X/D",
+        "(0018,700A)"
+    ],
+    "DeviceAlternateIdentifier": [
+        "Z",
+        "(3010,001B)"
+    ],
+    "DeviceDescription": [
+        "X",
+        "(0050,0020)"
+    ],
+    "DeviceLabel": [
+        "D",
+        "(3010,002D)"
+    ],
+    "DeviceSerialNumber": [
+        "X/Z/D",
+        "(0018,1000)"
+    ],
+    "DeviceSettingDescription": [
+        "X",
+        "(0016,004B)"
+    ],
+    "DeviceUID": [
+        "U",
+        "(0018,1002)"
+    ],
+    "DigitalSignaturesSequence": [
+        "X",
+        "(FFFA,FFFA)"
+    ],
+    "DigitalSignatureUID": [
+        "U",
+        "(0400,0100)"
+    ],
+    "DimensionOrganizationUID": [
+        "U",
+        "(0020,9164)"
+    ],
+    "DischargeDiagnosisDescription": [
+        "X",
+        "(0038,0040)"
+    ],
+    "DistributionAddress": [
+        "X",
+        "(4008,011A)"
+    ],
+    "DistributionName": [
+        "X",
+        "(4008,0119)"
+    ],
+    "DoseReferenceDescription": [
+        "X",
+        "(300A,0016)"
+    ],
+    "DoseReferenceUID": [
+        "U",
+        "(300A,0013)"
+    ],
+    "DosimetricObjectiveUID": [
+        "U",
+        "(3010,006E)"
+    ],
+    "EndAcquisitionDateTime": [
+        "X/D",
+        "(0018,9517)"
+    ],
+    "EntityDescription": [
+        "X",
+        "(3010,0037)"
+    ],
+    "EntityLabel": [
+        "D",
+        "(3010,0035)"
+    ],
+    "EntityLongLabel": [
+        "D",
+        "(3010,0038)"
+    ],
+    "EntityName": [
+        "X",
+        "(3010,0036)"
+    ],
+    "EquipmentFrameofReferenceDescription": [
+        "X",
+        "(300A,0676)"
+    ],
+    "EthnicGroup": [
+        "X",
+        "(0010,2160)"
+    ],
+    "ExpectedCompletionDateTime": [
+        "X",
+        "(0040,4011)"
+    ],
+    "FailedSOPInstanceUIDList": [
+        "U",
+        "(0008,0058)"
+    ],
+    "FiducialUID": [
+        "U",
+        "(0070,031A)"
+    ],
+    "FillerOrderNumber/ImagingServiceRequest": [
+        "Z",
+        "(0040,2017)"
+    ],
+    "FirstTreatmentDate": [
+        "X/D",
+        "(3008,0054)"
+    ],
+    "FixationDeviceDescription": [
+        "X",
+        "(300A,0196)"
+    ],
+    "FlowIdentifier": [
+        "D",
+        "(0034,0002)"
+    ],
+    "FlowIdentifierSequence": [
+        "D",
+        "(0034,0001)"
+    ],
+    "FractionationNotes": [
+        "Z",
+        "(3010,007F)"
+    ],
+    "FractionGroupDescription": [
+        "X",
+        "(300A,0072)"
+    ],
+    "FrameComments": [
+        "X",
+        "(0020,9158)"
+    ],
+    "FrameofReferenceUID": [
+        "U",
+        "(0020,0052)"
+    ],
+    "FrameOriginTimestamp": [
+        "D",
+        "(0034,0007)"
+    ],
+    "GantryID": [
+        "X",
+        "(0018,1008)"
+    ],
+    "GeneratorID": [
+        "X",
+        "(0018,1005)"
+    ],
+    "GPSAltitude": [
+        "X",
+        "(0016,0076)"
+    ],
+    "GPSAltitudeRef": [
+        "X",
+        "(0016,0075)"
+    ],
+    "GPSAreaInformation": [
+        "X",
+        "(0016,008C)"
+    ],
+    "GPSDateStamp": [
+        "X",
+        "(0016,008D)"
+    ],
+    "GPSDestBearing": [
+        "X",
+        "(0016,0088)"
+    ],
+    "GPSDestBearingRef": [
+        "X",
+        "(0016,0087)"
+    ],
+    "GPSDestDistance": [
+        "X",
+        "(0016,008A)"
+    ],
+    "GPSDestDistanceRef": [
+        "X",
+        "(0016,0089)"
+    ],
+    "GPSDestLatitude": [
+        "X",
+        "(0016,0084)"
+    ],
+    "GPSDestLatitudeRef": [
+        "X",
+        "(0016,0083)"
+    ],
+    "GPSDestLongitude": [
+        "X",
+        "(0016,0086)"
+    ],
+    "GPSDestLongitudeRef": [
+        "X",
+        "(0016,0085)"
+    ],
+    "GPSDifferential": [
+        "X",
+        "(0016,008E)"
+    ],
+    "GPSDOP": [
+        "X",
+        "(0016,007B)"
+    ],
+    "GPSImgDirection": [
+        "X",
+        "(0016,0081)"
+    ],
+    "GPSImgDirectionRef": [
+        "X",
+        "(0016,0080)"
+    ],
+    "GPSLatitude": [
+        "X",
+        "(0016,0072)"
+    ],
+    "GPSLatitudeRef": [
+        "X",
+        "(0016,0071)"
+    ],
+    "GPSLongitude": [
+        "X",
+        "(0016,0074)"
+    ],
+    "GPSLongitudeRef": [
+        "X",
+        "(0016,0073)"
+    ],
+    "GPSMapDatum": [
+        "X",
+        "(0016,0082)"
+    ],
+    "GPSMeasureMode": [
+        "X",
+        "(0016,007A)"
+    ],
+    "GPSProcessingMethod": [
+        "X",
+        "(0016,008B)"
+    ],
+    "GPSSatellites": [
+        "X",
+        "(0016,0078)"
+    ],
+    "GPSSpeed": [
+        "X",
+        "(0016,007D)"
+    ],
+    "GPSSpeedRef": [
+        "X",
+        "(0016,007C)"
+    ],
+    "GPSStatus": [
+        "X",
+        "(0016,0079)"
+    ],
+    "GPSTimeStamp": [
+        "X",
+        "(0016,0077)"
+    ],
+    "GPSTrack": [
+        "X",
+        "(0016,007F)"
+    ],
+    "GPSTrackRef": [
+        "X",
+        "(0016,007E)"
+    ],
+    "GPSVersionID": [
+        "X",
+        "(0016,0070)"
+    ],
+    "GraphicAnnotationSequence": [
+        "D",
+        "(0070,0001)"
+    ],
+    "HumanPerformerName": [
+        "X",
+        "(0040,4037)"
+    ],
+    "HumanPerformerOrganization": [
+        "X",
+        "(0040,4036)"
+    ],
+    "IconImageSequence": [
+        "X",
+        "(0088,0200)"
+    ],
+    "IdentifyingComments": [
+        "X",
+        "(0008,4000)"
+    ],
+    "ImageComments": [
+        "X",
+        "(0020,4000)"
+    ],
+    "ImagePresentationComments": [
+        "X",
+        "(0028,4000)"
+    ],
+    "ImagingServiceRequestComments": [
+        "X",
+        "(0040,2400)"
+    ],
+    "ImpedanceMeasurementDateTime": [
+        "D",
+        "(003A,0314)"
+    ],
+    "Impressions": [
+        "X",
+        "(4008,0300)"
+    ],
+    "InstanceCoercionDateTime": [
+        "X",
+        "(0008,0015)"
+    ],
+    "InstanceCreatorUID": [
+        "U",
+        "(0008,0014)"
+    ],
+    "InstanceOriginStatus": [
+        "X",
+        "(0400,0600)"
+    ],
+    "InstitutionAddress": [
+        "X",
+        "(0008,0081)"
+    ],
+    "InstitutionalDepartmentName": [
+        "X",
+        "(0008,1040)"
+    ],
+    "InstitutionalDepartmentTypeCodeSequence": [
+        "X",
+        "(0008,1041)"
+    ],
+    "InstitutionCodeSequence": [
+        "X/Z/D",
+        "(0008,0082)"
+    ],
+    "InstitutionName": [
+        "X/Z/D",
+        "(0008,0080)"
+    ],
+    "InsurancePlanIdentification": [
+        "X",
+        "(0010,1050)"
+    ],
+    "IntendedPhaseEndDate": [
+        "X/D",
+        "(3010,004D)"
+    ],
+    "IntendedPhaseStartDate": [
+        "X/D",
+        "(3010,004C)"
+    ],
+    "IntendedRecipientsofResultsIdentificationSequence": [
+        "X",
+        "(0040,1011)"
+    ],
+    "InterlockDateTime": [
+        "D",
+        "(300A,0741)"
+    ],
+    "InterlockDescription": [
+        "D",
+        "(300A,0742)"
+    ],
+    "InterlockOriginDescription": [
+        "D",
+        "(300A,0783)"
+    ],
+    "InterpretationApproverSequence": [
+        "X",
+        "(4008,0111)"
+    ],
+    "InterpretationAuthor": [
+        "X",
+        "(4008,010C)"
+    ],
+    "InterpretationDiagnosisDescription": [
+        "X",
+        "(4008,0115)"
+    ],
+    "InterpretationIDIssuer": [
+        "X",
+        "(4008,0202)"
+    ],
+    "InterpretationRecorder": [
+        "X",
+        "(4008,0102)"
+    ],
+    "InterpretationText": [
+        "X",
+        "(4008,010B)"
+    ],
+    "InterpretationTranscriber": [
+        "X",
+        "(4008,010A)"
+    ],
+    "IrradiationEventUID": [
+        "U",
+        "(0008,3010)"
+    ],
+    "IssuerofAdmissionID": [
+        "X",
+        "(0038,0011)"
+    ],
+    "IssuerofAdmissionIDSequence": [
+        "X",
+        "(0038,0014)"
+    ],
+    "IssuerofPatientID": [
+        "X",
+        "(0010,0021)"
+    ],
+    "IssuerofServiceEpisodeID": [
+        "X",
+        "(0038,0061)"
+    ],
+    "IssuerofServiceEpisodeIDSequence": [
+        "X",
+        "(0038,0064)"
+    ],
+    "IssueroftheContainerIdentifierSequence": [
+        "Z",
+        "(0040,0513)"
+    ],
+    "IssueroftheSpecimenIdentifierSequence": [
+        "Z",
+        "(0040,0562)"
+    ],
+    "LabelText": [
+        "X/Z",
+        "(2200,0002)"
+    ],
+    "LargePaletteColorLookupTableUID": [
+        "U",
+        "(0028,1214)"
+    ],
+    "LastMenstrualDate": [
+        "X",
+        "(0010,21D0)"
+    ],
+    "LensMake": [
+        "X",
+        "(0016,004F)"
+    ],
+    "LensModel": [
+        "X",
+        "(0016,0050)"
+    ],
+    "LensSerialNumber": [
+        "X",
+        "(0016,0051)"
+    ],
+    "LensSpecification": [
+        "X",
+        "(0016,004E)"
+    ],
+    "LongDeviceDescription": [
+        "X",
+        "(0050,0021)"
+    ],
+    "MAC": [
+        "X",
+        "(0400,0404)"
+    ],
+    "MakerNote": [
+        "X",
+        "(0016,002B)"
+    ],
+    "ManufacturerDeviceClassUID": [
+        "U",
+        "(0018,100B)"
+    ],
+    "ManufacturerDeviceIdentifier": [
+        "Z",
+        "(3010,0043)"
+    ],
+    "MediaStorageSOPInstanceUID": [
+        "U",
+        "(0002,0003)"
+    ],
+    "MedicalAlerts": [
+        "X",
+        "(0010,2000)"
+    ],
+    "MedicalRecordLocator": [
+        "X",
+        "(0010,1090)"
+    ],
+    "MilitaryRank": [
+        "X",
+        "(0010,1080)"
+    ],
+    "ModifiedAttributesSequence": [
+        "X",
+        "(0400,0550)"
+    ],
+    "ModifiedImageDescription": [
+        "X",
+        "(0020,3406)"
+    ],
+    "ModifyingDeviceID": [
+        "X",
+        "(0020,3401)"
+    ],
+    "MostRecentTreatmentDate": [
+        "X/D",
+        "(3008,0056)"
+    ],
+    "Multi-energyAcquisitionDescription": [
+        "X",
+        "(0018,937B)"
+    ],
+    "MultiplexGroupUID": [
+        "U",
+        "(003A,0310)"
+    ],
+    "NameofPhysiciansReadingStudy": [
+        "X",
+        "(0008,1060)"
+    ],
+    "NamesofIntendedRecipientsofResults": [
+        "X",
+        "(0040,1010)"
+    ],
+    "NonconformingModifiedAttributesSequence": [
+        "X",
+        "(0400,0551)"
+    ],
+    "NonconformingDataElementValue": [
+        "X",
+        "(0400,0552)"
+    ],
+    "ObservationDate": [
+        "X",
+        "(0040,A192)"
+    ],
+    "ObservationSubjectUID": [
+        "U",
+        "(0040,A402)"
+    ],
+    "ObservationTime": [
+        "X",
+        "(0040,A193)"
+    ],
+    "ObservationUID": [
+        "U",
+        "(0040,A171)"
+    ],
+    "Occupation": [
+        "X",
+        "(0010,2180)"
+    ],
+    "OperatorIdentificationSequence": [
+        "X/D",
+        "(0008,1072)"
+    ],
+    "OperatorsName": [
+        "X/Z/D",
+        "(0008,1070)"
+    ],
+    "OrderCallbackPhoneNumber": [
+        "X",
+        "(0040,2010)"
+    ],
+    "OrderCallbackTelecomInformation": [
+        "X",
+        "(0040,2011)"
+    ],
+    "OrderEnteredBy": [
+        "X",
+        "(0040,2008)"
+    ],
+    "OrderEntererLocation": [
+        "X",
+        "(0040,2009)"
+    ],
+    "OriginalAttributesSequence": [
+        "X",
+        "(0400,0561)"
+    ],
+    "OtherPatientIDs": [
+        "X",
+        "(0010,1000)"
+    ],
+    "OtherPatientIDsSequence": [
+        "X",
+        "(0010,1002)"
+    ],
+    "OtherPatientNames": [
+        "X",
+        "(0010,1001)"
+    ],
+    "OverlayComments": [
+        "X",
+        "(60xx,4000)"
+    ],
+    "OverlayData": [
+        "X",
+        "(60xx,3000)"
+    ],
+    "OverlayDate": [
+        "X",
+        "(0008,0024)"
+    ],
+    "OverlayTime": [
+        "X",
+        "(0008,0034)"
+    ],
+    "OverrideDateTime": [
+        "D",
+        "(300A,0760)"
+    ],
+    "PaletteColorLookupTableUID": [
+        "U",
+        "(0028,1199)"
+    ],
+    "ParticipantSequence": [
+        "X",
+        "(0040,A07A)"
+    ],
+    "PatientAddress": [
+        "X",
+        "(0010,1040)"
+    ],
+    "PatientAge": [
+        "K",
+        "(0010,1010)"
+    ],
+    "PatientBirthDate": [
+        "Z",
+        "(0010,0030)"
+    ],
+    "PatientBirthName": [
+        "X",
+        "(0010,1005)"
+    ],
+    "PatientBirthTime": [
+        "X",
+        "(0010,0032)"
+    ],
+    "PatientInstitutionResidence": [
+        "X",
+        "(0038,0400)"
+    ],
+    "PatientInsurancePlanCodeSequence": [
+        "X",
+        "(0010,0050)"
+    ],
+    "PatientMotherBirthName": [
+        "X",
+        "(0010,1060)"
+    ],
+    "PatientName": [
+        "Z",
+        "(0010,0010)"
+    ],
+    "PatientPrimaryLanguageCodeSequence": [
+        "X",
+        "(0010,0101)"
+    ],
+    "PatientPrimaryLanguageModifierCodeSequence": [
+        "X",
+        "(0010,0102)"
+    ],
+    "PatientReligiousPreference": [
+        "X",
+        "(0010,21F0)"
+    ],
+    "PatientSex": [
+        "K",
+        "(0010,0040)"
+    ],
+    "PatientSexNeutered": [
+        "X/Z",
+        "(0010,2203)"
+    ],
+    "PatientSize": [
+        "X",
+        "(0010,1020)"
+    ],
+    "PatientTelecomInformation": [
+        "X",
+        "(0010,2155)"
+    ],
+    "PatientTelephoneNumbers": [
+        "X",
+        "(0010,2154)"
+    ],
+    "PatientWeight": [
+        "X",
+        "(0010,1030)"
+    ],
+    "PatientComments": [
+        "X",
+        "(0010,4000)"
+    ],
+    "PatientID": [
+        "Z",
+        "(0010,0020)"
+    ],
+    "PatientSetupUID": [
+        "U",
+        "(300A,0650)"
+    ],
+    "PatientState": [
+        "X",
+        "(0038,0500)"
+    ],
+    "PatientTransportArrangements": [
+        "X",
+        "(0040,1004)"
+    ],
+    "PerformedLocation": [
+        "X",
+        "(0040,0243)"
+    ],
+    "PerformedProcedureStepDescription": [
+        "X",
+        "(0040,0254)"
+    ],
+    "PerformedProcedureStepEndDate": [
+        "X",
+        "(0040,0250)"
+    ],
+    "PerformedProcedureStepEndDateTime": [
+        "X",
+        "(0040,4051)"
+    ],
+    "PerformedProcedureStepEndTime": [
+        "X",
+        "(0040,0251)"
+    ],
+    "PerformedProcedureStepID": [
+        "X",
+        "(0040,0253)"
+    ],
+    "PerformedProcedureStepStartDate": [
+        "X",
+        "(0040,0244)"
+    ],
+    "PerformedProcedureStepStartDateTime": [
+        "X",
+        "(0040,4050)"
+    ],
+    "PerformedProcedureStepStartTime": [
+        "X",
+        "(0040,0245)"
+    ],
+    "PerformedStationAETitle": [
+        "X",
+        "(0040,0241)"
+    ],
+    "PerformedStationGeographicLocationCodeSequence": [
+        "X",
+        "(0040,4030)"
+    ],
+    "PerformedStationName": [
+        "X",
+        "(0040,0242)"
+    ],
+    "PerformedStationNameCodeSequence": [
+        "X",
+        "(0040,4028)"
+    ],
+    "PerformingPhysicianName": [
+        "X",
+        "(0008,1050)"
+    ],
+    "PerformingPhysicianIdentificationSequence": [
+        "X",
+        "(0008,1052)"
+    ],
+    "PersonAddress": [
+        "X",
+        "(0040,1102)"
+    ],
+    "PersonTelecomInformation": [
+        "X",
+        "(0040,1104)"
+    ],
+    "PersonTelephoneNumbers": [
+        "X",
+        "(0040,1103)"
+    ],
+    "PersonIdentificationCodeSequence": [
+        "D",
+        "(0040,1101)"
+    ],
+    "PersonName": [
+        "D",
+        "(0040,A123)"
+    ],
+    "PhysiciansofRecord": [
+        "X",
+        "(0008,1048)"
+    ],
+    "PhysiciansofRecordIdentificationSequence": [
+        "X",
+        "(0008,1049)"
+    ],
+    "PhysiciansReadingStudyIdentificationSequence": [
+        "X",
+        "(0008,1062)"
+    ],
+    "PhysicianApprovingInterpretation": [
+        "X",
+        "(4008,0114)"
+    ],
+    "PlacerOrderNumber/ImagingServiceRequest": [
+        "Z",
+        "(0040,2016)"
+    ],
+    "PlateID": [
+        "X",
+        "(0018,1004)"
+    ],
+    "PregnancyStatus": [
+        "X",
+        "(0010,21C0)"
+    ],
+    "Pre-Medication": [
+        "X",
+        "(0040,0012)"
+    ],
+    "PrescriptionDescription": [
+        "X",
+        "(300A,000E)"
+    ],
+    "PrescriptionNotes": [
+        "Z",
+        "(3010,007B)"
+    ],
+    "PrescriptionNotesSequence": [
+        "Z",
+        "(3010,0081)"
+    ],
+    "PresentationDisplayCollectionUID": [
+        "U",
+        "(0070,1101)"
+    ],
+    "PresentationSequenceCollectionUID": [
+        "U",
+        "(0070,1102)"
+    ],
+    "PriorTreatmentDoseDescription": [
+        "X",
+        "(3010,0061)"
+    ],
+    "Privateattributes": [
+        "X",
+        "(gggg,eeee) where gggg is odd"
+    ],
+    "ProcedureStepCancellationDateTime": [
+        "X",
+        "(0040,4052)"
+    ],
+    "ProtocolName": [
+        "X/D",
+        "(0018,1030)"
+    ],
+    "RadiationDoseIdentificationLabel": [
+        "D",
+        "(300A,0619)"
+    ],
+    "RadiationDoseIn-VivoMeasurementLabel": [
+        "D",
+        "(300A,0623)"
+    ],
+    "RadiationGenerationModeDescription": [
+        "Z",
+        "(300A,067D)"
+    ],
+    "RadiationGenerationModeLabel": [
+        "D",
+        "(300A,067C)"
+    ],
+    "ReasonforOmissionDescription": [
+        "X",
+        "(300C,0113)"
+    ],
+    "ReasonforRequestedProcedureCodeSequence": [
+        "X",
+        "(0040,100A)"
+    ],
+    "ReasonforStudy": [
+        "X",
+        "(0032,1030)"
+    ],
+    "ReasonforSuperseding": [
+        "Z",
+        "(3010,005C)"
+    ],
+    "ReasonfortheImagingServiceRequest": [
+        "X",
+        "(0040,2001)"
+    ],
+    "ReasonfortheRequestedProcedure": [
+        "X",
+        "(0040,1002)"
+    ],
+    "ReasonforVisit": [
+        "X",
+        "(0032,1066)"
+    ],
+    "ReasonforVisitCodeSequence": [
+        "X",
+        "(0032,1067)"
+    ],
+    "RecordedRTControlPointDateTime": [
+        "D",
+        "(300A,073A)"
+    ],
+    "ReferencedConceptualVolumeUID": [
+        "U",
+        "(3010,000B)"
+    ],
+    "ReferencedDigitalSignatureSequence": [
+        "X",
+        "(0400,0402)"
+    ],
+    "ReferencedDoseReferenceUID": [
+        "U",
+        "(300A,0083)"
+    ],
+    "ReferencedDosimetricObjectiveUID": [
+        "U",
+        "(3010,006F)"
+    ],
+    "ReferencedFiducialsUID": [
+        "U",
+        "(3010,0031)"
+    ],
+    "ReferencedFrameofReferenceUID": [
+        "U",
+        "(3006,0024)"
+    ],
+    "ReferencedGeneralPurposeScheduledProcedureStepTransactionUID": [
+        "U",
+        "(0040,4023)"
+    ],
+    "ReferencedImageSequence": [
+        "X/Z/U*",
+        "(0008,1140)"
+    ],
+    "ReferencedObservationUID": [
+        "U",
+        "(0040,A172)"
+    ],
+    "ReferencedPatientAliasSequence": [
+        "X",
+        "(0038,0004)"
+    ],
+    "ReferencedPatientPhotoSequence": [
+        "X",
+        "(0010,1100)"
+    ],
+    "ReferencedPatientSequence": [
+        "X",
+        "(0008,1120)"
+    ],
+    "ReferencedPerformedProcedureStepSequence": [
+        "X/Z/D",
+        "(0008,1111)"
+    ],
+    "ReferencedSOPInstanceMACSequence": [
+        "X",
+        "(0400,0403)"
+    ],
+    "ReferencedSOPInstanceUID": [
+        "U",
+        "(0008,1155)"
+    ],
+    "ReferencedSOPInstanceUIDinFile": [
+        "U",
+        "(0004,1511)"
+    ],
+    "ReferencedStudySequence": [
+        "X/Z",
+        "(0008,1110)"
+    ],
+    "ReferringPhysicianAddress": [
+        "X",
+        "(0008,0092)"
+    ],
+    "ReferringPhysicianName": [
+        "Z",
+        "(0008,0090)"
+    ],
+    "ReferringPhysicianTelephoneNumbers": [
+        "X",
+        "(0008,0094)"
+    ],
+    "ReferringPhysicianIdentificationSequence": [
+        "X",
+        "(0008,0096)"
+    ],
+    "RegionofResidence": [
+        "X",
+        "(0010,2152)"
+    ],
+    "RelatedFrameofReferenceUID": [
+        "U",
+        "(3006,00C2)"
+    ],
+    "RequestAttributesSequence": [
+        "X",
+        "(0040,0275)"
+    ],
+    "RequestedContrastAgent": [
+        "X",
+        "(0032,1070)"
+    ],
+    "RequestedProcedureComments": [
+        "X",
+        "(0040,1400)"
+    ],
+    "RequestedProcedureDescription": [
+        "X/Z",
+        "(0032,1060)"
+    ],
+    "RequestedProcedureID": [
+        "X",
+        "(0040,1001)"
+    ],
+    "RequestedProcedureLocation": [
+        "X",
+        "(0040,1005)"
+    ],
+    "RequestedSeriesDescription": [
+        "X",
+        "(0018,9937)"
+    ],
+    "RequestedSOPInstanceUID": [
+        "U",
+        "(0000,1001)"
+    ],
+    "RequestingPhysician": [
+        "X",
+        "(0032,1032)"
+    ],
+    "RequestingService": [
+        "X",
+        "(0032,1033)"
+    ],
+    "RespiratoryMotionCompensationTechniqueDescription": [
+        "X",
+        "(0018,9185)"
+    ],
+    "ResponsibleOrganization": [
+        "X",
+        "(0010,2299)"
+    ],
+    "ResponsiblePerson": [
+        "X",
+        "(0010,2297)"
+    ],
+    "ResultsComments": [
+        "X",
+        "(4008,4000)"
+    ],
+    "ResultsDistributionListSequence": [
+        "X",
+        "(4008,0118)"
+    ],
+    "ResultsIDIssuer": [
+        "X",
+        "(4008,0042)"
+    ],
+    "ReviewerName": [
+        "X/Z",
+        "(300E,0008)"
+    ],
+    "ROIDescription": [
+        "X",
+        "(3006,0028)"
+    ],
+    "ROIGenerationDescription": [
+        "X",
+        "(3006,0038)"
+    ],
+    "ROIInterpreter": [
+        "Z",
+        "(3006,00A6)"
+    ],
+    "ROIName": [
+        "Z",
+        "(3006,0026)"
+    ],
+    "ROIObservationDescription": [
+        "X",
+        "(3006,0088)"
+    ],
+    "ROIObservationLabel": [
+        "X",
+        "(3006,0085)"
+    ],
+    "RTAccessoryDeviceSlotID": [
+        "Z",
+        "(300A,0615)"
+    ],
+    "RTAccessoryHolderSlotID": [
+        "Z",
+        "(300A,0611)"
+    ],
+    "RTPhysicianIntentNarrative": [
+        "Z",
+        "(3010,005A)"
+    ],
+    "RTPlanDate": [
+        "X/D",
+        "(300A,0006)"
+    ],
+    "RTPlanDescription": [
+        "X",
+        "(300A,0004)"
+    ],
+    "RTPlanLabel": [
+        "D",
+        "(300A,0002)"
+    ],
+    "RTPlanName": [
+        "X",
+        "(300A,0003)"
+    ],
+    "RTPlanTime": [
+        "X/D",
+        "(300A,0007)"
+    ],
+    "RTPrescriptionLabel": [
+        "D",
+        "(3010,0054)"
+    ],
+    "RTToleranceSetLabel": [
+        "D",
+        "(300A,062A)"
+    ],
+    "RTTreatmentApproachLabel": [
+        "X/D",
+        "(3010,0056)"
+    ],
+    "RTTreatmentPhaseUID": [
+        "U",
+        "(3010,003B)"
+    ],
+    "ScheduledHumanPerformersSequence": [
+        "X",
+        "(0040,4034)"
+    ],
+    "ScheduledPatientInstitutionResidence": [
+        "X",
+        "(0038,001E)"
+    ],
+    "ScheduledPerformingPhysicianName": [
+        "X",
+        "(0040,0006)"
+    ],
+    "ScheduledPerformingPhysicianIdentificationSequence": [
+        "X",
+        "(0040,000B)"
+    ],
+    "ScheduledProcedureStepDescription": [
+        "X",
+        "(0040,0007)"
+    ],
+    "ScheduledProcedureStepEndDate": [
+        "X",
+        "(0040,0004)"
+    ],
+    "ScheduledProcedureStepEndTime": [
+        "X",
+        "(0040,0005)"
+    ],
+    "ScheduledProcedureStepExpirationDateTime": [
+        "X",
+        "(0040,4008)"
+    ],
+    "ScheduledProcedureStepID": [
+        "X",
+        "(0040,0009)"
+    ],
+    "ScheduledProcedureStepLocation": [
+        "X",
+        "(0040,0011)"
+    ],
+    "ScheduledProcedureStepModificationDateTime": [
+        "X",
+        "(0040,4010)"
+    ],
+    "ScheduledProcedureStepStartDate": [
+        "X",
+        "(0040,0002)"
+    ],
+    "ScheduledProcedureStepStartDateTime": [
+        "X",
+        "(0040,4005)"
+    ],
+    "ScheduledProcedureStepStartTime": [
+        "X",
+        "(0040,0003)"
+    ],
+    "ScheduledStationAETitle": [
+        "X",
+        "(0040,0001)"
+    ],
+    "ScheduledStationGeographicLocationCodeSequence": [
+        "X",
+        "(0040,4027)"
+    ],
+    "ScheduledStationName": [
+        "X",
+        "(0040,0010)"
+    ],
+    "ScheduledStationNameCodeSequence": [
+        "X",
+        "(0040,4025)"
+    ],
+    "ScheduledStudyLocation": [
+        "X",
+        "(0032,1020)"
+    ],
+    "ScheduledStudyLocationAETitle": [
+        "X",
+        "(0032,1021)"
+    ],
+    "SeriesDate": [
+        "X/D",
+        "(0008,0021)"
+    ],
+    "SeriesDescription": [
+        "X",
+        "(0008,103E)"
+    ],
+    "SeriesInstanceUID": [
+        "U",
+        "(0020,000E)"
+    ],
+    "SeriesTime": [
+        "X/D",
+        "(0008,0031)"
+    ],
+    "ServiceEpisodeDescription": [
+        "X",
+        "(0038,0062)"
+    ],
+    "ServiceEpisodeID": [
+        "X",
+        "(0038,0060)"
+    ],
+    "SetupTechniqueDescription": [
+        "X",
+        "(300A,01B2)"
+    ],
+    "ShieldingDeviceDescription": [
+        "X",
+        "(300A,01A6)"
+    ],
+    "SlideIdentifier": [
+        "X",
+        "(0040,06FA)"
+    ],
+    "SmokingStatus": [
+        "X",
+        "(0010,21A0)"
+    ],
+    "SOPInstanceUID": [
+        "U",
+        "(0008,0018)"
+    ],
+    "SourceConceptualVolumeUID": [
+        "U",
+        "(3010,0015)"
+    ],
+    "SourceEndDateTime": [
+        "D",
+        "(0018,936A)"
+    ],
+    "SourceIdentifier": [
+        "D",
+        "(0034,0005)"
+    ],
+    "SourceImageSequence": [
+        "X/Z/U*",
+        "(0008,2112)"
+    ],
+    "SourceManufacturer": [
+        "X",
+        "(300A,0216)"
+    ],
+    "SourceSerialNumber": [
+        "X/Z",
+        "(3008,0105)"
+    ],
+    "SourceStartDateTime": [
+        "D",
+        "(0018,9369)"
+    ],
+    "SpecialNeeds": [
+        "X",
+        "(0038,0050)"
+    ],
+    "SpecimenAccessionNumber": [
+        "X",
+        "(0040,050A)"
+    ],
+    "SpecimenDetailedDescription": [
+        "X",
+        "(0040,0602)"
+    ],
+    "SpecimenIdentifier": [
+        "D",
+        "(0040,0551)"
+    ],
+    "SpecimenPreparationSequence": [
+        "Z",
+        "(0040,0610)"
+    ],
+    "SpecimenShortDescription": [
+        "X",
+        "(0040,0600)"
+    ],
+    "SpecimenUID": [
+        "U",
+        "(0040,0554)"
+    ],
+    "StartAcquisitionDateTime": [
+        "X/D",
+        "(0018,9516)"
+    ],
+    "StationName": [
+        "X/Z/D",
+        "(0008,1010)"
+    ],
+    "StorageMediaFile-setUID": [
+        "U",
+        "(0088,0140)"
+    ],
+    "StructureSetDate": [
+        "Z",
+        "(3006,0008)"
+    ],
+    "StructureSetDescription": [
+        "X",
+        "(3006,0006)"
+    ],
+    "StructureSetLabel": [
+        "D",
+        "(3006,0002)"
+    ],
+    "StructureSetName": [
+        "X",
+        "(3006,0004)"
+    ],
+    "StructureSetTime": [
+        "Z",
+        "(3006,0009)"
+    ],
+    "StudyComments": [
+        "X",
+        "(0032,4000)"
+    ],
+    "StudyDate": [
+        "Z",
+        "(0008,0020)"
+    ],
+    "StudyDescription": [
+        "X",
+        "(0008,1030)"
+    ],
+    "StudyID": [
+        "Z",
+        "(0020,0010)"
+    ],
+    "StudyIDIssuer": [
+        "X",
+        "(0032,0012)"
+    ],
+    "StudyInstanceUID": [
+        "U",
+        "(0020,000D)"
+    ],
+    "StudyTime": [
+        "Z",
+        "(0008,0030)"
+    ],
+    "SynchronizationFrameofReferenceUID": [
+        "U",
+        "(0020,0200)"
+    ],
+    "TargetUID": [
+        "U",
+        "(0018,2042)"
+    ],
+    "TelephoneNumber": [
+        "X",
+        "(0040,A354)"
+    ],
+    "TemplateExtensionCreatorUID": [
+        "U",
+        "(0040,DB0D)"
+    ],
+    "TemplateExtensionOrganizationUID": [
+        "U",
+        "(0040,DB0C)"
+    ],
+    "TextComments": [
+        "X",
+        "(4000,4000)"
+    ],
+    "TextString": [
+        "X",
+        "(2030,0020)"
+    ],
+    "TimezoneOffsetFromUTC": [
+        "X",
+        "(0008,0201)"
+    ],
+    "TopicAuthor": [
+        "X",
+        "(0088,0910)"
+    ],
+    "TopicKeywords": [
+        "X",
+        "(0088,0912)"
+    ],
+    "TopicSubject": [
+        "X",
+        "(0088,0906)"
+    ],
+    "TopicTitle": [
+        "X",
+        "(0088,0904)"
+    ],
+    "TrackingUID": [
+        "U",
+        "(0062,0021)"
+    ],
+    "TransactionUID": [
+        "U",
+        "(0008,1195)"
+    ],
+    "TransducerIdentificationSequence": [
+        "X",
+        "(0018,5011)"
+    ],
+    "TreatmentDate": [
+        "X/D",
+        "(3008,0250)"
+    ],
+    "TreatmentMachineName": [
+        "X/Z",
+        "(300A,00B2)"
+    ],
+    "TreatmentPositionGroupLabel": [
+        "D",
+        "(300A,0608)"
+    ],
+    "TreatmentPositionGroupUID": [
+        "U",
+        "(300A,0609)"
+    ],
+    "TreatmentSessionUID": [
+        "U",
+        "(300A,0700)"
+    ],
+    "TreatmentSite": [
+        "D",
+        "(3010,0077)"
+    ],
+    "TreatmentTechniqueNotes": [
+        "Z",
+        "(3010,007A)"
+    ],
+    "TreatmentTime": [
+        "X/D",
+        "(3008,0251)"
+    ],
+    "TreatmentToleranceViolationDateTime": [
+        "D",
+        "(300A,0736)"
+    ],
+    "TreatmentToleranceViolationDescription": [
+        "D",
+        "(300A,0734)"
+    ],
+    "UDISequence": [
+        "X",
+        "(0018,100A)"
+    ],
+    "UID": [
+        "U",
+        "(0040,A124)"
+    ],
+    "UniqueDeviceIdentifier": [
+        "X",
+        "(0018,1009)"
+    ],
+    "UserContentLabel": [
+        "D",
+        "(3010,0033)"
+    ],
+    "UserContentLongLabel": [
+        "D",
+        "(3010,0034)"
+    ],
+    "VerbalSource": [
+        "X",
+        "(0040,A352)"
+    ],
+    "VerbalSourceIdentifierCodeSequence": [
+        "X",
+        "(0040,A358)"
+    ],
+    "VerifyingObserverIdentificationCodeSequence": [
+        "Z",
+        "(0040,A088)"
+    ],
+    "VerifyingObserverName": [
+        "D",
+        "(0040,A075)"
+    ],
+    "VerifyingObserverSequence": [
+        "D",
+        "(0040,A073)"
+    ],
+    "VerifyingOrganization": [
+        "D",
+        "(0040,A027)"
+    ],
+    "VisitComments": [
+        "X",
+        "(0038,4000)"
+    ],
+    "X-RayDetectorID": [
+        "D",
+        "(0018,9371)"
+    ],
+    "X-RayDetectorLabel": [
+        "X",
+        "(0018,9373)"
+    ],
+    "X-RaySourceID": [
+        "D",
+        "(0018,9367)"
+    ]
+}
