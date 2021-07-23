@@ -18,7 +18,7 @@ def dummy_cnam_for_safe(dfs={}, lines = 1000):
 def cnam_for_safe(dfs={}):
   return cnam_dfs("cnam_for_safe", dfs)
 
-def create_random_df(lines = 1000):
+def create_random_df(lines = 100):
     """Generate a dummy dataframe with the same structure of real data with 1000 lines
     File structure : id_random, NNI_2, nom, nom_jf, prenom, date_naiss"""
     data = {'id_random':range(0, lines)}
@@ -70,7 +70,7 @@ def cnam_dfs(name,dfs={}):
         if name == "dummy_cnam_for_safe":
      #objectif ici ? générer le dummy en .parquet ?
      # retourne le dataframe et le stocke en .csv. stockage au format parquet non nécessaire. Fichier peu volumineux 1000 lignes
-          df = create_random_df()
+          df = create_random_df(25)
           nir_to_cnam_format(df)
         elif name == "cnam_for_safe":
           df=dal.screening.cnam()
