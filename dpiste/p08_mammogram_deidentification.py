@@ -11,11 +11,12 @@ from pydicom.sequence import Sequence
 from pydicom.dataset import Dataset
 from PIL import Image, ImageDraw, ImageFilter
 from easyocr import Reader
-from dpiste import dicom2png, utils, report
+from dpiste import utils, report
+from kskit import dicom2png
 from kskit.deid_mammogram import *
 
 
-def deid_mammogram():
+def deid_mammogram(indir = None, outdir = None):
     """
     Anonymize a complete directory of DICOM.
 
@@ -30,12 +31,15 @@ def deid_mammogram():
 Here is a summary of the DICOMs that have been de-identified.\n\n\n
     """
 
-    PATH_ATTRIBUTES_TO_KEEP = '/home/williammadie/GitHub/deep.piste/dpiste/data/attributes_to_keep.json'
-
-    indir = utils.get_home('data', 'input', 'hdh','')
-    outdir = utils.get_home('data','output','hdh','')
-    outdir_intermediate = utils.get_home('data','transform','hdh','')
-    output_summary = outdir_intermediate + "/summary.log"
+    pkg_dir, this_filename = os.path.split(__file__)
+    PATH_ATTRIBUTES_TO_KEEP = os.path.join(pkg_dir, "data/resources/deid_ref/attributes_to_keep.json")
+    
+    if indir == None:
+        indir = utils.get_home('data', 'input', 'dcm4chee','dicom','')
+    if outdir == None:
+        outdir = utils.get_home('data','output','hdh','')
+    
+    output_summary = outdir + "/summary.log"
 
     pathname = indir + "/**/*.dcm"
     list_dicom = glob.glob(pathname, recursive=True)
@@ -49,28 +53,12 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
         
         if outdir.endswith("/"):
             output_path = outdir  + os.path.basename(file)
-            output_ds = outdir_intermediate + os.path.basename(file) + ".txt"
-            output_summary = outdir_intermediate + "summary.log"
+            output_ds = outdir + os.path.basename(file) + ".txt"
+            output_summary = outdir + "summary.log"
         else:
             output_path = outdir  + '/' + os.path.basename(file)
-            output_ds = outdir_intermediate + "/" + os.path.basename(file) + ".txt"
-            output_summary = outdir_intermediate + "/summary.log"
-        
-        output_path = input_path.replace(indir, outdir)
-        output_ds = input_path.replace(indir, outdir_intermediate)
-        output_summary = input_path.replace(indir, outdir_intermediate)
-        try:
-            os.makedirs(output_path.replace(os.path.basename(file), ""))
-        except FileExistsError as error:
-            print('\n')
-        try:
-            os.makedirs(output_ds.replace(os.path.basename(file), ""))
-        except FileExistsError as error:
-            print('\n')
-        try:
-            os.makedirs(output_summary.replace(os.path.basename(file),""))
-        except FileExistsError as error:
-            print('\n')
+            output_ds = outdir + "/" + os.path.basename(file) + ".txt"
+            output_summary = outdir + "/summary.log"
 
         (pixels, ds) = dicom2png.dicom2narray(input_path)
 
@@ -80,18 +68,18 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
             print("\n___________A text area has been detected : " + input_path + "___________\n")
             pixels = hide_text(pixels, ocr_data)
             
-            
         else:
             print("\nNo text area detected\n")
-            print(input_path, output_path)
+            print(input_path, "=>", output_path)
         
         ds = de_identify_ds(ds, PATH_ATTRIBUTES_TO_KEEP)
-        dicom2png.narray2dicom(pixels, ds, output_path)
+        
+        dicom2png.narray2png(pixels, output_path)
         print(nb_images_processed, "/", nb_files, "DICOM(s) de-identified")
 
         with open(output_ds,'a') as f:
             file_path = indir + file
-            text = input_path + '\n' + str(ds) + '\n' + "Words recognized : " + \
+            text = input_path + '\n' + "Words recognized : " + \
                str(ocr_data) + '\n'
             f.write(text)
 
