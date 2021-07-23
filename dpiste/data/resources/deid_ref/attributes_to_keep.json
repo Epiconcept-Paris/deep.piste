@@ -304,5 +304,9 @@
     "PresentationLUTShape": [
         "0x20500020",
         "CS"
+    ],
+    "PixelData": [
+        "0x7fe00010",
+        "OB"
     ]
 }
