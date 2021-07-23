@@ -2,6 +2,7 @@ import sys
 import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from datetime import datetime as dt
 from .p02_initial_extraction import *
 from .p03_validated_extraction import *
 from .p12_SNDS_match import *
@@ -9,9 +10,8 @@ from .p11_screening_extraction_id_temp import *
 from . import utils
 from . import dal
 from .dal import cnam
-from datetime import datetime
-from kskit.p08_mammogram_deidentification import p08_001_anonymize_folder
-from kskit.p08_mammogram_test_ocr import p08_000_test_OCR
+from .p08_mammogram_deidentification import *
+from .p08_test_mammogram_deid import *
 
 
 def main(a):
@@ -49,10 +49,30 @@ def main(a):
 
   # transform dicom-deid command
   dicom_deid_parser = transform_subs.add_parser("dicom-deid", help = "De-identify a complete directory of DICOMs ")
+  dicom_deid_parser.add_argument("-i", 
+  "--indir", 
+  type=str, 
+  help = "Path of the folder containing DICOM to deidentify", 
+  required = False)
+  dicom_deid_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Path of the folder that will contain deidentified DICOM", 
+  required = False)
   dicom_deid_parser.set_defaults(func = do_anonymize_folder)
 
   # transform test-dicom-deid
   test_dicom_deid_parser = transform_subs.add_parser("test-dicom-deid", help = "Evaluate the ability of the OCR to recognize words. It generates test data.")
+  test_dicom_deid_parser.add_argument("-i", 
+  "--indir", 
+  type=str, 
+  help = "Path of the folder containing DICOM to test", 
+  required = False)
+  test_dicom_deid_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Path of the folder that will contain test info", 
+  required = False)
   test_dicom_deid_parser.add_argument("-f", 
   "--font", 
   nargs="+", 
@@ -79,14 +99,14 @@ def main(a):
 
   # cnam test file command
   cnam_testfile_parser = cnam_subs.add_parser("test-safe", help = "Invoke a safe test file")
-  cnam_testfile_parser.add_argument("-d", "--date-depot",required=False, help="date de depot du fichier", type=str, default=datetime.today().strftime('%d/%m/%Y'))
+  cnam_testfile_parser.add_argument("-d", "--date-depot",required=False, help="date de depot du fichier", type=str, default=dt.today().strftime('%d/%m/%Y'))
   cnam_testfile_parser.add_argument("-num", "--num-projet", required=True, help="numero du projet", type=str)
   cnam_testfile_parser.add_argument("-name", "--nom-projet", required=True, help="nom du projet", type=str)
   cnam_testfile_parser.set_defaults(func = do_safe_test_file)
 
   # cnam file command
   cnam_file_parser = cnam_subs.add_parser("safe", help = "Invoke a safe test file")
-  cnam_file_parser.add_argument("-d", "--date-depot",required=False, help="date de depot du fichier", type=str, default=datetime.today().strftime('%d/%m/%Y'))
+  cnam_file_parser.add_argument("-d", "--date-depot",required=False, help="date de depot du fichier", type=str, default=dt.today().strftime('%d/%m/%Y'))
   cnam_file_parser.add_argument("-num", "--num-projet", required=True, help="numero du projet", type=str)
   cnam_file_parser.add_argument("-name", "--nom-projet", required=True, help="nom du projet", type=str)
   cnam_file_parser.set_defaults(func = do_safe_file)
@@ -263,14 +283,17 @@ def do_validated_initial_extraction(args, *other):
   p03_002_validated_extraction_report()
 
 def do_test_ocr(args, *other):
- p08_000_test_OCR(
+ test_OCR(
     font = args.font, 
     size = args.size, 
     blur = args.blur, 
-    repetition = args.repetition)
+    repetition = args.repetition,
+    indir = args.indir,
+    outdir = args.outdir
+    )
 
 def do_anonymize_folder(args, *other):
-  p08_001_anonymize_folder()
+  deid_mammogram(indir = args.indir, outdir= args.outdir)
 
 def do_safe_test_file(args, *other): #kwargs ,
     p12_001_safe_test(
