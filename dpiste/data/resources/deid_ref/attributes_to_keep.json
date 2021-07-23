@@ -1,0 +1,312 @@
+{
+    "FileMetaInformationGroupLength": [
+        "0x00020000",
+        "UL"
+    ],
+    "FileMetaInformationVersion": [
+        "0x00020001",
+        "OB"
+    ],
+    "MediaStorageSOPClassUID": [
+        "0x00020002",
+        "UI"
+    ],
+    "MediaStorageSOPInstanceUID": [
+        "0x00020003",
+        "UI"
+    ],
+    "TransferSyntaxUID": [
+        "0x00020010",
+        "UI"
+    ],
+    "ImplementationClassUID": [
+        "0x00020012",
+        "UI"
+    ],
+    "ImplementationVersionName": [
+        "0x00020013",
+        "SH"
+    ],
+    "SourceApplicationEntityTitle": [
+        "0x00020016",
+        "AE"
+    ],
+    "SpecificCharacterSet": [
+        "0x00080005",
+        "CS"
+    ],
+    "ImageType": [
+        "0x00080008",
+        "CS"
+    ],
+    "InstanceCreationDate": [
+        "0x00080012",
+        "DA"
+    ],
+    "InstanceCreationTime": [
+        "0x00080013",
+        "TM"
+    ],
+    "InstanceCreatorUID": [
+        "0x00080014",
+        "UI"
+    ],
+    "SOPClassUID": [
+        "0x00080016",
+        "UI"
+    ],
+    "SOPInstanceUID": [
+        "0x00080018",
+        "UI"
+    ],
+    "StudyDate": [
+        "0x00080020",
+        "DA"
+    ],
+    "SeriesDate": [
+        "0x00080021",
+        "DA"
+    ],
+    "AcquisitionDate": [
+        "0x00080022",
+        "DA"
+    ],
+    "ContentDate": [
+        "0x00080023",
+        "DA"
+    ],
+    "StudyTime": [
+        "0x00080030",
+        "TM"
+    ],
+    "SeriesTime": [
+        "0x00080031",
+        "TM"
+    ],
+    "AcquisitionTime": [
+        "0x00080032",
+        "TM"
+    ],
+    "ContentTime": [
+        "0x00080033",
+        "TM"
+    ],
+    "AccessionNumber": [
+        "0x00080050",
+        "SH"
+    ],
+    "Modality": [
+        "0x00080060",
+        "CS"
+    ],
+    "PresentationIntentType": [
+        "0x00080068",
+        "CS"
+    ],
+    "Manufacturer": [
+        "0x00080070",
+        "LO"
+    ],
+    "ReferringPhysicianName": [
+        "0x00080090",
+        "PN"
+    ],
+    "AnatomicRegionSequence": [
+        "0x00082218",
+        "SQ",
+        [
+            "AnatomicRegionSequence",
+            "0x00082218",
+            "SQ",
+            "",
+            "1",
+            "",
+            "@1.CodeMeaning",
+            "0x00080104",
+            "LO",
+            "",
+            "",
+            "",
+            ""
+        ]
+    ],
+    "PatientName": [
+        "0x00100010",
+        "PN"
+    ],
+    "PatientID": [
+        "0x00100020",
+        "LO"
+    ],
+    "PatientBirthDate": [
+        "0x00100030",
+        "DA"
+    ],
+    "PatientSex": [
+        "0x00100040",
+        "CS"
+    ],
+    "PatientAge": [
+        "0x00101010",
+        "AS"
+    ],
+    "PatientIdentityRemoved": [
+        "0x00120062",
+        "CS"
+    ],
+    "BodyPartExamined": [
+        "0x00180015",
+        "CS"
+    ],
+    "ImagerPixelSpacing": [
+        "0x00181164",
+        "DS"
+    ],
+    "PositionerType": [
+        "0x00181508",
+        "CS"
+    ],
+    "DetectorType": [
+        "0x00187004",
+        "CS"
+    ],
+    "StudyInstanceUID": [
+        "0x0020000d",
+        "UI"
+    ],
+    "SeriesInstanceUID": [
+        "0x0020000e",
+        "UI"
+    ],
+    "StudyID": [
+        "0x00200010",
+        "SH"
+    ],
+    "SeriesNumber": [
+        "0x00200011",
+        "IS"
+    ],
+    "InstanceNumber": [
+        "0x00200013",
+        "IS"
+    ],
+    "PatientOrientation": [
+        "0x00200020",
+        "CS"
+    ],
+    "ImageLaterality": [
+        "0x00200062",
+        "CS"
+    ],
+    "SamplesPerPixel": [
+        "0x00280002",
+        "US"
+    ],
+    "PhotometricInterpretation": [
+        "0x00280004",
+        "CS"
+    ],
+    "Rows": [
+        "0x00280010",
+        "US"
+    ],
+    "Columns": [
+        "0x00280011",
+        "US"
+    ],
+    "BitsAllocated": [
+        "0x00280100",
+        "US"
+    ],
+    "BitsStored": [
+        "0x00280101",
+        "US"
+    ],
+    "HighBit": [
+        "0x00280102",
+        "US"
+    ],
+    "PixelRepresentation": [
+        "0x00280103",
+        "US"
+    ],
+    "BurnedInAnnotation": [
+        "0x00280301",
+        "CS"
+    ],
+    "LongitudinalTemporalInformationModified": [
+        "0x00280303",
+        "CS"
+    ],
+    "PixelIntensityRelationship": [
+        "0x00281040",
+        "CS"
+    ],
+    "PixelIntensityRelationshipSign": [
+        "0x00281041",
+        "SS"
+    ],
+    "WindowCenter": [
+        "0x00281050",
+        "DS"
+    ],
+    "WindowWidth": [
+        "0x00281051",
+        "DS"
+    ],
+    "RescaleIntercept": [
+        "0x00281052",
+        "DS"
+    ],
+    "RescaleSlope": [
+        "0x00281053",
+        "DS"
+    ],
+    "RescaleType": [
+        "0x00281054",
+        "LO"
+    ],
+    "WindowCenterWidthExplanation": [
+        "0x00281055",
+        "LO"
+    ],
+    "VOILUTFunction": [
+        "0x00281056",
+        "CS"
+    ],
+    "LossyImageCompression": [
+        "0x00282110",
+        "CS"
+    ],
+    "OrganExposed": [
+        "0x00400318",
+        "CS"
+    ],
+    "ViewCodeSequence": [
+        "0x00540220",
+        "SQ",
+        [
+            "ViewCodeSequence",
+            "0x00540220",
+            "SQ",
+            "",
+            "1",
+            "",
+            "@1.CodeMeaning",
+            "0x00080104",
+            "LO",
+            "",
+            "",
+            "",
+            ""
+        ]
+    ],
+    "PresentationLUTShape": [
+        "0x20500020",
+        "CS"
+    ],
+    "PixelData": [
+        "0x7fe00010",
+        "OB"
+    ]
+}
