@@ -46,7 +46,7 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
     
-    pathname = indir + "/**/*.dcm"
+    pathname = indir + "/**/*"
     list_dicom = glob.glob(pathname, recursive=True)
     list_dicom = sorted(list_dicom)
     

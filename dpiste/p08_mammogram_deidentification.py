@@ -37,17 +37,18 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
     if indir == None:
         indir = utils.get_home('data', 'input', 'dcm4chee','dicom','')
     if outdir == None:
-        outdir = utils.get_home('data','output','hdh','')
+        outdir = utils.get_home('data','output','hdh', 'dicom-png', '')
     
     output_summary = outdir + "/summary.log"
 
-    pathname = indir + "/**/*.dcm"
+    pathname = indir + "/**/*"
     list_dicom = glob.glob(pathname, recursive=True)
 
     list_dicom = sorted(list_dicom)
-    
+    print(f"hola!! {indir}")
+    print(list_dicom)
     for file in list_dicom:
-    
+      if os.path.isfile(file):
         nb_files = len(list_dicom)
         input_path = file
         
