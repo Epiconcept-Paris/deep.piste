@@ -39,11 +39,11 @@ def main(a):
   cnam_parser = export_subs.add_parser("cnam", help = "Generate SAFE file for CNAM")
   cnam_subs = cnam_parser.add_subparsers()
   
-  # exporting data to HHD command
+  # exporting data to HDH command
   hdhout_parser = export_subs.add_parser("hdh", help = "Invoke hdh export commands") 
   hdhout_subs = hdhout_parser.add_subparsers()
 
-  # extract neoscope command
+  # transfrom validated extraction command
   validated_parser = transform_subs.add_parser("validated-extraction", help = "Invoke initial extractoin validation command")
   validated_parser.set_defaults(func = do_validated_initial_extraction)
 

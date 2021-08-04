@@ -11,7 +11,7 @@ def esis_pks(): return {"dicom_guid":["study_instance_uid", "appointment_date", 
 def dicom_guid(dfs={}):
   name = "dicom_guid"
   if name not in dfs.keys():
-    dfile = get_home("input", "esis",  "esis_dicom_guid.parquet")
+    dfile = get_home("data", "input", "esis",  "esis_dicom_guid.parquet")
     df = pd.read_parquet(dfile)
     df["person_id"] = df.person_id.map(lambda v: v if v != '' and v != 'None' else pd.NA).astype("string").astype(pd.Int64Dtype())
     df["center_name"] = df.center_name.map(lambda v: v if v != '' and v != 'None' else pd.NA).astype("string")
@@ -53,7 +53,7 @@ def dicom_instance_uid():
   )
 
 def dicom_df_files() :
-  dicom_dir = get_home("input", "dcm4chee", "dicom_df")
+  dicom_dir = get_home("data", "input", "dcm4chee", "dicom_df")
   for root, dirs, files in os.walk(dicom_dir):
     for file in files:
       yield os.path.join(root, file)
