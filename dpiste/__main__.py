@@ -322,12 +322,12 @@ def do_fake_crypted_test(args, *other):
   p11_004_encrypt_and_test_fake_test(sender_passphrase = sender_phrase , dest_passphrase = dest_phrase)
 
 def do_safe_file(args, *other): #kwargs ,
-    p12_002_safe(
+  p12_002_safe(
     date_depot=args.date_depot,
     num_projet = args.num_projet,
     nom_projet = args.nom_projet
-    )
-
+  )
+  p12_003_safe_duplicates_to_keep()
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
