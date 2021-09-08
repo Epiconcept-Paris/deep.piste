@@ -1,14 +1,13 @@
 SHELL = bash
 
 init:
-	
 	if [ -f env ]; then\
 	  rm -r env;\
 	fi 
 	python3 -m venv env;
 	source env/bin/activate;
-	pip install --upgrade pip;
-	pip install --upgrade setuptools wheel twine
+	python3 -m pip install --upgrade pip;
+	python3 -m pip install --upgrade setuptools wheel twine
 
 install-dependencies:
 	sudo apt install python3-tk;
@@ -17,8 +16,8 @@ install-dependencies:
 
 install:
 	source env/bin/activate;
-	pip install -e .;
-	pip install -e ../kskit
+	python3 -m pip install -e .;
+	python3 -m pip install -e ../kskit
 
 package:
 	source env/bin/activate;\

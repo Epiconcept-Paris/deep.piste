@@ -11,6 +11,15 @@ def p11_getGpg():
   os.makedirs(name = path, exist_ok = True)
   return gnupg.GPG(gnupghome = path)
 
+def p11_000_generate_fake_transfer_keys(passphrase):
+  p11_generate_keys(
+    public_path = p11_fake_public_transfer_key_path(), 
+    private_path = p11_fake_private_transfer_key_path(), 
+    name = 'Deep.pistep_fake_11', 
+    email = 'deep.piste.fake.p11@epiconcept.fr', 
+    passphrase = passphrase
+  )
+
 def p11_001_generate_transfer_keys(passphrase):
   p11_generate_keys(
     public_path = p11_public_transfer_key_path(), 
@@ -45,8 +54,8 @@ def p11_004_encrypt_and_test_fake_test(sender_passphrase, dest_passphrase):
   p11_encrypt_and_test(
     source_file = p11_fake_tocrypt_file_path(),
     dest_file = p11_fake_crypted_path(),
-    from_public_key_path = p11_public_transfer_key_path(), 
-    from_private_key_path = p11_private_transfer_key_path(),
+    from_public_key_path = p11_fake_public_transfer_key_path(), 
+    from_private_key_path = p11_fake_private_transfer_key_path(),
     from_passphrase = sender_passphrase, 
     dest_public_key_path = p11_fake_hdh_public_key_path(), 
     dest_private_key_path =p11_fake_hdh_priv_key_path() , 
@@ -116,9 +125,9 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
         print(f"Decryption SUCEEDED")
         print(f"md5 hash of file: {orig_hash}")
       else:
-        print("Decryption FAILED on final checksum test {dec_hash} != {orig_hash}")
+        print(f"Decryption FAILED on final checksum test {dec_hash} != {orig_hash}")
     else:
-      print("Decryption FAILED with {decrypted_data.status}")
+      print(f"Decryption FAILED with {decrypted_data.status}")
     
 
     print(f"-------------------")
@@ -156,15 +165,17 @@ def p11_create_test_file_to_crypt(dest, text = "Hi HDH! from Deep.piste"):
     draw.text((10,10), text, font=fnt, fill=(0,0,0))
     image.save(dest)
 
-def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
-def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_private_key.rsa")
+def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_public_key.rsa")
+def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_private_key.rsa")
+def p11_fake_public_transfer_key_path(): return utils.get_home("data", "output","hdh","fake_crypt", "p11_fake_transfer_public_key.rsa")
+def p11_fake_private_transfer_key_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "p11_fake_transfer_private_key.rsa")
 def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_hdh_public.rsa")
-def p11_fake_hdh_public_key_path(): return utils.get_home("data", "transform", "hdh", "p11_fake_hdh_public.rsa")
-def p11_fake_hdh_priv_key_path(): return utils.get_home("data", "transform", "hdh", "p11_fake_hdh_priv.rsa")
+def p11_fake_hdh_public_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_public.rsa")
+def p11_fake_hdh_priv_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_priv.rsa")
 def p11_test_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "crypto_test.png")
-def p11_fake_tocrypt_file_path(): return utils.get_home("data", "output","epi", "crypto_test.png")
+def p11_fake_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "fake_crypto_test.png")
 def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
-def p11_fake_crypted_path(): return utils.get_home("data", "output", "epi", "p11_fake_crypted.png")
+def p11_fake_crypted_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_crypted.png")
 
 def p11_generate_keys(public_path, private_path, name, email, passphrase):
   #randomly generate new private-public RSA key

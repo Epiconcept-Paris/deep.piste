@@ -214,7 +214,7 @@ def main(a):
   dcm4chee_reports = dcm4chee_subs.add_parser("report", help = "Produce a set of aggregation to manually validate de soundness of dcm4chee DICOM validations")
   dcm4chee_reports.set_defaults(func = do_dcm4chee_report)
   
-  # -- test producing crypted file and sending through dftp 
+  # -- test producing crypted file and sending through sftp 
   test_sftp_parser = hdhout_subs.add_parser("test-sftp", help = "Test sftp channel by sending a test file. This command will generate the keys and the file to send if needed")
   test_sftp_parser.add_argument("-s", "--sftp-server", required=True, help="Host to the hdh dedicated sftp")
   test_sftp_parser.set_defaults(func = do_send_crypted_hdh_test)
@@ -313,10 +313,10 @@ def do_send_crypted_hdh_test(args, *other):
   p11_003_encrypt_hdh_extraction_test(passphrase = phrase) 
 
 def do_fake_crypted_test(args, *other):
-  sender_phrase = getpass.getpass(prompt='Please type private key passphrase for sender:', stream=None) 
-  p11_001_generate_transfer_keys(passphrase = sender_phrase)
+  sender_phrase = getpass.getpass(prompt='Please type fake private key passphrase for sender:', stream=None) 
+  p11_000_generate_fake_transfer_keys(passphrase = sender_phrase)
   
-  dest_phrase = getpass.getpass(prompt='Please type private key passphrase for receiver:', stream=None) 
+  dest_phrase = getpass.getpass(prompt='Please type fake private key passphrase for receiver:', stream=None) 
   p11_002_generate_fake_hdh_keys(passphrase = dest_phrase)
   
   p11_004_encrypt_and_test_fake_test(sender_passphrase = sender_phrase , dest_passphrase = dest_phrase)
