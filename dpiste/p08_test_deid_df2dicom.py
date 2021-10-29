@@ -1,12 +1,11 @@
 import time
-import dpiste
-import pydicom
+import utils
 import numpy as np
 from dpiste.p08_mammogram_deidentification import *
 from dpiste import utils
 from kskit.dicom2png import dicom2narray, narray2dicom
 from kskit.test_deid_mammogram import *
-
+from kskit.test_df2dicom import test_df2dicom
 
 
 """
@@ -163,4 +162,13 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
         f.write(
           str(round(time_taken/60)) + " minutes taken to process all images.\n" + \
           summary)
-            
+
+
+def prep_test_df2dicom(indir, tmp_dir):
+    """
+    Calls the tests evaluating the performances of df2dicom() in the 
+    test_df2dicom.py module located in the library kskit
+    """
+    indir = utils.get_home('input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
+    tmp_dir = utils.get_home('transform','dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
+    test_df2dicom(indir, tmp_dir)
