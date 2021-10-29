@@ -1,5 +1,4 @@
 import time
-import utils
 import numpy as np
 from dpiste.p08_mammogram_deidentification import *
 from dpiste import utils
