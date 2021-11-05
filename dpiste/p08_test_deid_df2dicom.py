@@ -168,6 +168,6 @@ def prep_test_df2dicom(indir, tmp_dir):
     Calls the tests evaluating the performances of df2dicom() in the 
     test_df2dicom.py module located in the library kskit
     """
-    indir = utils.get_home('input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
-    tmp_dir = utils.get_home('transform','dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
+    indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
+    tmp_dir = utils.get_home('data', 'transform', 'dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
     test_df2dicom(indir, tmp_dir)
