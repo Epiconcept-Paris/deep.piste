@@ -6,16 +6,11 @@ from kskit.dicom2png import dicom2narray, narray2dicom
 from kskit.test_deid_mammogram import *
 from kskit.test_df2dicom import test_df2dicom
 
-
-"""
-
-This module aims at evaluating the OCR package abilities. 
-It generates and adds random texts to test images and then treats them with 
-the OCR module.
-
-"""
-
 def test_OCR(font, size, blur, repetition, indir = None, outdir = None):    
+    """
+    Evaluates the OCR package abilities. It generates and adds random texts to 
+    test images and then treats them with the OCR module.
+    """
     start_time = time.time()
     #Default values
     utils.get_home('data', 'input', 'test_deid_ocr','')
