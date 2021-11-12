@@ -11,7 +11,7 @@ from . import utils
 from . import dal
 from .dal import cnam
 from .p08_mammogram_deidentification import *
-from .p08_test_mammogram_deid import *
+from .p08_test_deid_df2dicom import *
 
 
 def main(a):
@@ -96,6 +96,12 @@ def main(a):
   help = "Number of test repetition per criteria (default is 1)", 
   required = False)
   test_dicom_deid_parser.set_defaults(func = do_test_ocr)
+
+  # transform test-df2dicom
+  test_df2dicom_parser = transform_subs.add_parser("test-df2dicom", help = "Count the number of differences between initial and rebuilt mammograms.")
+  test_df2dicom_parser.add_argument("-i", "--indir", type=str, help = "Path of the folder containing test DICOM files", required = False)
+  test_df2dicom_parser.add_argument("-t", "--tmpdir", type=str, help = "Path of the temporary folder which will contain rebuilt DICOM files", required = False)
+  test_df2dicom_parser.set_defaults(func = do_test_df2dicom)
 
   # cnam test file command
   cnam_testfile_parser = cnam_subs.add_parser("test-safe", help = "Invoke a safe test file")
@@ -299,6 +305,9 @@ def do_test_ocr(args, *other):
 
 def do_anonymize_folder(args, *other):
   deid_mammogram(indir = args.indir, outdir= args.outdir)
+
+def do_test_df2dicom(args, *other):
+  prep_test_df2dicom(indir = args.indir, tmp_dir = args.tmpdir)
 
 def do_safe_test_file(args, *other): #kwargs ,
   p12_001_safe_test(
