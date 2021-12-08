@@ -1,23 +1,16 @@
 import time
-import dpiste
-import pydicom
 import numpy as np
 from dpiste.p08_mammogram_deidentification import *
 from dpiste import utils
 from kskit.dicom2png import dicom2narray, narray2dicom
 from kskit.test_deid_mammogram import *
-
-
-
-"""
-
-This module aims at evaluating the OCR package abilities. 
-It generates and adds random texts to test images and then treats them with 
-the OCR module.
-
-"""
+from kskit.test_df2dicom import test_df2dicom
 
 def test_OCR(font, size, blur, repetition, indir = None, outdir = None):    
+    """
+    Evaluates the OCR package abilities. It generates and adds random texts to 
+    test images and then treats them with the OCR module.
+    """
     start_time = time.time()
     #Default values
     utils.get_home('data', 'input', 'test_deid_ocr','')
@@ -163,4 +156,13 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
         f.write(
           str(round(time_taken/60)) + " minutes taken to process all images.\n" + \
           summary)
-            
+
+
+def prep_test_df2dicom(indir, tmp_dir):
+    """
+    Calls the tests evaluating the performances of df2dicom() in the 
+    test_df2dicom.py module located in the library kskit
+    """
+    indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
+    tmp_dir = utils.get_home('data', 'transform', 'dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
+    test_df2dicom(indir, tmp_dir)
