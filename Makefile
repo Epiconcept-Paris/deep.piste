@@ -15,9 +15,9 @@ install-dependencies:
 	sudo apt install libzbar-dev
 
 install:
-	source env/bin/activate;
-	python3 -m pip install -e .;
-	python3 -m pip install -e ../kskit
+	source env/bin/activate;\
+	python3 -m pip install -e .;\
+	python3 -m pip install -e ../kskit\
 
 package:
 	source env/bin/activate;\

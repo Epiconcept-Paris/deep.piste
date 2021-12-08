@@ -9,7 +9,7 @@ import hashlib
 def p11_getGpg():
   path=utils.get_home("data", "transform","hdh", "gpg")
   os.makedirs(name = path, exist_ok = True)
-  return gnupg.GPG(gnupghome = path)
+  return gnupg.GPG(gnupghome = path, verbose = True)
 
 def p11_000_generate_fake_transfer_keys(passphrase):
   p11_generate_keys(
@@ -78,12 +78,12 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
 
   #Doing encryption
 
-  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], passphrase = from_passphrase)
+  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], passphrase = from_passphrase, armor = False)
   
   print(f"-------------------")
   if encrypted_data.ok == True :
-    with open(dest_file, 'w') as crypted_file:
-      crypted_file.write(str(encrypted_data))
+    with open(dest_file, 'wb') as crypted_file:
+      crypted_file.write(encrypted_data.data)
     print("file encryption SUCCEEDED")
   else:
     print(f"encryption FAILED with {encrypted_data.status}")
@@ -105,7 +105,7 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
     gpg.trust_keys(verifying_key.fingerprints[0], "TRUST_ULTIMATE")
     
     # Importing
-    with open(dest_file, 'r') as read_crypted_file:
+    with open(dest_file, 'rb') as read_crypted_file:
       read_crypted = read_crypted_file.read()
 
     with open(dest_private_key_path) as hdh_pkey:
