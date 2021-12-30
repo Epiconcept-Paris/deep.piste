@@ -3,10 +3,8 @@ from tkinter import Tk
 from tkinter import filedialog
 from kskit import java
 from kskit import password
-import os
 import datetime
 import pandas as pd
-import json
 
 def get_home(*paths):
   if os.environ.get('DP_HOME') == None :
@@ -80,4 +78,3 @@ def timeit(func):
   after = datetime.datetime.now()
   print((after-now).seconds)
   return func()
-

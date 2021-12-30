@@ -1,17 +1,7 @@
 import os
 import glob
-import string
 import time
-import shutil
-import json
-import pydicom
-from datetime import datetime
-import numpy as np
-from pydicom.sequence import Sequence
-from pydicom.dataset import Dataset
-from PIL import Image, ImageDraw, ImageFilter
-from easyocr import Reader
-from dpiste import utils, report
+from dpiste import utils
 from kskit import dicom2png
 from kskit.deid_mammogram import *
 
