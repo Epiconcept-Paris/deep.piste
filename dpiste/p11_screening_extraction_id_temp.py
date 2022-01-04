@@ -159,8 +159,9 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
 def p11_create_test_file_to_crypt(dest, text = "Hi HDH! from Deep.piste"):
   if not os.path.isfile(dest) :
     data={'N':[1, 2, 3, 4],'Value':[f"{text} 1",f"{text} 2",f"{text} 3",f"{text} 4"]}
-    df=pd.dataframe(data)
-    df.to_csv(compression='gzip')
+    df=pd.DataFrame(data)
+    print(df)
+    df.to_csv(dest, compression='gzip')
 
 def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_public_key.rsa")
 def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_private_key.rsa")
