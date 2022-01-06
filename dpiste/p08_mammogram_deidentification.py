@@ -1,9 +1,10 @@
 import os
-import glob
 import time
 from dpiste import utils
 from kskit import dicom2png
-from kskit.deid_mammogram import *
+from kskit.dicom.df2dicom import df2dicom
+from kskit.dicom.deid_mammogram import *
+from kskit.dicom.utils import write_all_ds
 
 
 def deid_mammogram(indir = None, outdir = None):
@@ -62,8 +63,6 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
             print("\nNo text area detected\n")
             print(input_path, "=>", output_path)
         
-        ds = de_identify_ds(ds, PATH_ATTRIBUTES_TO_KEEP)
-        
         dicom2png.narray2png(pixels, output_path)
         print(nb_images_processed, "/", nb_files, "DICOM(s) de-identified")
 
@@ -83,3 +82,33 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
           str(round(time_taken/60)) + " minutes taken to de-identify all images.\n" + \
             summary
         )
+
+
+def deid_mammogram2(indir = None, outdir = None):
+    """
+    Anonymize a complete directory of DICOM.
+
+    @param
+
+    indir = the initial directory of DICOM to de-identify
+    outdir = the final director of DICOM which have been de-identied
+    """
+    
+    if indir == None:
+        indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')
+    if outdir == None:
+        outdir = utils.get_home('data', 'output','hdh', '')
+
+    df = deidentify_attributes(indir, outdir)
+    
+    df2dicom(df, outdir, do_image_deidentification=True)
+    #write_all_ds(indir, outdir)
+
+if __name__ == '__main__':
+    INDIR = os.path.join(
+        '/', 'home', 'williammadie', 'images', 'deid', 'test_deid_1',
+        'source')
+    OUTDIR = os.path.join(
+        '/', 'home', 'williammadie', 'images', 'deid', 'test_deid_1',
+        'final')
+    deid_mammogram2(INDIR, OUTDIR)

@@ -62,7 +62,7 @@ def main(a):
   dicom_deid_parser.set_defaults(func = do_anonymize_folder)
 
   # transform test-dicom-deid
-  test_dicom_deid_parser = transform_subs.add_parser("test-dicom-deid", help = "Evaluate the ability of the OCR to recognize words. It generates test data.")
+  test_dicom_deid_parser = transform_subs.add_parser("test-deid-ocr", help = "Evaluate the ability of the OCR to recognize words. It generates test data.")
   test_dicom_deid_parser.add_argument("-i", 
   "--indir", 
   type=str, 
@@ -96,6 +96,20 @@ def main(a):
   help = "Number of test repetition per criteria (default is 1)", 
   required = False)
   test_dicom_deid_parser.set_defaults(func = do_test_ocr)
+
+ # transform test-dicom-deid
+  test_dicom_deid_parser = transform_subs.add_parser("test-deid-attr", help="Evaluate the deidentification of datasets. It generates test data.")
+  test_dicom_deid_parser.add_argument("-i", 
+  "--indir", 
+  type=str, 
+  help = "Path of the folder containing DICOM to test", 
+  required = False)
+  test_dicom_deid_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Path of the folder that will contain test info", 
+  required = False)
+  test_dicom_deid_parser.set_defaults(func = do_test_attribute)
 
   # transform test-df2dicom
   test_df2dicom_parser = transform_subs.add_parser("test-df2dicom", help = "Count the number of differences between initial and rebuilt mammograms.")
@@ -298,8 +312,11 @@ def do_test_ocr(args, *other):
     outdir = args.outdir
     )
 
+def do_test_attribute(args, *other):
+  prep_test_deid_attributes(args.indir, args.outdir)
+
 def do_anonymize_folder(args, *other):
-  deid_mammogram(indir = args.indir, outdir= args.outdir)
+  deid_mammogram2(indir = args.indir, outdir= args.outdir)
 
 def do_test_df2dicom(args, *other):
   prep_test_df2dicom(indir = args.indir, tmp_dir = args.tmpdir)
