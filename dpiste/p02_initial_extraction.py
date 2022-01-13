@@ -94,7 +94,7 @@ def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, p
 
   print("getting dicoms")
   for uid in uids:
-    dest = get_home("input", "dcm4chee", "dicom", uid) 
+    dest = utils.get_home("input", "dcm4chee", "dicom", uid) 
     kskit.dicom.get_dicom(key = uid, dest = dest, server = server, port = port, title = title, retrieveLevel = retrieveLevel)
   
   print("producing consolidated dicom dataframe")

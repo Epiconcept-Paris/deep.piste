@@ -227,7 +227,7 @@ def main(a):
   get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
   get_dicom_parser.add_argument("-s", "--server", required=True, help="Host for dcm4chee")
   get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
-  get_dicom_parser.add_argument("-n", "--page-number", required=False, help="Page number to get, default 1", default = 1, type = int)
+  get_dicom_parser.add_argument("-l", "--limit", required=False, help="Limit to get, default 100", default = 100, type = int)
   get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
   get_dicom_parser.add_argument("-f", "--filter-field", required=False, help="Default filter : remove NA values", default = None, type = str)
   get_dicom_parser.add_argument("-v", "--filter-value", required=False, help="Default filter : remove NA values", default = None, type = str)
@@ -293,9 +293,9 @@ def do_get_dicom_guid(args, *other):
     remote_dest = args.remote_dest
   )
 def do_get_dicom(args, *other):
-  p06_001_get_dicom(server = args.server, port = args.port, path = args.page_number, page_size = args.page_size)
-  #p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
-  
+  #p06_001_get_dicom(server = args.server, port = args.port, limit = args.limit, page_size = args.page_size, filter_field = args.filter_field, filter_value = args.filter_value)
+  p02_008_get_dicom(server = args.server, port = args.port, page = 2, page_size = 10)
+
 def do_esis_report(args, *other):
   p02_010_esis_report()
 
