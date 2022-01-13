@@ -10,6 +10,7 @@ from .p11_screening_extraction_id_temp import *
 from . import utils
 from . import dal
 from .dal import cnam
+from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
 
@@ -228,6 +229,8 @@ def main(a):
   get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
   get_dicom_parser.add_argument("-n", "--page-number", required=False, help="Page number to get, default 1", default = 1, type = int)
   get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
+  get_dicom_parser.add_argument("-f", "--filter-field", required=False, help="Default filter : remove NA values", default = None, type = str)
+  get_dicom_parser.add_argument("-v", "--filter-value", required=False, help="Default filter : remove NA values", default = None, type = str)
   get_dicom_parser.set_defaults(func = do_get_dicom)
 
   # -- analyse esis dicom ids
@@ -290,8 +293,9 @@ def do_get_dicom_guid(args, *other):
     remote_dest = args.remote_dest
   )
 def do_get_dicom(args, *other):
-  p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
-
+  p06_001_get_dicom(server = args.server, port = args.port, path = args.page_number, page_size = args.page_size)
+  #p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
+  
 def do_esis_report(args, *other):
   p02_010_esis_report()
 
