@@ -293,8 +293,8 @@ def do_get_dicom_guid(args, *other):
     remote_dest = args.remote_dest
   )
 def do_get_dicom(args, *other):
-  #p06_001_get_dicom(server = args.server, port = args.port, limit = args.limit, page_size = args.page_size, filter_field = args.filter_field, filter_value = args.filter_value)
-  p02_008_get_dicom(server = args.server, port = args.port, page = 2, page_size = 10)
+  p06_001_get_dicom(server = args.server, port = args.port, limit = args.limit, page_size = args.page_size, filter_field = args.filter_field, filter_value = args.filter_value)
+  #p02_008_get_dicom(server = args.server, port = args.port, page = 2, page_size = 10)
 
 def do_esis_report(args, *other):
   p02_010_esis_report()

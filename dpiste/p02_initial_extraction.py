@@ -8,14 +8,14 @@ from tkinter import Tk
 from tkinter import filedialog
 from kskit import voo
 import kskit.crypto
-import kskit.dicom
+from kskit.dicom.dicom2df import dicom2df
 import tempfile
 import subprocess
 import pandas as pd
 import numpy as np
 from dpiste import report
 from . import dal
-from . import utils
+from .utils import get_home
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -94,15 +94,15 @@ def p02_008_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', page = 1, p
 
   print("getting dicoms")
   for uid in uids:
-    dest = utils.get_home("input", "dcm4chee", "dicom", uid) 
-    kskit.dicom.get_dicom(key = uid, dest = dest, server = server, port = port, title = title, retrieveLevel = retrieveLevel)
+      dest = get_home("input", "dcm4chee", "dicom", uid) 
+      kskit.dicom.get_dicom(key = uid, dest = dest, server = server, port = port, title = title, retrieveLevel = retrieveLevel)
   
   print("producing consolidated dicom dataframe")
   dicom_dir = get_home("input", "dcm4chee", "dicom")
-  df = kskit.dicom.dicom2df(dicom_dir)
-  
+  df = dicom2df(dicom_dir)
+  print(df) 
   print("Saving dicom consolidated dataframe")
-  dicomdf_dir = os.path.join("input, dcm4chee", "dicom_df")
+  dicomdf_dir = os.path.join("input", "dcm4chee", "dicom_df")
   df.to_parquet(os.path.join(dicomdf_dir, str(page)), "pyarrow")
 
 
