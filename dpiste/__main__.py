@@ -10,8 +10,8 @@ from .p11_screening_extraction_id_temp import *
 from . import utils
 from . import dal
 from .dal import cnam
-from .p08_mammogram_deidentification import *
-from .p08_test_deid_df2dicom import *
+#from .p08_mammogram_deidentification import *
+#from .p08_test_deid_df2dicom import *
 
 
 def main(a):

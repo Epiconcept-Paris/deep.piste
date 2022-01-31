@@ -44,7 +44,7 @@ def nir_to_cnam_format(df):
     """
     df = df[["id_random", "NNI_2", "date_naiss"]].copy()
     df.columns = ['Identifiant_temporaire','NIR_du_beneficiaire', 'Date_de_naissance'] #rename colums
-    df['Date_de_naissance'] = df['Date_de_naissance'].dt.strftime("%m/%d/%Y") #convert date to JJ/MM/AAAA format
+    df['Date_de_naissance'] = df['Date_de_naissance'].dt.strftime("%d/%m/%Y") #convert date to JJ/MM/AAAA format
     df['NIR_du_ouvrant_droit'] = df['NIR_du_beneficiaire'].astype(str)
     df['Code_sexe'] = "2"
     df = df[['NIR_du_beneficiaire', 'Date_de_naissance', 'Code_sexe','NIR_du_ouvrant_droit','Identifiant_temporaire']]
