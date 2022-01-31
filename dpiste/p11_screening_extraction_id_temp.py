@@ -9,7 +9,7 @@ import hashlib
 def p11_getGpg():
   path=utils.get_home("data", "transform","hdh", "gpg")
   os.makedirs(name = path, exist_ok = True)
-  return gnupg.GPG(gnupghome = path)
+  return gnupg.GPG(gnupghome = path, verbose = True)
 
 def p11_000_generate_fake_transfer_keys(passphrase):
   p11_generate_keys(
@@ -78,12 +78,12 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
 
   #Doing encryption
 
-  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], passphrase = from_passphrase)
+  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], passphrase = from_passphrase, armor = False)
   
   print(f"-------------------")
   if encrypted_data.ok == True :
-    with open(dest_file, 'w') as crypted_file:
-      crypted_file.write(str(encrypted_data))
+    with open(dest_file, 'wb') as crypted_file:
+      crypted_file.write(encrypted_data.data)
     print("file encryption SUCCEEDED")
   else:
     print(f"encryption FAILED with {encrypted_data.status}")
@@ -105,7 +105,7 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
     gpg.trust_keys(verifying_key.fingerprints[0], "TRUST_ULTIMATE")
     
     # Importing
-    with open(dest_file, 'r') as read_crypted_file:
+    with open(dest_file, 'rb') as read_crypted_file:
       read_crypted = read_crypted_file.read()
 
     with open(dest_private_key_path) as hdh_pkey:
@@ -157,13 +157,11 @@ def p11_encrypt_and_test(source_file, dest_file, from_public_key_path, from_priv
   #Comparing resulting file 
 
 def p11_create_test_file_to_crypt(dest, text = "Hi HDH! from Deep.piste"):
-  if not os.path.isfile(dest) : 
-    # Generating file to crypt
-    fnt = ImageFont.truetype('arial.ttf', 15)
-    image = Image.new(mode = "RGB", size = (200,70), color = "white")
-    draw = ImageDraw.Draw(image)
-    draw.text((10,10), text, font=fnt, fill=(0,0,0))
-    image.save(dest)
+  if not os.path.isfile(dest) :
+    data={'N':[1, 2, 3, 4],'Value':[f"{text} 1",f"{text} 2",f"{text} 3",f"{text} 4"]}
+    df=pd.DataFrame(data)
+    print(df)
+    df.to_csv(dest, compression='gzip')
 
 def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_public_key.rsa")
 def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_private_key.rsa")
@@ -172,10 +170,10 @@ def p11_fake_private_transfer_key_path(): return utils.get_home("data", "output"
 def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_hdh_public.rsa")
 def p11_fake_hdh_public_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_public.rsa")
 def p11_fake_hdh_priv_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_priv.rsa")
-def p11_test_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "crypto_test.png")
-def p11_fake_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "fake_crypto_test.png")
-def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
-def p11_fake_crypted_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_crypted.png")
+def p11_test_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "crypto_test.csv.gzip")
+def p11_fake_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "fake_crypto_test.csv.gzip")
+def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.csv.gzip.gpg")
+def p11_fake_crypted_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_crypted.csv.gzip.gpg")
 
 def p11_generate_keys(public_path, private_path, name, email, passphrase):
   #randomly generate new private-public RSA key
