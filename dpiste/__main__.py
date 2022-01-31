@@ -43,6 +43,10 @@ def main(a):
   hdhout_parser = export_subs.add_parser("hdh", help = "Invoke hdh export commands") 
   hdhout_subs = hdhout_parser.add_subparsers()
 
+  # exporting data to CRCDC-OC command
+  crcdcout_parser = export_subs.add_parser("crcdc", help = "Invoke crcdc export commands") 
+  crcdcout_subs = crcdcout_parser.add_subparsers()
+
   # transfrom validated extraction command
   validated_parser = transform_subs.add_parser("validated-extraction", help = "Invoke initial extractoin validation command")
   validated_parser.set_defaults(func = do_validated_initial_extraction)
@@ -229,6 +233,24 @@ def main(a):
   test_crypt_parser = hdhout_subs.add_parser("test-crypt", help = "Testing crypting and decrypting with fake receiver keys")
   test_crypt_parser.set_defaults(func = do_fake_crypted_test)
 
+  # -- exporting emails for women informatione email 
+  mail_export_parser = crcdcout_subs.add_parser("export-email", help = "Exporting women emails for sending information letter")
+  mail_export_parser.add_argument(
+    "-e",
+    "--epifiles-host",
+    required=False,
+    help="epifiles base host, default = epifiles.voozanoo.net",
+    default = "epifiles.voozanoo.net"
+  )
+  mail_export_parser.add_argument(
+    "-r",
+    "--maven-repo",
+    required=False,
+    help="maven repository to use to download sparkly and dependencies, default = https://repo1.maven.org/maven2",
+    default = "https://repo1.maven.org/maven2"
+  )
+  mail_export_parser.add_argument("-u", "--epi-user", required=True, help="login for connecting to epifiles")
+  mail_export_parser.set_defaults(func = do_export_emails)
 
 #calling handlers
   func = None
@@ -337,6 +359,15 @@ def do_safe_file(args, *other): #kwargs ,
     nom_projet = args.nom_projet
   )
   p12_003_safe_duplicates_to_keep()
+
+def do_export_emails(args, *other):
+  utils.prepare_sparkly(repo = args.maven_repo)
+  p03_003_export_emails_to_epifiles( 
+    epifiles = args.epifiles_host,
+    login=args.epi_user,
+    password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
+  )
+
 
 if __name__ == "__main__":
   main(sys.argv[1] if len(sys.argv)>1 else None)
