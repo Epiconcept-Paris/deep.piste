@@ -23,8 +23,10 @@ def p03_002_validated_extraction_report():
 def p03_003_export_emails_to_epifiles(epifiles, login, password):
   dfs = {}
   mail = dal.screening.mail(dfs)
-  source = utils.get_home("output", "crcdc-oc", "mail_femmes.csv")
-  mail.to_csv(source)
-
-  dest = f"epi://{urllib.parse.quote_plus(login)}:{urllib.parse.quote_plus(password)}@{epifiles}/mailfemmes.csv"
+  source = utils.get_home("data", "output", "crcdc-oc", "mail_femmes.csv")
+  mr = "(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+  clean = mail["email"].str.extract(mr)[0]
+  clean = clean[pd.notna(clean)]
+  clean.to_csv(source)
+  dest = f"epi://{urllib.parse.quote_plus(login)}:{urllib.parse.quote_plus(password)}@{epifiles}/mail_femmes.csv"
   utils.sparkly_cp(source = source, dest = dest) 
