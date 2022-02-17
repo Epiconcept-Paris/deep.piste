@@ -227,7 +227,7 @@ def main(a):
   get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
   get_dicom_parser.add_argument("-s", "--server", required=True, help="Host for dcm4chee")
   get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
-  get_dicom_parser.add_argument("-l", "--limit", required=False, help="Limit to get, default 100", default = 100, type = int)
+  get_dicom_parser.add_argument("-l", "--limit", required=False, help="Limit to get, default None", default = None, type = int)
   get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
   get_dicom_parser.add_argument("-f", "--filter-field", required=False, help="Default filter : remove NA values", default = None, type = str)
   get_dicom_parser.add_argument("-v", "--filter-value", required=False, help="Default filter : remove NA values", default = None, type = str)
