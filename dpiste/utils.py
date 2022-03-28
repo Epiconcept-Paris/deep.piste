@@ -1,10 +1,13 @@
 import os
+import stat
 from tkinter import Tk
 from tkinter import filedialog
-from kskit import java
-from kskit import password
+from typing import Union
+from paramiko.sftp_client import SFTPClient
 import datetime
 import pandas as pd
+from kskit import java
+from kskit import password
 
 def get_home(*paths):
   if os.environ.get('DP_HOME') == None :
@@ -78,3 +81,76 @@ def timeit(func):
   after = datetime.datetime.now()
   print((after-now).seconds)
   return func()
+
+def recursive_count_files(dir: str) -> int:
+  return sum(len(files) for _, _, files in os.walk(dir))
+
+def cleandir(dirlist: Union[str, list], deldir=False) -> None:
+  if type(dirlist) == str:
+    dirlist = [dirlist]
+  for repository in dirlist:
+    for root, dirs, files in os.walk(repository):
+      for file in files:
+        os.remove(os.path.join(root, file))
+    for root, dirs, files in os.walk(repository):
+      for d in dirs:
+        os.rmdir(os.path.join(root, d))
+    os.rmdir(repository) if deldir else None
+
+def avg_mammogram_size(dirpath: str) -> float:
+  """Calculate the avg size of a mammogram (in bytes) based on a folder of studies"""
+  s, nb_files = do_calculate_avg_file_size(dirpath, '.png')
+  return round(s / nb_files, 2)
+
+def do_calculate_avg_file_size(dirpath: str, extension: str = '') -> tuple:
+  s, nb_files = 0, 0
+  for file in os.listdir(dirpath):
+    filepath = os.path.join(dirpath, file)
+    if not os.path.isdir(filepath) and filepath.endswith(extension):
+      s += os.stat(filepath).st_size
+      nb_files += 1
+    elif os.path.isdir(filepath):
+      res = do_calculate_avg_file_size(filepath)
+      s += res[0]
+      nb_files += res[1]
+  return s, nb_files
+
+def sftp_recursive_count_files(path: str, sftp: SFTPClient) -> int:
+  items = sftp.listdir(path)
+  nb = 0
+  for i in items:
+     nb += len(sftp.listdir(os.path.join(path, i)))
+  return nb
+
+def sftp_reset(sftp: SFTPClient, path: str = None) -> None:
+  """Clean an entire SFTP server from root"""
+  path = '.' if path is None else path
+  for file in sftp.listdir_attr(path):
+    filepath = os.path.join(path, file.filename)
+    if not stat.S_ISDIR(file.st_mode):
+      sftp.remove(filepath)
+    else:
+      sftp_reset(sftp, path=filepath)
+      sftp.rmdir(filepath)
+  return
+
+def sftp_cleandir(sftp: SFTPClient, dirpath: str, deldir=False) -> None:
+  """Clean an entire SFTP folder including its subfolders"""
+  for file in sftp.listdir_attr(dirpath):
+    filepath = os.path.join(dirpath, file.filename)
+    if not stat.S_ISDIR(file.st_mode):
+      sftp.remove(filepath)
+    else:
+      sftp_cleandir(sftp, filepath, deldir=True)
+  sftp.rmdir(dirpath) if deldir else None
+
+def sftp_calculate_size(sftp: SFTPClient, dirpath: str = '.') -> int:
+  """Calculate the size of a SFTP folder including all of its subdirectories"""
+  sftp_size = 0
+  for file in sftp.listdir_attr(dirpath):
+    filepath = os.path.join(dirpath, file.filename)
+    if not stat.S_ISDIR(file.st_mode):
+      sftp_size += file.st_size
+    else:
+      sftp_size += sftp_calculate_size(sftp, filepath)
+  return sftp_size

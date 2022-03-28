@@ -26,7 +26,7 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
     PATH_FONTS = os.path.join(pkg_dir, "data/resources/fonts/")
     
     if font is None:
-        font = [PATH_FONTS + 'FreeMono.ttf']
+        font = ['FreeMono.ttf']
     if size is None:
         size = [2]
     if blur is None:
@@ -39,9 +39,10 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
     
-    pathname = indir + "/**/*.dcm"
-    list_dicom = glob.glob(pathname, recursive=True)
-    list_dicom = sorted(list_dicom)
+    list_dicom = []
+    for root, dirs, files in os.walk(indir):
+        for f in files:
+            list_dicom.append(os.path.join(root, f))
     
     if not list_dicom:
         raise ValueError(indir + " seems to be empty or does not exist") 

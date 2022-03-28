@@ -1,10 +1,17 @@
 import os
+import json
 import time
+
 from dpiste import utils
+from dpiste.dal.screening import depistage_pseudo
+from dpiste.p11_hdh_data_transfer import *
+from dpiste.p11_hdh_encryption import p11_001_generate_transfer_keys
+
 from kskit import dicom2png
-from kskit.dicom.df2dicom import df2dicom
+from kskit.dicom.df2dicom import (df2dicom, df2hdh)
+from kskit.dicom.get_dicom import get_dicom
 from kskit.dicom.deid_mammogram import *
-from kskit.dicom.utils import write_all_ds
+from kskit.dicom.utils import (write_all_ds, log)
 
 
 def deid_mammogram(indir = None, outdir = None):
@@ -87,9 +94,7 @@ Here is a summary of the DICOMs that have been de-identified.\n\n\n
 def deid_mammogram2(indir = None, outdir = None):
     """
     Anonymize a complete directory of DICOM.
-
     @param
-
     indir = the initial directory of DICOM to de-identify
     outdir = the final director of DICOM which have been de-identied
     """
@@ -100,15 +105,94 @@ def deid_mammogram2(indir = None, outdir = None):
         outdir = utils.get_home('data', 'output','hdh', '')
 
     df = deidentify_attributes(indir, outdir)
-    
+    df.to_csv(os.path.join(outdir, 'meta.csv'))
     df2dicom(df, outdir, do_image_deidentification=True)
-    #write_all_ds(indir, outdir)
 
-if __name__ == '__main__':
-    INDIR = os.path.join(
-        '/', 'home', 'williammadie', 'images', 'deid', 'test_deid_1',
-        'source')
-    OUTDIR = os.path.join(
-        '/', 'home', 'williammadie', 'images', 'deid', 'test_deid_1',
-        'final')
-    deid_mammogram2(INDIR, OUTDIR)
+
+def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient):
+    df = deidentify_attributes(indir, outdir, erase_outdir=False)
+    log('Deidentifying mammograms...')
+    df2hdh(df, outdir)
+    return
+
+
+def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
+    server_capacity: int, tmp_fol: str) -> None:
+    """Gets, deidentifies and sends mammograms to the HDH sftp"""
+    indir, outdir = set_localenv(tmp_fol)
+    log(f"Server capacity: {server_capacity} GB")
+    server_capacity = server_capacity * 10**9
+    c, sftp = renew_sftp(sftph, sftpu)
+    # utils.sftp_reset(sftp)
+    # exit()
+    df = depistage_pseudo()
+    studies = build_studies(df)
+    total2upload = len(studies.index)
+    deid_studies = deidentify_study_id(studies.copy())
+    
+    progress = get_progress(outdir, studies, sftp)
+    if progress != 0:
+        wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
+    else:
+        send2hdh_df(deid_studies, outdir, 'studies.csv', sftp)
+        send2hdh_df(df.drop(columns='DICOM_Studies'), outdir, 'df.csv', sftp)
+
+    c, sftp = renew_sftp(sftph, sftpu, sftp, c)
+    create_tmp_and_ok_folders(sftp, outdir)
+    for uploaded, index in enumerate(studies.index):
+        if progress >= uploaded:
+            continue
+        c, sftp = renew_sftp(sftph, sftpu, sftp, c)
+        study_id = studies['study_id'][index]
+        id_random = studies['id_random'][index]
+        deid_study_id = gen_dicom_uid(id_random, study_id)
+
+        study_dir = os.path.join(outdir, deid_study_id)
+        os.mkdir(study_dir) if not os.path.isdir(study_dir) else None
+        create_study_dirs(deid_study_id, sftp)
+
+        log(f'Getting study n°{study_id}')
+        get_dicom(key=study_id, dest=indir, server='10.1.2.9', port=11112,
+            title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+        deidentify_mammograms_hdh(indir, study_dir, sftp)
+        send2hdh_study_content(study_dir, sftp)
+        update_progress(uploaded, total2upload, outdir, sftp)
+
+        c, sftp = renew_sftp(sftph, sftpu, sftp, c)
+        utils.cleandir([indir, outdir])
+        wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
+    return
+
+
+def set_localenv(tmp_fol: str):
+    """Prepare the local temporary folder used to store before sending to SFTP"""
+    indir = os.path.join(tmp_fol, 'sensitive')
+    outdir = os.path.join(tmp_fol, '.tmp')
+    for folder in [indir, outdir]:
+        os.mkdir(folder) if not os.path.isdir(folder) else None
+    p11_001_generate_transfer_keys()
+    return indir, outdir
+
+
+def deidentify_study_id(studies: pd.DataFrame) -> pd.DataFrame:
+    """Deidentifies the column study_id of the DataFrame df"""
+    for index in studies.index:
+        study_id = studies['study_id'][index]
+        id_random = studies['id_random'][index]
+        studies.at[index, 'study_id'] = gen_dicom_uid(id_random, study_id)
+    return studies
+
+
+def build_studies(df: pd.DataFrame) -> pd.DataFrame:
+    """Returns a DataFrame made of 3 columns [id_random, date, study_id]"""
+    df = df[pd.notna(df['DICOM_Studies'])]
+    data = []
+    for index in df.index:
+        dates = json.loads(df['DICOM_Studies'][index])
+        for date in dates:
+            for study_id in dates[date][0]:
+                row = []
+                row.extend([df['id_random'][index], date, study_id])
+            data.append(row)
+    studies = pd.DataFrame(data, columns = ['id_random', 'date', 'study_id'])
+    return studies.drop_duplicates()

@@ -6,7 +6,7 @@ from datetime import datetime as dt
 from .p02_initial_extraction import *
 from .p03_validated_extraction import *
 from .p12_SNDS_match import *
-from .p11_screening_extraction_id_temp import *
+from .p11_hdh_encryption import *
 from . import utils
 from . import dal
 from .dal import cnam
@@ -29,7 +29,7 @@ def main(a):
   transform_subs = transform_parser.add_subparsers()
   
   # export command
-  export_parser = subs.add_parser("export", help = "Seding data") 
+  export_parser = subs.add_parser("export", help = "Sending data") 
   export_subs = export_parser.add_subparsers()
   
   # extract neoscope command
@@ -78,7 +78,8 @@ def main(a):
   "--font", 
   nargs="+", 
   help = "(list) Path of the wanted font(s)", 
-  required = True)
+  required = False,
+  default = None)
   test_dicom_deid_parser.add_argument("-s", 
   "--size", 
   type=int,
@@ -104,12 +105,12 @@ def main(a):
   "--indir", 
   type=str, 
   help = "Path of the folder containing DICOM to test", 
-  required = False)
+  required = True)
   test_dicom_deid_parser.add_argument("-o", 
   "--outdir", 
   type=str, 
   help = "Path of the folder that will contain test info", 
-  required = False)
+  required = True)
   test_dicom_deid_parser.set_defaults(func = do_test_attribute)
 
   # transform test-df2dicom
@@ -242,6 +243,15 @@ def main(a):
   get_dicom_parser.add_argument("-s", "--sftp-server", required=True, help="Host to the hdh dedicated sftp")
   get_dicom_parser.set_defaults(func = do_send_crypted_hdh_test)
 
+  # -- sftp
+  hdh_sftp_parser = hdhout_subs.add_parser("sftp", help = "Sends mammograms through the sftp channel")
+  hdh_sftp_parser.add_argument("-s", "--server-sftp", required=True, help="Hostname of the hdh dedicated sftp")
+  hdh_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
+  hdh_sftp_parser.add_argument("-t", "--tmp-folder", required=True, help="Temporary storage before files are send to the sftp", type=str)
+  hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default = 20, type=int)
+  hdh_sftp_parser.add_argument("-c","--server-capacity", required=True, help="Server capacity in GB", type=int)
+  hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
+
 #calling handlers
   func = None
   try:
@@ -335,6 +345,15 @@ def do_safe_test_file(args, *other): #kwargs ,
 def do_send_crypted_hdh_test(args, *other):
   p11_001_generate_transfer_keys()
   p11_003_encrypt_hdh_extraction_test() 
+
+def do_send_crypted_hdh(args, *other):
+  p08_001_export_hdh(
+    sftph = args.server_sftp,
+    sftpu = args.username_sftp,
+    batch_size = args.batch_size,
+    server_capacity = args.server_capacity,
+    tmp_fol = args.tmp_folder
+    )
 
 def do_safe_file(args, *other): #kwargs ,
     p12_002_safe(

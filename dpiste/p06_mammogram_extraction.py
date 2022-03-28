@@ -11,13 +11,14 @@ from dpiste import report
 from . import dal
 from . import utils
 from tqdm import tqdm
+from kskit.dicom.utils import log
 
 def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = None, page_size = 10, filter_field = None, filter_value = None):
   title = "DCM4CHEE"
   if filter_field == None and filter_value == None:
-    print("No filter applied")
+    log("No filter applied")
   else:
-    print(f"Filter applied: {filter_field} = {filter_value}")
+    log(f"Filter applied: {filter_field} = {filter_value}")
   studies = apply_filter(dal.screening.depistage_pseudo(), filter_field, filter_value)
  
   studies = studies.sort_values(by=['Date_Mammo'], ascending=False)
@@ -36,10 +37,10 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
 
   nb_studies = 0
   if limit is None:
-    print("Extracting all Studies...")
+    log("Extracting all Studies...")
     pbar = tqdm(total=len(uids))
   else:
-    print(f"Extracting {limit} Studies...")
+    log(f"Extracting {limit} Studies...")
     pbar = tqdm(total=limit)
   for page in range(0, pages):
     chunk_uids = [uid for i, uid in enumerate(uids) if i % chunks == page - 1]
@@ -67,14 +68,14 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
         pbar.update(1)
 
   pbar.close()
-  print("Producing consolidated dicom dataframe")
+  log("Producing consolidated dicom dataframe")
   dicom_dir = utils.get_home("input", "dcm4chee", "dicom")
   df = kskit.dicom.dicom2df.dicom2df(dicom_dir)
 
-  print("Removing empty columns")
+  log("Removing empty columns")
   df = remove_empty_columns(df)
 
-  print("Saving dicom consolidated dataframe")
+  log("Saving dicom consolidated dataframe")
   dicomdf_dir = utils.get_home("input", "dcm4chee", "dicom_df", "")
   df.to_parquet(os.path.join(dicomdf_dir, str(page)), "pyarrow")
 
