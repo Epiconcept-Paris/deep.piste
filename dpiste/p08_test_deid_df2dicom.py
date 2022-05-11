@@ -6,6 +6,7 @@ from kskit.dicom2png import dicom2narray, narray2dicom
 from kskit.test_deid_mammogram import *
 from kskit.test_df2dicom import test_df2dicom
 
+
 def test_OCR(font, size, blur, repetition, indir = None, outdir = None):    
     """
     Evaluates the OCR package abilities. It generates and adds random texts to 
@@ -23,10 +24,9 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
 
     pkg_dir, this_filename = os.path.split(__file__)
     PATH_FONTS = os.path.join(pkg_dir, "data/resources/fonts/")
-    PATH_ATTRIBUTES_TO_KEEP = os.path.join(pkg_dir, "data/resources/deid_ref/attributes_to_keep.json")
     
     if font is None:
-        font = [PATH_FONTS + 'FreeMono.ttf']
+        font = ['FreeMono.ttf']
     if size is None:
         size = [2]
     if blur is None:
@@ -42,6 +42,10 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
     pathname = indir + "/**/*"
     list_dicom = glob.glob(pathname, recursive=True)
     list_dicom = sorted(list_dicom)
+    list_dicom = []
+    for root, dirs, files in os.walk(indir):
+        for f in files:
+            list_dicom.append(os.path.join(root, f))
     
     if not list_dicom:
         raise ValueError(indir + " seems to be empty or does not exist") 
@@ -55,7 +59,7 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
         indir, list_dicom, list_chosen, outdir, repetition, nb_images_tested, fp, tn)
     
     #Tests for criteria FONT, SIZE & BLUR
-    nb_images_total = len(font)*len(size)*len(blur)*3 + 3
+    nb_images_total = len(font)*len(size)*len(blur)*repetition + repetition
     summary += "\n\n\nTested with several FONT SIZE & BLUR parameters x" + \
     str(nb_images_total - 3) + "\n\n\n"
     for index_font in range(len(font)):
@@ -90,7 +94,8 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
                     #img.save(outdir + '/' + os.path.basename(dicom) + ".png")
 
                     ocr_data = get_text_areas(pixels)
-            
+                    if ocr_data is None:
+                        ocr_data = []
                     (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(
                         test_words, words_array, ocr_data
                         )
@@ -166,3 +171,7 @@ def prep_test_df2dicom(indir, tmp_dir):
     indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
     tmp_dir = utils.get_home('data', 'transform', 'dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
     test_df2dicom(indir, tmp_dir)
+
+
+def prep_test_deid_attributes(indir, outdir):
+    run_test_deid_attributes(indir, outdir)

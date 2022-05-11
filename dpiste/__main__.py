@@ -6,12 +6,13 @@ from datetime import datetime as dt
 from .p02_initial_extraction import *
 from .p03_validated_extraction import *
 from .p12_SNDS_match import *
-from .p11_screening_extraction_id_temp import *
+from .p11_hdh_encryption import *
 from . import utils
 from . import dal
 from .dal import cnam
-#from .p08_mammogram_deidentification import *
-#from .p08_test_deid_df2dicom import *
+from .p06_mammogram_extraction import *
+from .p08_mammogram_deidentification import *
+from .p08_test_deid_df2dicom import *
 
 
 def main(a):
@@ -28,7 +29,7 @@ def main(a):
   transform_subs = transform_parser.add_subparsers()
   
   # export command
-  export_parser = subs.add_parser("export", help = "Seding data") 
+  export_parser = subs.add_parser("export", help = "Sending data") 
   export_subs = export_parser.add_subparsers()
   
   # extract neoscope command
@@ -66,7 +67,7 @@ def main(a):
   dicom_deid_parser.set_defaults(func = do_anonymize_folder)
 
   # transform test-dicom-deid
-  test_dicom_deid_parser = transform_subs.add_parser("test-dicom-deid", help = "Evaluate the ability of the OCR to recognize words. It generates test data.")
+  test_dicom_deid_parser = transform_subs.add_parser("test-deid-ocr", help = "Evaluate the ability of the OCR to recognize words. It generates test data.")
   test_dicom_deid_parser.add_argument("-i", 
   "--indir", 
   type=str, 
@@ -81,7 +82,8 @@ def main(a):
   "--font", 
   nargs="+", 
   help = "(list) Path of the wanted font(s)", 
-  required = True)
+  required = False,
+  default = None)
   test_dicom_deid_parser.add_argument("-s", 
   "--size", 
   type=int,
@@ -100,6 +102,20 @@ def main(a):
   help = "Number of test repetition per criteria (default is 1)", 
   required = False)
   test_dicom_deid_parser.set_defaults(func = do_test_ocr)
+
+ # transform test-dicom-deid
+  test_dicom_deid_parser = transform_subs.add_parser("test-deid-attr", help="Evaluate the deidentification of datasets. It generates test data.")
+  test_dicom_deid_parser.add_argument("-i", 
+  "--indir", 
+  type=str, 
+  help = "Path of the folder containing DICOM to test", 
+  required = True)
+  test_dicom_deid_parser.add_argument("-o", 
+  "--outdir", 
+  type=str, 
+  help = "Path of the folder that will contain test info", 
+  required = True)
+  test_dicom_deid_parser.set_defaults(func = do_test_attribute)
 
   # transform test-df2dicom
   test_df2dicom_parser = transform_subs.add_parser("test-df2dicom", help = "Count the number of differences between initial and rebuilt mammograms.")
@@ -216,8 +232,10 @@ def main(a):
   get_dicom_parser = dcm4chee_subs.add_parser("dicom", help = "Get dicom files from dcm4chee")
   get_dicom_parser.add_argument("-s", "--server", required=True, help="Host for dcm4chee")
   get_dicom_parser.add_argument("-p", "--port", required=False, help="Port for establishing connection, default = 11112", default = 11112)
-  get_dicom_parser.add_argument("-n", "--page-number", required=False, help="Page number to get, default 1", default = 1, type = int)
+  get_dicom_parser.add_argument("-l", "--limit", required=False, help="Limit to get, default None", default = None, type = int)
   get_dicom_parser.add_argument("-z", "--page-size", required=False, help="Size of pages, default to 10", default = 10, type = int)
+  get_dicom_parser.add_argument("-f", "--filter-field", required=False, help="Default filter : remove NA values", default = None, type = str)
+  get_dicom_parser.add_argument("-v", "--filter-value", required=False, help="Default filter : remove NA values", default = None, type = str)
   get_dicom_parser.set_defaults(func = do_get_dicom)
 
   # -- analyse esis dicom ids
@@ -251,6 +269,15 @@ def main(a):
   )
   mail_export_parser.add_argument("-u", "--epi-user", required=True, help="login for connecting to epifiles")
   mail_export_parser.set_defaults(func = do_export_emails)
+
+  # -- sftp
+  hdh_sftp_parser = hdhout_subs.add_parser("sftp", help = "Sends mammograms through the sftp channel")
+  hdh_sftp_parser.add_argument("-s", "--server-sftp", required=True, help="Hostname of the hdh dedicated sftp")
+  hdh_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
+  hdh_sftp_parser.add_argument("-t", "--tmp-folder", required=True, help="Temporary storage before files are send to the sftp", type=str)
+  hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default = 20, type=int)
+  hdh_sftp_parser.add_argument("-c","--server-capacity", required=True, help="Server capacity in GB", type=int)
+  hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
 
 #calling handlers
   func = None
@@ -303,7 +330,8 @@ def do_get_dicom_guid(args, *other):
     remote_dest = args.remote_dest
   )
 def do_get_dicom(args, *other):
-  p02_008_get_dicom(server = args.server, port = args.port, page = args.page_number, page_size = args.page_size)
+  p06_001_get_dicom(server = args.server, port = args.port, limit = args.limit, page_size = args.page_size, filter_field = args.filter_field, filter_value = args.filter_value)
+  #p02_008_get_dicom(server = args.server, port = args.port, page = 2, page_size = 10)
 
 def do_esis_report(args, *other):
   p02_010_esis_report()
@@ -325,8 +353,11 @@ def do_test_ocr(args, *other):
     outdir = args.outdir
     )
 
+def do_test_attribute(args, *other):
+  prep_test_deid_attributes(args.indir, args.outdir)
+
 def do_anonymize_folder(args, *other):
-  deid_mammogram(indir = args.indir, outdir= args.outdir)
+  deid_mammogram2(indir = args.indir, outdir= args.outdir)
 
 def do_test_df2dicom(args, *other):
   prep_test_df2dicom(indir = args.indir, tmp_dir = args.tmpdir)
@@ -351,6 +382,15 @@ def do_fake_crypted_test(args, *other):
   p11_002_generate_fake_hdh_keys(passphrase = dest_phrase)
   
   p11_004_encrypt_and_test_fake_test(sender_passphrase = sender_phrase , dest_passphrase = dest_phrase)
+
+def do_send_crypted_hdh(args, *other):
+  p08_001_export_hdh(
+    sftph = args.server_sftp,
+    sftpu = args.username_sftp,
+    batch_size = args.batch_size,
+    server_capacity = args.server_capacity,
+    tmp_fol = args.tmp_folder
+    )
 
 def do_safe_file(args, *other): #kwargs ,
   p12_002_safe(
