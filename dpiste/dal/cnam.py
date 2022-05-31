@@ -5,7 +5,6 @@ import re
 from datetime import datetime
 import argparse
 from pathlib import Path
-import csv
 from dpiste import utils as dputils
 from dpiste import dal
 #from dpiste import script_cnam
@@ -18,7 +17,10 @@ def dummy_cnam_for_safe(dfs={}, lines = 1000):
 def cnam_for_safe(dfs={}):
   return cnam_dfs("cnam_for_safe", dfs)
 
-def create_random_df(lines = 1000):
+def duplicates_to_keep(dfs = {}):
+  return cnam_dfs("duplicates_to_keep")
+
+def create_random_df(lines = 100):
     """Generate a dummy dataframe with the same structure of real data with 1000 lines
     File structure : id_random, NNI_2, nom, nom_jf, prenom, date_naiss"""
     data = {'id_random':range(0, lines)}
@@ -40,42 +42,49 @@ def nir_to_cnam_format(df):
        Move columns to obtain the followinf order NIR_du_beneficiaire|Date_de_naissance|Code_sexe|
        NIR_du_ouvrant_droit|Identifiant_temporaire
     """
-    df.pop('nom')
-    df.pop('nom_jf')
-    df.pop('prenom')
+    df = df[["id_random", "NNI_2", "date_naiss"]].copy()
     df.columns = ['Identifiant_temporaire','NIR_du_beneficiaire', 'Date_de_naissance'] #rename colums
     df['Date_de_naissance'] = df['Date_de_naissance'].dt.strftime("%m/%d/%Y") #convert date to JJ/MM/AAAA format
     df['NIR_du_ouvrant_droit'] = df['NIR_du_beneficiaire'].astype(str)
     df['Code_sexe'] = "2"
     df = df[['NIR_du_beneficiaire', 'Date_de_naissance', 'Code_sexe','NIR_du_ouvrant_droit','Identifiant_temporaire']]
-    df.to_csv(cnam_path_transform("test_cnam"), sep=";", index = False)
     # Regarder dans neoscope.py la fonction neo_df. si il n'est pas créé le générer
     # sinon le créer
     return df
 
 def cnam_path_transform(name):
-    return dputils.get_home("data", "transform", "cnam",  f"{name}.csv")
+    return dputils.get_home("data", "transform", "cnam",  f"{name}.parquet")
 
 def cnam_path_transform_screening(name):
     return dputils.get_home("data", "transform", "screening", f"{name}.parquet")
 
 def cnam_dfs(name,dfs={}):
     if(dfs.get(name) is not None):
-      return df
-    elif os.path.exists(cnam_path_transform(name)):
-      #special case for safe is not parquet
-      df=pd.read_parquet(cnam_path_transform(name))
-
+      return dfs[name]
     else:
-        if name == "dummy_cnam_for_safe":
-     #objectif ici ? générer le dummy en .parquet ?
-     # retourne le dataframe et le stocke en .csv. stockage au format parquet non nécessaire. Fichier peu volumineux 1000 lignes
-          df = create_random_df()
-          nir_to_cnam_format(df)
-        elif name == "cnam_for_safe":
-          df=dal.screening.cnam()
-          nir_to_cnam_format(df)
-        df.to_parquet(cnam_path_transform(name), engine = "pyarrow")
+      if name == "dummy_cnam_for_safe":
+        df = create_random_df(25)
+        df = nir_to_cnam_format(df)
+      elif name == "cnam_for_safe":
+        df = dal.screening.cnam(dfs)
+        df = nir_to_cnam_format(df)
+      elif name == "duplicates_to_keep":
+        #ensuring that cnam for safe is calculated so duplicates are also calculated
+        for_safe = dal.cnam.cnam_for_safe(dfs) 
+        dups = dfs["cnam_dup_NNI_2"]
+        d1 = dups.loc[dups.duplicated(subset = "NNI_2", keep = "first")].reset_index(level = 0, inplace = False).set_index("NNI_2")
+        d2 = dups.loc[dups.duplicated(subset = "NNI_2", keep = "last")].reset_index(level = 0, inplace = False).set_index("NNI_2")
+        d12 = d1.join(d2, lsuffix = "", rsuffix="_other").reset_index(level = 0, inplace = False).set_index("pk")
+        d21 = d2.join(d1, lsuffix = "", rsuffix="_other").reset_index(level = 0, inplace = False).set_index("pk")
+        dups = pd.concat([d12, d21]).reset_index(level = 0, inplace = False)
+        pk_to_remove = (dups
+          .loc[(dups.date_naiss_other - dups.date_naiss).apply(lambda d: abs(d.days) < 365)]
+          .sort_values(by = "pk")
+          .drop_duplicates("NNI_2", keep = "last", inplace = False, ignore_index = True)
+          .pk
+        )
+        dups["keep"] = ~dups.pk.isin(pk_to_remove)
+        df = dups[["id_random", "keep"]].copy()
     dfs[name]=df
     return df
 

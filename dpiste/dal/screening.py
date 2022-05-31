@@ -5,6 +5,7 @@ from .. import utils as dputils
 from . import utils
 from . import neoscope
 from . import esis
+from . import crcdc
 
 def depistage_pseudo(dfs = {}): return screening_df("dépistage_pseudo", dfs)
 def cnam(dfs = {}): return screening_df("cnam", dfs)
@@ -27,7 +28,7 @@ def check_fks(dfs):
   mail(dfs)
   utils.check_fks(dfs = dfs, fks = screening_fks(), pks = screening_pks())
   
-def screening_path(name): return dputils.get_home("transform", "screening", f"{name}.parquet")
+def screening_path(name): return dputils.get_home("data", "transform", "screening", f"{name}.parquet")
 
 def screening_df(name, dfs = {}): 
   if dfs.get(name) is None:
@@ -36,6 +37,10 @@ def screening_df(name, dfs = {}):
     else:
       df = calculate_df(name, dfs)
       df.to_parquet(screening_path(f"{name}_orig"), engine = "pyarrow")
+    # removing rows from patients refusing to participate on study
+    if "id_random" in df.columns :
+      df = df[~df["id_random"].isin(crcdc.refusing_random_ids(dfs))]
+      
     pk = screening_pks()[name]
     dfs[f"{name}_na"] = utils.get_na_rows(df, pk) 
     notna = utils.get_notna_rows(df, pk)

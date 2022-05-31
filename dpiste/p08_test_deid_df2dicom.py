@@ -39,10 +39,9 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
     
-    list_dicom = []
-    for root, dirs, files in os.walk(indir):
-        for f in files:
-            list_dicom.append(os.path.join(root, f))
+    pathname = indir + "/**/*"
+    list_dicom = glob.glob(pathname, recursive=True)
+    list_dicom = sorted(list_dicom)
     
     if not list_dicom:
         raise ValueError(indir + " seems to be empty or does not exist") 

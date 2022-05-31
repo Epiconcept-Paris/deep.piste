@@ -85,3 +85,48 @@ stat_df(screening, disclose_limit = 500, undisclosed_types = ["datetime64[ns]"],
 print(f"NAq: {dfs['dépistage_pseudo_na'].shape[0]}")
 print(f"Duplicated: {dfs['dépistage_pseudo_dup'].shape[0]}")
 ```
+
+## Validating reconstruction of ACRS after anonymisation
+```python tags=["hide-input"]
+
+# rebuilding dataframe using mapping table
+dfs0 = {}
+cnam = dal.screening.cnam(dfs0)
+mapping = dal.screening.table_correspondance(dfs0)
+screening = dal.screening.depistage_pseudo(dfs0)
+
+rebuilt = (screening
+  .join(mapping.join(cnam, "id_random", rsuffix = "_cn", lsuffix = "_mp"), "id_random", rsuffix = "_mp", lsuffix="_sc")[["NNI_2", "L1_ACR_SG", "Date_Mammo"]]
+  .drop_duplicates(subset=["NNI_2", "Date_Mammo"], keep='last')
+  .set_index(["NNI_2", "Date_Mammo"])
+  )
+
+# getting dataframe from neoscope extractions
+dfs1 = {}
+depist = dal.neoscope.depistage_df(dfs1)
+pop = dal.neoscope.population_df(dfs1)
+
+orig = (depist
+  .join(pop, "id_bci", lsuffix = "dep", rsuffix = "pop")[["NNI_2", "L1_ACR_SG", "Date_Mammo"]]
+  .drop_duplicates(subset=["NNI_2", "Date_Mammo"], keep='last')
+  .set_index(["NNI_2", "Date_Mammo"])
+)
+
+#comparing results
+joined = orig.join(rebuilt, on = ["NNI_2", "Date_Mammo"], how = "outer", lsuffix="_ori", rsuffix="_reb")
+equals = joined[joined["L1_ACR_SG_ori"]==joined["L1_ACR_SG_reb"]]
+print(f"Rebuilding a {rebuilt.shape[0] / orig.shape[0]:.4%}  of rows")
+print(f"{equals.shape[0] / rebuilt.shape[0]:.4%} of rows are equal")
+
+```
+
+## Testing exclusion from refusing list
+```python tags=["hide-input"]
+
+refusing = dal.crcdc.refusing_list()
+cnam = dal.screening.cnam()
+notexcluded = cnam[cnam.NNI_2.astype(str).isin(refusing["NIR"].astype(str))]
+print(f"{notexcluded.shape[0]} where found on CNAM extractions from {refusing.shape[0]} refusals")
+
+```
+

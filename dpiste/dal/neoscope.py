@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import zipfile
 import datetime
+import os
 from . import utils
 from .. import utils as dputils
 
@@ -20,11 +21,27 @@ def neo_df(name, dfs = {}):
   if(dfs.get(name) is None):
     df = read_source_csv(name)
     pk =  source_pks()[name]
+    # adding random id to population
+    if name == "population":
+      df = add_random_id(df)
+
     dfs[f"{name}_na"] = utils.get_na_rows(df, pk) 
     notna = utils.get_notna_rows(df, pk)
     dfs[f"{name}_dup"] = utils.get_dup_rows(notna, pk) 
     dfs[name] = utils.force_pk(df, pk)
   return dfs[name]
+
+def add_random_id(df):
+  mapping_path = dputils.get_home("data", "input", "epiconcept", "mapping-table.csv")
+  if not os.path.exists(mapping_path):
+    dputils.log(f"Creating random ids!!! Please backup {mapping_path}")
+    random_id = pd.Series(np.random.permutation(df.shape[0]))
+    bci = pd.Series(df["id_bci"].to_numpy())
+    mapping = pd.concat({"id_bci":bci, "id_random":random_id}, axis = 1)
+    mapping.to_csv(mapping_path, index = False)
+  remap = remap = pd.read_csv(mapping_path).set_index("id_bci")
+  return df.join(remap, "id_bci")
+
 
 def neo_dfs(dfs = {}):
   population_df(dfs)
@@ -38,7 +55,6 @@ def neo_dfs(dfs = {}):
 
 def population_df(dfs = {}): 
   # adding random ids on population dataset
-  neo_df("population", dfs)["id_random"] = np.random.permutation(neo_df("population", dfs).shape[0])
   return neo_df("population", dfs)
 
 def risque_df(dfs = {}): return neo_df("risque", dfs)
@@ -73,7 +89,7 @@ def date_parser(d):
 
 def read_source_csv(name):
   dputils.log(f"reading CSV {name}")
-  with zipfile.ZipFile(dputils.get_home("input", "neo", "extraction_neoscope.zip"), "r") as archive:
+  with zipfile.ZipFile(dputils.get_home("data", "input", "neo", "extraction_neoscope.zip"), "r") as archive:
     path = get_archive_entry(name, archive)
     parse_dates = []
     dtype = {}
