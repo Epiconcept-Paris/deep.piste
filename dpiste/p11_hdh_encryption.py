@@ -201,7 +201,7 @@ def p11_generate_keys(public_path, private_path, name, email, passphrase):
     private.close()
     print('Keys succesfully created!')
   else:
-    print("Keys exists already, skipping creation")
+    print(f"Keys for {name} exists already, skipping creation")
 
 
 def p11_003_encrypt_hdh_extraction_test():
