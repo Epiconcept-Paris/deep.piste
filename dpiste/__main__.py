@@ -277,6 +277,8 @@ def main(a):
   hdh_sftp_parser.add_argument("-t", "--tmp-folder", required=True, help="Temporary storage before files are send to the sftp", type=str)
   hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default = 20, type=int)
   hdh_sftp_parser.add_argument("-c","--server-capacity", required=True, help="Server capacity in GB", type=int)
+  hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default = 0, type=int)
+  hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default = 1, type=int)
   hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
 
 #calling handlers
@@ -389,7 +391,9 @@ def do_send_crypted_hdh(args, *other):
     sftpu = args.username_sftp,
     batch_size = args.batch_size,
     server_capacity = args.server_capacity,
-    tmp_fol = args.tmp_folder
+    tmp_fol = args.tmp_folder,
+    id_worker = args.id_worker,
+    nb_worker = args.nb_worker
     )
 
 def do_safe_file(args, *other): #kwargs ,

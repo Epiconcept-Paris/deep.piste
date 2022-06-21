@@ -118,9 +118,9 @@ def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient):
 
 
 def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
-    server_capacity: int, tmp_fol: str) -> None:
+    server_capacity: int, tmp_fol: str, id_worker: int, nb_worker: int) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
-    indir, outdir = set_localenv(tmp_fol)
+    indir, outdir = set_localenv(tmp_fol, nb_worker)
     log(f"Server capacity: {server_capacity} GB")
     server_capacity = server_capacity * 10**9
     c, sftp = renew_sftp(sftph, sftpu)
@@ -131,7 +131,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     total2upload = len(studies.index)
     deid_studies = deidentify_study_id(studies.copy())
     
-    progress = get_progress(outdir, studies, sftp)
+    progress = get_progress(outdir, studies, id_worker, sftp)
     if progress != 0:
         wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
     else:
@@ -139,39 +139,46 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         send2hdh_df(df.drop(columns='DICOM_Studies'), outdir, 'df.csv', sftp)
 
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-    create_tmp_and_ok_folders(sftp, outdir)
+    create_tmp_and_ok_folders(sftp, indir, id_worker, nb_worker)
+
     for uploaded, index in enumerate(studies.index):
-        if progress >= uploaded:
+        if progress >= uploaded or abs(hash(studies['study_id'][index])) % nb_worker != id_worker:
             continue
+
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         study_id = studies['study_id'][index]
         id_random = studies['id_random'][index]
         deid_study_id = gen_dicom_uid(id_random, study_id)
 
-        study_dir = os.path.join(outdir, deid_study_id)
-        os.mkdir(study_dir) if not os.path.isdir(study_dir) else None
-        create_study_dirs(deid_study_id, sftp)
+        worker_dir =  os.path.join(outdir, str(id_worker))
+        study_dir = os.path.join(worker_dir, deid_study_id)
+        worker_studies = os.listdir(os.path.join(worker_dir))
+        os.mkdir(study_dir) if deid_study_id not in worker_studies else None
+        create_study_dirs(deid_study_id, id_worker, sftp)
 
         log(f'Getting study n°{study_id}')
         get_dicom(key=study_id, dest=indir, server='10.1.2.9', port=11112,
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
         deidentify_mammograms_hdh(indir, study_dir, sftp)
-        send2hdh_study_content(study_dir, sftp)
-        update_progress(uploaded, total2upload, outdir, sftp)
+        send2hdh_study_content(study_dir, id_worker, sftp)
+        update_progress(uploaded, total2upload, outdir, id_worker, sftp)
 
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-        utils.cleandir([indir, outdir])
+        utils.cleandir([indir, worker_dir])
         wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
     return
 
 
-def set_localenv(tmp_fol: str):
+def set_localenv(tmp_fol: str, nb_worker: int):
     """Prepare the local temporary folder used to store before sending to SFTP"""
     indir = os.path.join(tmp_fol, 'sensitive')
     outdir = os.path.join(tmp_fol, '.tmp')
     for folder in [indir, outdir]:
         os.mkdir(folder) if not os.path.isdir(folder) else None
-    p11_001_generate_transfer_keys()
+    for id_worker in range(nb_worker):
+        worker_folder = os.path.join(outdir, f'{id_worker}')
+        os.mkdir(worker_folder) if not os.path.isdir(worker_folder) else None
+    p11_001_generate_transfer_keys(os.environ['ENCKEY'])
     return indir, outdir
 
 

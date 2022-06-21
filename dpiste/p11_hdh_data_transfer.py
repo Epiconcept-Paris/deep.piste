@@ -12,31 +12,34 @@ from kskit.dicom.utils import log
 
 TMP_DIRNAME, OK_DIRNAME = '.tmp', 'studies' 
 
-def get_progress(outdir: str, studies: pd.DataFrame, sftp: SFTPClient) -> int:
+def get_progress(outdir: str, studies: pd.DataFrame, 
+        id_worker: int, sftp: SFTPClient) -> int:
     """Retrieves progress.json and reads progress value if exists"""
-    log('Getting previous progress...')
-    if 'progress.json' not in sftp.listdir(path='.'):
+    filename = f'worker{id_worker}_progress.json'
+    log(f'Getting previous progress from {filename}')
+    if filename not in sftp.listdir(path='.'):
         log('Nothing found: Starting from scratch')
         return 0
     else:
-        local_path = os.path.join(outdir, 'progress.json')
-        sftp.get('progress.json', local_path)
+        local_path = os.path.join(outdir, filename)
+        sftp.get(filename, local_path)
         with open(local_path, 'r') as f:
             progress = json.loads(f.read())
         uploaded = progress['uploaded']
         study_id = studies['study_id'][uploaded]
         log([
-            'Found progress.json',
+            f'Found {filename}',
             f'Resuming to last uploaded study: {uploaded}th study n°{study_id}'
         ])
         return uploaded
 
 
 def update_progress(uploaded: int, total: int, outdir: str, 
-    sftp: SFTPClient) -> None:
+    id_worker: int, sftp: SFTPClient) -> None:
     """Updates progress.json with the current uploaded/total value"""
-    log(f'Updating progress.json')
-    local_path = os.path.join(outdir, 'progress.json')
+    filename = f'worker{id_worker}_progress.json'
+    log(f'Updating {filename}')
+    local_path = os.path.join(outdir, filename)
     remote_path = os.path.basename(local_path)
     log(f'{uploaded}/{total} studies uploaded')
     d = {'uploaded': uploaded, 'total': total}
@@ -126,7 +129,7 @@ def send2hdh_df(df: pd.DataFrame, outdir: str, filename: str,
     return
 
 
-def send2hdh_study_content(study_dir: str, sftp: SFTPClient) -> None:
+def send2hdh_study_content(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
     """Transfers study_dir files into the corresponding dir in the SFTP"""
     log(f'Transferring study data to HDH SFTP...')
     
@@ -137,16 +140,18 @@ def send2hdh_study_content(study_dir: str, sftp: SFTPClient) -> None:
         parent_dir = os.path.basename(study_dir)
         sftp_path = os.path.join(TMP_DIRNAME, parent_dir, f'{file}.bz2')
         sftp.put(encrypted_filepath, sftp_path)
-    tmp2ok(os.path.basename(study_dir), sftp)
+    tmp2ok(os.path.basename(study_dir), id_worker, sftp)
     sftp_cleandir(
         sftp, os.path.join(TMP_DIRNAME, os.path.basename(study_dir)), deldir=True)
     return
 
 
-def tmp2ok(study_dir: str, sftp: SFTPClient) -> None:
+def tmp2ok(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
     """Moves SFTP tmp/study_dir to ok/study_dir"""
     tmp_study_path = os.path.join(TMP_DIRNAME, study_dir)
-    ok_study_path = os.path.join(OK_DIRNAME, study_dir)
+    ok_study_path = os.path.join(OK_DIRNAME, f'{id_worker}', study_dir)
+    if study_dir not in sftp.listdir(path=os.path.join(OK_DIRNAME, f'{id_worker}')):
+        sftp.mkdir(ok_study_path)
     for f in sftp.listdir_attr(tmp_study_path):
         tmp_filepath = os.path.join(tmp_study_path, f.filename)
         ok_filepath = os.path.join(ok_study_path, f.filename)
@@ -154,21 +159,31 @@ def tmp2ok(study_dir: str, sftp: SFTPClient) -> None:
     return
 
 
-def create_tmp_and_ok_folders(sftp: SFTPClient, outdir: str) -> None:
-    """Creates tmp/ and ok/ directories at the root of the SFTP server"""
+def create_tmp_and_ok_folders(sftp: SFTPClient, indir: str, 
+        id_worker: int, nb_worker: int) -> None:
+    """Creates tmp/, ok/ & workers directories at the root of the SFTP server"""
     root_files = sftp.listdir(path='.')
     for f in [TMP_DIRNAME, OK_DIRNAME]:
         if f not in root_files:
             sftp.mkdir(f)
         elif f == TMP_DIRNAME:
             sftp_cleandir(sftp, f)
-            cleandir(outdir)
+            cleandir(indir)
+
+    for id_worker in range(nb_worker):
+        worker_folder = os.path.join(OK_DIRNAME, f'{id_worker}')
+        worker_files = sftp.listdir(path=OK_DIRNAME)
+        if str(id_worker) not in worker_files:
+            sftp.mkdir(worker_folder) 
     return
 
 
-def create_study_dirs(deid_study_id: str, sftp: SFTPClient) -> None:
+def create_study_dirs(deid_study_id: str, id_worker: int, sftp: SFTPClient) -> None:
     """Creates study directories in .tmp/ and ok/"""
-    for d in [TMP_DIRNAME, OK_DIRNAME]:
-        if deid_study_id not in sftp.listdir(path=d):
-                sftp.mkdir(os.path.join(d, deid_study_id))
+    if deid_study_id not in sftp.listdir(path=TMP_DIRNAME):
+        sftp.mkdir(os.path.join(TMP_DIRNAME, deid_study_id))
+    
+    #for d in [TMP_DIRNAME, os.path.join(OK_DIRNAME, f'{id_worker}')]:
+    #    if deid_study_id not in sftp.listdir(path=d):
+    #            sftp.mkdir(os.path.join(d, deid_study_id))
     return
