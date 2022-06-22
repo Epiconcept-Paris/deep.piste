@@ -128,7 +128,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     server_capacity = server_capacity * 10**9
     c, sftp = renew_sftp(sftph, sftpu)
     # utils.sftp_reset(sftp)
-    # exit()
+    # exit()
     df = depistage_pseudo()
     studies = build_studies(df)
     total2upload = len(studies.index)
@@ -148,13 +148,15 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
 
     count = 0
     for index in studies.index:
-        count += 1
+        study_id = studies['study_id'][index]
+        study_hash = int(hashlib.sha512(study_id.encode('utf-8')).hexdigest(), 16)
+        if abs(study_hash) % nb_worker == id_worker:
+            count += 1
         if progress >= count or \
-            abs(hash(studies['study_id'][index])) % nb_worker != id_worker:
+            abs(study_hash) % nb_worker != id_worker:
             continue
 
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-        study_id = studies['study_id'][index]
         id_random = studies['id_random'][index]
         deid_study_id = gen_dicom_uid(id_random, study_id)
 
