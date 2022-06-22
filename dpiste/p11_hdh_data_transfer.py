@@ -159,27 +159,25 @@ def tmp2ok(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
     return
 
 
-def init_distant_files(sftp: SFTPClient, indir: str, 
-        id_worker: int, nb_worker: int) -> None:
+def init_distant_files(sftp: SFTPClient, id_worker: int) -> None:
     """Creates or Cleans tmp/, studies/ & workers directories on the SFTP server"""
     root_files = sftp.listdir(path='.')
     for f in [TMP_DIRNAME, OK_DIRNAME]:
         if f not in root_files:
             sftp.mkdir(f)
 
-    for id_worker in range(nb_worker):
-        worker_indir = os.path.join(TMP_DIRNAME, str(id_worker))
-        worker_outdir = os.path.join(OK_DIRNAME, str(id_worker))
+    worker_indir = os.path.join(TMP_DIRNAME, str(id_worker))
+    worker_outdir = os.path.join(OK_DIRNAME, str(id_worker))
 
-        worker_indir_files = sftp.listdir(path=TMP_DIRNAME)
-        worker_outdir_files = sftp.listdir(path=OK_DIRNAME)
-        if str(id_worker) not in worker_indir_files:
-            sftp.mkdir(worker_indir)
-        else:
-            sftp_cleandir(sftp, worker_indir)
-        
-        if str(id_worker) not in worker_outdir_files:
-            sftp.mkdir(worker_outdir)
+    worker_indir_files = sftp.listdir(path=TMP_DIRNAME)
+    worker_outdir_files = sftp.listdir(path=OK_DIRNAME)
+    if str(id_worker) not in worker_indir_files:
+        sftp.mkdir(worker_indir)
+    else:
+        sftp_cleandir(sftp, worker_indir)
+    
+    if str(id_worker) not in worker_outdir_files:
+        sftp.mkdir(worker_outdir)
     return
 
 

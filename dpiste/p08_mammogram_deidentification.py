@@ -120,7 +120,7 @@ def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient):
 def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     server_capacity: int, tmp_fol: str, id_worker: int, nb_worker: int) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
-    indir, outdir = init_local_files(tmp_fol, nb_worker)
+    indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
     worker_outdir = os.path.join(outdir, str(id_worker))
     
@@ -144,7 +144,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         send2hdh_df(df.drop(columns='DICOM_Studies'), worker_outdir, 'df.csv', sftp)
 
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-    init_distant_files(sftp, indir, id_worker, nb_worker)
+    init_distant_files(sftp, id_worker)
 
     count = 0
     for index in studies.index:
@@ -163,7 +163,6 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         study_dir = os.path.join(worker_outdir, deid_study_id)
         worker_studies = os.listdir(os.path.join(worker_outdir))
         os.mkdir(study_dir) if deid_study_id not in worker_studies else None
-        time.sleep(10)
         create_study_dirs(deid_study_id, id_worker, sftp)
 
         log(f'Getting study n°{study_id}')
@@ -182,7 +181,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     return
 
 
-def init_local_files(tmp_fol: str, nb_worker: int):
+def init_local_files(tmp_fol: str, id_worker: int):
     """Prepare the local temporary folder used to store before sending to SFTP"""
     indir = os.path.join(tmp_fol, 'sensitive')
     outdir = os.path.join(tmp_fol, '.tmp')
@@ -190,14 +189,14 @@ def init_local_files(tmp_fol: str, nb_worker: int):
         os.mkdir(folder) if not os.path.exists(folder) else cleandir(folder)
     
     # Creates workers' folders
-    for id_worker in range(nb_worker):
-        # sensitive/id_worker folders
-        worker_indir = os.path.join(indir, str(id_worker))
-        os.mkdir(worker_indir) if not os.path.exists(worker_indir) else None
-        
-        # .tmp/id_worker folders
-        worker_folder = os.path.join(outdir, str(id_worker))
-        os.mkdir(worker_folder) if not os.path.isdir(worker_folder) else None
+    # sensitive/id_worker folders
+    worker_indir = os.path.join(indir, str(id_worker))
+    os.mkdir(worker_indir) if not os.path.exists(worker_indir) else None
+    
+    # .tmp/id_worker folders
+    worker_folder = os.path.join(outdir, str(id_worker))
+    os.mkdir(worker_folder) if not os.path.isdir(worker_folder) else None
+
     p11_001_generate_transfer_keys(os.environ['ENCKEY'])
     return indir, outdir
 
