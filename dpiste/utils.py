@@ -88,14 +88,11 @@ def recursive_count_files(dir: str) -> int:
 def cleandir(dirlist: Union[str, list], deldir=False) -> None:
   if type(dirlist) == str:
     dirlist = [dirlist]
-  for repository in dirlist:
-    for root, dirs, files in os.walk(repository):
-      for file in files:
-        os.remove(os.path.join(root, file))
-    for root, dirs, files in os.walk(repository):
-      for d in dirs:
-        os.rmdir(os.path.join(root, d))
-    os.rmdir(repository) if deldir else None
+  for directory in dirlist:
+    for path in os.scandir(directory):
+      full_path = os.path.join(directory, path.name)
+      cleandir(full_path, deldir=True) if os.path.isdir(full_path) else os.remove(full_path)
+    os.rmdir(directory) if deldir else None
 
 def avg_mammogram_size(dirpath: str) -> float:
   """Calculate the avg size of a mammogram (in bytes) based on a folder of studies"""
@@ -114,6 +111,10 @@ def do_calculate_avg_file_size(dirpath: str, extension: str = '') -> tuple:
       s += res[0]
       nb_files += res[1]
   return s, nb_files
+
+def reset_local_files(tmp_fol: str) -> None:
+  """Reset local files"""
+  cleandir(tmp_fol) if os.path.exists(tmp_fol) else None
 
 def sftp_recursive_count_files(path: str, sftp: SFTPClient) -> int:
   items = sftp.listdir(path)

@@ -120,7 +120,10 @@ def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient):
 def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     server_capacity: int, tmp_fol: str, id_worker: int, nb_worker: int) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
-    indir, outdir = set_localenv(tmp_fol, nb_worker)
+    indir, outdir = init_local_files(tmp_fol, nb_worker)
+    worker_indir = os.path.join(indir, str(id_worker))
+    worker_outdir = os.path.join(outdir, str(id_worker))
+    
     log(f"Server capacity: {server_capacity} GB")
     server_capacity = server_capacity * 10**9
     c, sftp = renew_sftp(sftph, sftpu)
@@ -132,17 +135,22 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     deid_studies = deidentify_study_id(studies.copy())
     
     progress = get_progress(outdir, studies, id_worker, sftp)
+    uploaded = progress
     if progress != 0:
         wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
     else:
-        send2hdh_df(deid_studies, outdir, 'studies.csv', sftp)
-        send2hdh_df(df.drop(columns='DICOM_Studies'), outdir, 'df.csv', sftp)
+        utils.reset_local_files(worker_indir)
+        send2hdh_df(deid_studies, worker_outdir, 'studies.csv', sftp)
+        send2hdh_df(df.drop(columns='DICOM_Studies'), worker_outdir, 'df.csv', sftp)
 
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-    create_tmp_and_ok_folders(sftp, indir, id_worker, nb_worker)
+    init_distant_files(sftp, indir, id_worker, nb_worker)
 
-    for uploaded, index in enumerate(studies.index):
-        if progress >= uploaded or abs(hash(studies['study_id'][index])) % nb_worker != id_worker:
+    count = 0
+    for index in studies.index:
+        count += 1
+        if progress >= count or \
+            abs(hash(studies['study_id'][index])) % nb_worker != id_worker:
             continue
 
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
@@ -150,33 +158,43 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         id_random = studies['id_random'][index]
         deid_study_id = gen_dicom_uid(id_random, study_id)
 
-        worker_dir =  os.path.join(outdir, str(id_worker))
-        study_dir = os.path.join(worker_dir, deid_study_id)
-        worker_studies = os.listdir(os.path.join(worker_dir))
+        study_dir = os.path.join(worker_outdir, deid_study_id)
+        worker_studies = os.listdir(os.path.join(worker_outdir))
         os.mkdir(study_dir) if deid_study_id not in worker_studies else None
+        time.sleep(10)
         create_study_dirs(deid_study_id, id_worker, sftp)
 
         log(f'Getting study n°{study_id}')
-        get_dicom(key=study_id, dest=indir, server='10.1.2.9', port=11112,
+        get_dicom(key=study_id, dest=worker_indir, server='10.1.2.9', port=11112,
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
-        deidentify_mammograms_hdh(indir, study_dir, sftp)
+        deidentify_mammograms_hdh(worker_indir, study_dir, sftp)
         send2hdh_study_content(study_dir, id_worker, sftp)
+        uploaded = 1 if uploaded == 0 else uploaded
         update_progress(uploaded, total2upload, outdir, id_worker, sftp)
 
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-        utils.cleandir([indir, worker_dir])
+        utils.cleandir(worker_indir)
+        utils.cleandir(worker_outdir)
         wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
+        uploaded += 1
     return
 
 
-def set_localenv(tmp_fol: str, nb_worker: int):
+def init_local_files(tmp_fol: str, nb_worker: int):
     """Prepare the local temporary folder used to store before sending to SFTP"""
     indir = os.path.join(tmp_fol, 'sensitive')
     outdir = os.path.join(tmp_fol, '.tmp')
     for folder in [indir, outdir]:
-        os.mkdir(folder) if not os.path.isdir(folder) else None
+        os.mkdir(folder) if not os.path.exists(folder) else cleandir(folder)
+    
+    # Creates workers' folders
     for id_worker in range(nb_worker):
-        worker_folder = os.path.join(outdir, f'{id_worker}')
+        # sensitive/id_worker folders
+        worker_indir = os.path.join(indir, str(id_worker))
+        os.mkdir(worker_indir) if not os.path.exists(worker_indir) else None
+        
+        # .tmp/id_worker folders
+        worker_folder = os.path.join(outdir, str(id_worker))
         os.mkdir(worker_folder) if not os.path.isdir(worker_folder) else None
     p11_001_generate_transfer_keys(os.environ['ENCKEY'])
     return indir, outdir
@@ -203,4 +221,6 @@ def build_studies(df: pd.DataFrame) -> pd.DataFrame:
                 row.extend([df['id_random'][index], date, study_id])
             data.append(row)
     studies = pd.DataFrame(data, columns = ['id_random', 'date', 'study_id'])
-    return studies.drop_duplicates()
+    studies = studies.drop_duplicates()
+    studies = studies.sort_values(by=['study_id'])
+    return studies
