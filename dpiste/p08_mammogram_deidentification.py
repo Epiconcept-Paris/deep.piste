@@ -128,20 +128,22 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     server_capacity = server_capacity * 10**9
     c, sftp = renew_sftp(sftph, sftpu)
     # utils.sftp_reset(sftp)
-    # exit()
+    # exit()
     df = depistage_pseudo()
     studies = build_studies(df)
     total2upload = len(studies.index)
     deid_studies = deidentify_study_id(studies.copy())
     
+    init_distant_root(sftp)
     progress = get_progress(outdir, studies, id_worker, sftp)
     uploaded = progress
     if progress != 0:
         wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
     else:
         utils.reset_local_files(worker_indir)
-        send2hdh_df(deid_studies, worker_outdir, 'studies.csv', sftp)
-        send2hdh_df(df.drop(columns='DICOM_Studies'), worker_outdir, 'df.csv', sftp)
+        if id_worker == 0:
+            send2hdh_df(deid_studies, worker_outdir, 'studies.csv', sftp)
+            send2hdh_df(df.drop(columns='DICOM_Studies'), worker_outdir, 'screening.csv', sftp)
 
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
     init_distant_files(sftp, id_worker)
@@ -207,6 +209,7 @@ def deidentify_study_id(studies: pd.DataFrame) -> pd.DataFrame:
         study_id = studies['study_id'][index]
         id_random = studies['id_random'][index]
         studies.at[index, 'study_id'] = gen_dicom_uid(id_random, study_id)
+    studies = studies.rename(columns={'study_id': 'study_pseudo_id'})
     return studies
 
 

@@ -10,19 +10,28 @@ from dpiste.p11_hdh_encryption import p11_encrypt_hdh
 from dpiste.utils import sftp_cleandir, sftp_calculate_size, cleandir
 from kskit.dicom.utils import log
 
-TMP_DIRNAME, OK_DIRNAME = '.tmp', 'studies' 
+ROOT_PATH = 'dpiste'
+WORKER_FOLDER = os.path.join(ROOT_PATH, 'progress')
+TMP_DIRNAME = os.path.join(ROOT_PATH, '.tmp')
+OK_DIRNAME = os.path.join(ROOT_PATH, 'studies')
+
+def init_distant_root(sftp: SFTPClient) -> None:
+    """Initializes dpiste/ and dpiste/progress"""
+    sftp.mkdir(ROOT_PATH) if ROOT_PATH not in sftp.listdir(path='.') else None 
+    sftp.mkdir(WORKER_FOLDER) if 'progress' not in sftp.listdir(path='dpiste') else None  
+
 
 def get_progress(outdir: str, studies: pd.DataFrame, 
         id_worker: int, sftp: SFTPClient) -> int:
     """Retrieves progress.json and reads progress value if exists"""
     filename = f'worker{id_worker}_progress.json'
     log(f'Getting previous progress from {filename}')
-    if filename not in sftp.listdir(path='.'):
+    if filename not in sftp.listdir(path=WORKER_FOLDER):
         log('Nothing found: Starting from scratch')
         return 0
     else:
         local_path = os.path.join(outdir, filename)
-        sftp.get(filename, local_path)
+        sftp.get(os.path.join(WORKER_FOLDER, filename), local_path)
         with open(local_path, 'r') as f:
             progress = json.loads(f.read())
         uploaded = progress['uploaded']
@@ -40,7 +49,7 @@ def update_progress(uploaded: int, total: int, outdir: str,
     filename = f'worker{id_worker}_progress.json'
     log(f'Updating {filename}')
     local_path = os.path.join(outdir, filename)
-    remote_path = os.path.basename(local_path)
+    remote_path = os.path.join(WORKER_FOLDER, os.path.basename(local_path))
     log(f'{uploaded}/{total} studies uploaded')
     d = {'uploaded': uploaded, 'total': total}
     with open(local_path, 'w') as f:
@@ -122,10 +131,12 @@ def send2hdh_df(df: pd.DataFrame, outdir: str, filename: str,
     """Transfers the DataFrame to the SFTP folder"""
     log(f'Transferring {filename} to HDH SFTP')
     filepath = os.path.join(outdir, filename)
-    encrypted_filepath = os.path.join(outdir, f'{filename}.bz2')
+    encrypted_filepath = os.path.join(outdir, f'{filename}.gpg')
     df.to_csv(filepath)
     p11_encrypt_hdh(filepath, encrypted_filepath, rmold=True)
-    sftp.put(encrypted_filepath, os.path.basename(encrypted_filepath))
+    sftp_fpath = os.path.join(ROOT_PATH, os.path.basename(encrypted_filepath))
+    print(sftp_fpath)
+    sftp.put(encrypted_filepath, sftp_fpath)
     return
 
 
@@ -135,10 +146,10 @@ def send2hdh_study_content(study_dir: str, id_worker: int, sftp: SFTPClient) -> 
     
     for file in tqdm(os.listdir(study_dir), ascii=True):
         unencrypted_filepath = os.path.join(study_dir, file)
-        encrypted_filepath = os.path.join(study_dir, f'{file}.bz2')
+        encrypted_filepath = os.path.join(study_dir, f'{file}.gpg')
         p11_encrypt_hdh(unencrypted_filepath, encrypted_filepath, rmold=True)
         parent_dir = os.path.basename(study_dir)
-        sftp_path = os.path.join(TMP_DIRNAME, str(id_worker), parent_dir, f'{file}.bz2')
+        sftp_path = os.path.join(TMP_DIRNAME, str(id_worker), parent_dir, f'{file}.gpg')
         sftp.put(encrypted_filepath, sftp_path)
     tmp2ok(os.path.basename(study_dir), id_worker, sftp)
     sftp_cleandir(
@@ -160,10 +171,10 @@ def tmp2ok(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
 
 
 def init_distant_files(sftp: SFTPClient, id_worker: int) -> None:
-    """Creates or Cleans tmp/, studies/ & workers directories on the SFTP server"""
-    root_files = sftp.listdir(path='.')
+    """Creates or Cleans dpiste/ tmp/, studies/ & workers directories on the SFTP server"""
+    root_files = sftp.listdir(path=ROOT_PATH)
     for f in [TMP_DIRNAME, OK_DIRNAME]:
-        if f not in root_files:
+        if os.path.basename(f) not in root_files:
             sftp.mkdir(f)
 
     worker_indir = os.path.join(TMP_DIRNAME, str(id_worker))

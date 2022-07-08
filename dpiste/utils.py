@@ -148,10 +148,13 @@ def sftp_cleandir(sftp: SFTPClient, dirpath: str, deldir=False) -> None:
 def sftp_calculate_size(sftp: SFTPClient, dirpath: str = '.') -> int:
   """Calculate the size of a SFTP folder including all of its subdirectories"""
   sftp_size = 0
-  for file in sftp.listdir_attr(dirpath):
-    filepath = os.path.join(dirpath, file.filename)
-    if not stat.S_ISDIR(file.st_mode):
-      sftp_size += file.st_size
-    else:
-      sftp_size += sftp_calculate_size(sftp, filepath)
+  # We remove .tmp/* files from the calcul because if Worker 0 wants to
+  # read a file in tmp/1/ but Worker 1 deletes it at the same time : crash
+  if not ".tmp" in dirpath:
+    for file in sftp.listdir_attr(dirpath):
+      filepath = os.path.join(dirpath, file.filename)
+      if not stat.S_ISDIR(file.st_mode):
+        sftp_size += file.st_size
+      else:
+        sftp_size += sftp_calculate_size(sftp, filepath)
   return sftp_size
