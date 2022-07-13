@@ -1,4 +1,5 @@
 import os
+import subprocess
 import stat
 from tkinter import Tk
 from tkinter import filedialog
@@ -158,3 +159,30 @@ def sftp_calculate_size(sftp: SFTPClient, dirpath: str = '.') -> int:
       else:
         sftp_size += sftp_calculate_size(sftp, filepath)
   return sftp_size
+
+def sftp_get_available_size() -> float:
+  """Get available size of the SFTP"""
+  echo = ['echo', 'df', '/space/home/hdh-deeppiste']
+  sftp = ['sftp', '-b', '-', 'HDH_deeppiste@procom2.front2']
+  awk = ['awk', '{print $3/1024/1024}']
+  tail = ['tail', '-n', '1']
+
+  p1 = subprocess.Popen(echo, stdout=subprocess.PIPE)
+  p2 = subprocess.Popen(sftp, stdin=p1.stdout, stdout=subprocess.PIPE)
+  p1.stdout.close()
+  p3 = subprocess.Popen(awk, stdin=p2.stdout, stdout=subprocess.PIPE)
+  p2.stdout.close()
+  p4 = subprocess.Popen(tail, stdin=p3.stdout, stdout=subprocess.PIPE)
+  p3.stdout.close()
+
+  output = p4.communicate()[0].decode('utf8')
+  output = output.replace('\n', '') if '\n' in output else output  
+  for p in [p1, p2, p3, p4]:
+    p.kill()
+
+  try:
+    sftp_available_size = float(output)
+  except ValueError:
+    raise ValueError(f'Expected type float is str (value=[{output}]). SFTP might be unreachable.')
+  
+  return sftp_available_size

@@ -19,9 +19,11 @@ jupyter:
 import os
 import pandas as pd
 import numpy as np
+
 import dpiste.dal as dal
 import dpiste.dal.screening
-from dpiste.utils import stat_df
+from dpiste.utils import stat_df, get_home, cleandir
+from dpiste.tools.evaluate_consistency import run
 
 dfs = {}
 cnam = dal.screening.cnam(dfs)
@@ -130,3 +132,15 @@ print(f"{notexcluded.shape[0]} where found on CNAM extractions from {refusing.sh
 
 ```
 
+## Validating HDH extraction
+```python tags=["hide-input"]
+testpath = os.path.join(get_home(), 'consistency')
+os.mkdir(testpath) if not os.path.exists(testpath) else cleandir(testpath)
+s1, s2 = run(testpath, verbose=True)
+print('s1: Sum of field \'RelativeXRayExposure\' for deidentified DICOMs')
+print('s2: Sum of field \'RelativeXRayExposure\' for identified DICOMs')
+if s1 == s2:
+  print(f'Success: Both sums are equals to {s1} and {s2} on field comparison!')
+else:
+  print(f'Failure: s1 = {s1} and s2  = {s2}')
+```

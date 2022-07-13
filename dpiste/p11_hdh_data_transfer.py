@@ -6,8 +6,8 @@ from tqdm import tqdm
 from paramiko.sftp_client import SFTPClient
 from fabric import Connection
 
-from dpiste.p11_hdh_encryption import p11_encrypt_hdh
-from dpiste.utils import sftp_cleandir, sftp_calculate_size, cleandir
+from dpiste.p11_hdh_encryption import p11_encrypt_hdh, p11_decrypt_hdh
+from dpiste.utils import sftp_cleandir, sftp_get_available_size, cleandir
 from kskit.dicom.utils import log
 
 ROOT_PATH = 'dpiste'
@@ -63,7 +63,7 @@ def renew_sftp(sftph: str, sftpu: str, sftp: SFTPClient=None,
     """Closes given instances of SFTP and Connection and returns new ones"""
     sftp.close() if sftp is not None else None
     c.close() if c is not None else None
-    c = Connection(host=sftph, user=sftpu, port=22)
+    c = Connection(host=sftph, user=sftpu, port=22, connect_timeout=120)
     sftp, display_warning_success = None, False
     while sftp is None:
         try:
@@ -84,17 +84,15 @@ def renew_sftp(sftph: str, sftpu: str, sftp: SFTPClient=None,
 
 
 def wait4hdh(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection, 
-    batch_size: int, server_capacity: int) -> None:
+    batch_size: int, sftp_limit: float) -> None:
     """Calls wait_until if server_capacity >= 95% OR f_amount >= batch_size """
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
     folders_amount = len(sftp.listdir(path=OK_DIRNAME))
-    sftp_size = sftp_calculate_size(sftp)
-    cap = f'{round(sftp_size*10**-9, 2)}/{round(server_capacity*10**-9, 2)}'
-    per = int(sftp_size/server_capacity*100)
-    log(f'{per}% of server capacity used: {cap} GB', logtype=0)
-    if folders_amount >= batch_size or sftp_size/server_capacity >= 0.9:
+    sftp_available_size = sftp_get_available_size()
+    log(f'{sftp_available_size} GB available in SFTP')
+    if folders_amount >= batch_size and batch_size != 0 or sftp_available_size < sftp_limit:
         wait_until(sftph, sftpu, sftp, c, batch_size,
-        server_capacity, folders_amount, sftp_size)
+        sftp_limit, folders_amount)
     else:
         sftp.close()
         c.close()
@@ -102,25 +100,21 @@ def wait4hdh(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection,
 
 
 def wait_until(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection, 
-    batch_size: int, server_capacity: int, folders_amount: int, sftp_size: float):
-    """Waits until sftp_size < 90% serv_cap and f_amount < batch_size"""
+    batch_size: int, sftp_limit: float, folders_amount: int):
+    """Waits until sftp_available_size >= sftp_limit GB and f_amount < batch_size"""
     display_max_msg = True
-    while folders_amount >= batch_size or sftp_size/server_capacity >= 0.9:
+    while folders_amount >= batch_size and batch_size != 0 or sftp_available_size < sftp_limit:
         if display_max_msg:
             log('Waiting for files to be deleted in HDH SFTP', logtype=1)
-            cap = f'{round(sftp_size*10**-9, 2)}/{round(server_capacity*10**-9, 2)}'
-            per = int(sftp_size/server_capacity*100)
-            if sftp_size >= server_capacity:
-                log(f'{per}% of server capacity used: {cap} GB', logtype=1)
-            else:
-                log(f'{per}% of server capacity used: {cap} GB', logtype=0)
+            sftp_available_size = sftp_get_available_size()
+            logtype = 1 if sftp_available_size < sftp_limit else 0
+            log(f'{sftp_available_size} GB available in SFTP', logtype=logtype)
             display_max_msg = False
         sftp.close()
         c.close()
         time.sleep(10)
         c, sftp = renew_sftp(sftph, sftpu)
         folders_amount = len(sftp.listdir(path=OK_DIRNAME))
-        sftp_size = sftp_calculate_size(sftp)
     sftp.close()
     c.close()
     return
@@ -198,3 +192,39 @@ def create_study_dirs(deid_study_id: str, id_worker: int, sftp: SFTPClient) -> N
         path = os.path.join(TMP_DIRNAME,  str(id_worker), deid_study_id)
         sftp.mkdir(path)
     return
+
+
+def get_all_studies(sftp: SFTPClient, destination: str, id_worker: int = 0, specific_file: str = None) -> None:
+    """Gets all studies from specific worker and put them in destination folder"""
+    worker_studies = os.path.join(OK_DIRNAME, str(id_worker))
+    for study in sftp.listdir(path=worker_studies):
+        study_remote_path = os.path.join(worker_studies, study)
+        study_local_path = destination
+        get_folder_content(sftp, study_remote_path, study_local_path, specific_file)
+    return
+
+
+def get_folder_content(sftp: SFTPClient, folder: str, destination: str, specific_file: str) -> None:
+    """Gets a whole folder from SFTP and put it in destination folder"""
+    folder_remote_path = folder
+    folder_local_path = os.path.join(destination, os.path.basename(folder))
+    os.mkdir(folder_local_path)
+    for file in sftp.listdir(path=folder_remote_path):
+        if specific_file == None or specific_file in file:
+            file_remote_path = os.path.join(folder_remote_path, file)
+            file_local_path = os.path.join(folder_local_path, file)
+            log(f"Getting {file_local_path}...")
+            sftp.get(file_remote_path, file_local_path)
+    return
+
+
+def decrypt_whole_folder(folder: str) -> None:
+    for file in os.listdir(folder):
+        if os.path.isdir(os.path.join(folder, file)):
+            decrypt_whole_folder(os.path.join(folder, file))
+        else:
+            local_enc_path = os.path.join(folder, file)
+            unenc_local_path, extension = os.path.splitext(local_enc_path)
+            p11_decrypt_hdh(local_enc_path, unenc_local_path)
+            os.remove(local_enc_path)
+    return 

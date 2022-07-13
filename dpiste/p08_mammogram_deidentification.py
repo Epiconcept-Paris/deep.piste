@@ -1,9 +1,11 @@
 import os
+import shutil
 import json
 import time
 
 from dpiste import utils
 from dpiste.dal.screening import depistage_pseudo
+from dpiste.p06_mammogram_extraction import get_acr5
 from dpiste.p11_hdh_data_transfer import *
 from dpiste.p11_hdh_encryption import p11_001_generate_transfer_keys
 
@@ -117,20 +119,21 @@ def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient):
     return
 
 
-def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
-    server_capacity: int, tmp_fol: str, id_worker: int, nb_worker: int) -> None:
+def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: float,
+    tmp_fol: str, id_worker: int, nb_worker: int, reset_sftp=False, screening_filter=False, test=False) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
     indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
     worker_outdir = os.path.join(outdir, str(id_worker))
     
-    log(f"Server capacity: {server_capacity} GB")
-    server_capacity = server_capacity * 10**9
+    log(f'{utils.sftp_get_available_size()} GB available in SFTP')
     c, sftp = renew_sftp(sftph, sftpu)
-    # utils.sftp_reset(sftp)
-    # exit()
+    if reset_sftp:
+        log('-r option enabled : erasing all information on SFTP', logtype=1)
+        utils.sftp_reset(sftp)
     df = depistage_pseudo()
-    studies = build_studies(df)
+    df = filter_screening(df) if screening_filter else df
+    studies = build_studies(df, date_mammo_only=True) if screening_filter else build_studies(df)
     total2upload = len(studies.index)
     deid_studies = deidentify_study_id(studies.copy())
     
@@ -138,7 +141,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
     progress = get_progress(outdir, studies, id_worker, sftp)
     uploaded = progress
     if progress != 0:
-        wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
+        wait4hdh(sftph, sftpu, sftp, c, batch_size, sftp_limit)
     else:
         utils.reset_local_files(worker_indir)
         if id_worker == 0:
@@ -170,6 +173,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         log(f'Getting study n°{study_id}')
         get_dicom(key=study_id, dest=worker_indir, server='10.1.2.9', port=11112,
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+
         deidentify_mammograms_hdh(worker_indir, study_dir, sftp)
         send2hdh_study_content(study_dir, id_worker, sftp)
         uploaded = 1 if uploaded == 0 else uploaded
@@ -178,7 +182,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int,
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         utils.cleandir(worker_indir)
         utils.cleandir(worker_outdir)
-        wait4hdh(sftph, sftpu, sftp, c, batch_size, server_capacity)
+        wait4hdh(sftph, sftpu, sftp, c, batch_size, sftp_limit)
         uploaded += 1
     return
 
@@ -213,18 +217,39 @@ def deidentify_study_id(studies: pd.DataFrame) -> pd.DataFrame:
     return studies
 
 
-def build_studies(df: pd.DataFrame) -> pd.DataFrame:
+def build_studies(df: pd.DataFrame, date_mammo_only=False) -> pd.DataFrame:
     """Returns a DataFrame made of 3 columns [id_random, date, study_id]"""
     df = df[pd.notna(df['DICOM_Studies'])]
+    #df = df[df['BDI_Echographie'] == False]    # Removes echography from studies list
     data = []
     for index in df.index:
         dates = json.loads(df['DICOM_Studies'][index])
-        for date in dates:
-            for study_id in dates[date][0]:
-                row = []
-                row.extend([df['id_random'][index], date, study_id])
-            data.append(row)
+        if not date_mammo_only:
+            # Normal loop 
+            for date in dates:
+                for study_id in dates[date][0]:
+                    row = []
+                    row.extend([df['id_random'][index], date, study_id])
+                data.append(row)
+        else:
+            # Integration Test loop
+            for k, v in dates.items():
+                for study_id in v[0]:
+                    row = []
+                    key_date = datetime.strptime(k, '%Y-%m-%d %H:%M:%S')
+                    key_date = key_date.replace(hour=0, minute=0, second=0)
+                    if key_date in list(map(lambda d: datetime.strptime(str(d)[0:10], '%Y-%m-%d'), df['Date_Mammo'].values)):
+                        row.extend([df['id_random'][index], k, study_id])
+                data.append(row)
     studies = pd.DataFrame(data, columns = ['id_random', 'date', 'study_id'])
     studies = studies.drop_duplicates()
     studies = studies.sort_values(by=['study_id'])
-    return studies
+    return studies.dropna()
+
+
+def filter_screening(df: pd.DataFrame) -> pd.DataFrame:
+    print('Filtering dataframe...')
+    df_without_na = df[df['DICOM_Studies'].notnull()]
+    df_acr5 = get_acr5(df_without_na)
+    df_acr5_age = df_acr5[df_acr5['Age_Mammo'] == 69]
+    return df_acr5_age

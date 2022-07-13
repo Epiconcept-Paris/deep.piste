@@ -10,7 +10,7 @@ import hashlib
 def p11_getGpg():
   path=utils.get_home("data", "transform","hdh", "gpg")
   os.makedirs(name = path, exist_ok = True)
-  return gnupg.GPG(gnupghome = path, verbose = False)
+  return gnupg.GPG(gnupghome=path, use_agent=True, verbose=False, )
 
 def p11_000_generate_fake_transfer_keys(passphrase):
   p11_generate_keys(
