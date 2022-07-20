@@ -13,7 +13,7 @@ from kskit.dicom.utils import log
 ROOT_PATH = 'dpiste'
 WORKER_FOLDER = os.path.join(ROOT_PATH, 'progress')
 TMP_DIRNAME = os.path.join(ROOT_PATH, '.tmp')
-OK_DIRNAME = os.path.join(ROOT_PATH, 'studies')
+OK_DIRNAME = os.path.join(ROOT_PATH, 'screening')
 
 def init_distant_root(sftp: SFTPClient) -> None:
     """Initializes dpiste/ and dpiste/progress"""
@@ -59,20 +59,21 @@ def update_progress(uploaded: int, total: int, outdir: str,
 
 
 def renew_sftp(sftph: str, sftpu: str, sftp: SFTPClient=None, 
-    c: Connection=None, trydelay=10) -> Connection:
+    c: Connection=None, trydelay=1200) -> Connection:
     """Closes given instances of SFTP and Connection and returns new ones"""
     sftp.close() if sftp is not None else None
     c.close() if c is not None else None
-    c = Connection(host=sftph, user=sftpu, port=22, connect_timeout=120)
+    c = Connection(host=sftph, user=sftpu, port=22, connect_timeout=200)
     sftp, display_warning_success = None, False
     while sftp is None:
         try:
             sftp = c.sftp()
             if display_warning_success:
                 log('Successfully connected to SFTP!') 
-        except Exception:
+        except Exception as e:
             log([
                 'Unable to connect to the SFTP server at the moment.',
+                f'Full Trace: {e}'
                 f'Will try again in {trydelay} seconds...'
                 ],
                 logtype=2
@@ -92,7 +93,7 @@ def wait4hdh(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection,
     log(f'{sftp_available_size} GB available in SFTP')
     if folders_amount >= batch_size and batch_size != 0 or sftp_available_size < sftp_limit:
         wait_until(sftph, sftpu, sftp, c, batch_size,
-        sftp_limit, folders_amount)
+        sftp_limit, sftp_available_size, folders_amount)
     else:
         sftp.close()
         c.close()
@@ -100,7 +101,7 @@ def wait4hdh(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection,
 
 
 def wait_until(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection, 
-    batch_size: int, sftp_limit: float, folders_amount: int):
+    batch_size: int, sftp_limit: float, sftp_available_size: float, folders_amount: int):
     """Waits until sftp_available_size >= sftp_limit GB and f_amount < batch_size"""
     display_max_msg = True
     while folders_amount >= batch_size and batch_size != 0 or sftp_available_size < sftp_limit:
@@ -128,7 +129,7 @@ def send2hdh_df(df: pd.DataFrame, outdir: str, filename: str,
     encrypted_filepath = os.path.join(outdir, f'{filename}.gpg')
     df.to_csv(filepath)
     p11_encrypt_hdh(filepath, encrypted_filepath, rmold=True)
-    sftp_fpath = os.path.join(ROOT_PATH, os.path.basename(encrypted_filepath))
+    sftp_fpath = os.path.join(OK_DIRNAME, os.path.basename(encrypted_filepath))
     print(sftp_fpath)
     sftp.put(encrypted_filepath, sftp_fpath)
     return

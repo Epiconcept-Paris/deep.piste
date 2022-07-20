@@ -145,11 +145,13 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
     else:
         utils.reset_local_files(worker_indir)
         if id_worker == 0:
+            init_distant_files(sftp, id_worker)
             send2hdh_df(deid_studies, worker_outdir, 'studies.csv', sftp)
             send2hdh_df(df.drop(columns='DICOM_Studies'), worker_outdir, 'screening.csv', sftp)
 
     c, sftp = renew_sftp(sftph, sftpu, sftp, c)
-    init_distant_files(sftp, id_worker)
+    if id_worker != 0:
+        init_distant_files(sftp, id_worker)
 
     count = 0
     for index in studies.index:
@@ -203,7 +205,7 @@ def init_local_files(tmp_fol: str, id_worker: int):
     worker_folder = os.path.join(outdir, str(id_worker))
     os.mkdir(worker_folder) if not os.path.isdir(worker_folder) else None
 
-    p11_001_generate_transfer_keys(os.environ['ENCKEY'])
+    p11_001_generate_transfer_keys(os.environ['DP_KEY_PASSPHRASE'])
     return indir, outdir
 
 
