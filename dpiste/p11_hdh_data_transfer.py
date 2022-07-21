@@ -65,6 +65,12 @@ def renew_sftp(sftph: str, sftpu: str, sftp: SFTPClient=None,
     c.close() if c is not None else None
     c = Connection(host=sftph, user=sftpu, port=22, connect_timeout=200)
     sftp, display_warning_success = None, False
+    sftp = connect_to_sftp(c, trydelay=trydelay)
+    return c, sftp
+
+
+def connect_to_sftp(c: Connection, trydelay) -> SFTPClient:
+    sftp, display_warning_success = None, False
     while sftp is None:
         try:
             sftp = c.sftp()
@@ -81,7 +87,7 @@ def renew_sftp(sftph: str, sftpu: str, sftp: SFTPClient=None,
             time.sleep(trydelay)
             sftp = None
             display_warning_success = True
-    return c, sftp
+    return sftp
 
 
 def wait4hdh(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection, 
