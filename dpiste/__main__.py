@@ -375,7 +375,7 @@ def do_safe_test_file(args, *other): #kwargs ,
 def do_send_crypted_hdh_test(args, *other):
   phrase = getpass.getpass(prompt='Please type private key passphrase for sender:', stream=None) 
   p11_001_generate_transfer_keys(passphrase = phrase)
-  #p11_003_encrypt_hdh_extraction_test() 
+  p11_003_encrypt_hdh_extraction_test() 
 
 def do_fake_crypted_test(args, *other):
   sender_phrase = getpass.getpass(prompt='Please type fake private key passphrase for sender:', stream=None) 

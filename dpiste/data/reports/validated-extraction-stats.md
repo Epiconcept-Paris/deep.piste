@@ -24,6 +24,7 @@ import dpiste.dal as dal
 import dpiste.dal.screening
 from dpiste.utils import stat_df, get_home, cleandir
 from dpiste.tools.evaluate_consistency import run
+from dpiste.p12_SNDS_match import p12_004_safe_file
 
 dfs = {}
 cnam = dal.screening.cnam(dfs)
@@ -93,7 +94,7 @@ print(f"Duplicated: {dfs['dépistage_pseudo_dup'].shape[0]}")
 
 # rebuilding dataframe using mapping table
 dfs0 = {}
-cnam = dal.screening.cnam(dfs0)
+cnam = p12_004_safe_file()
 mapping = dal.screening.table_correspondance(dfs0)
 screening = dal.screening.depistage_pseudo(dfs0)
 

@@ -154,6 +154,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         init_distant_files(sftp, id_worker)
 
     count = 0
+    log(f'Words ignored by OCR: {load_authorized_words()}')
     for index in studies.index:
         study_id = studies['study_id'][index]
         study_hash = int(hashlib.sha512(study_id.encode('utf-8')).hexdigest(), 16)
