@@ -24,7 +24,7 @@ setup(
       "jupytext",
       "plotly",
       "python-gnupg",
-      "fabric"
+      "fabric",
       "paramiko"
     ],
     packages=find_packages(exclude=('tests', 'docs')),
