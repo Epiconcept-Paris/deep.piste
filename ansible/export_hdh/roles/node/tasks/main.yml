@@ -25,14 +25,23 @@
     HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
   become_user: "{{ ssh_user }}"
   tags: [export]
-- name: creating deep.piste virtual envirobment  
+- name: creating deep.piste virtual envirobment on nodes
   shell: |
-          export PYTHON={{ python_bin }}:$PATH
+          export PYTHON={{ python_bin }}
           export PATH={{ python_path }}:$PATH
           make init
   args:
     chdir: "{{ dpiste_git  }}"
-    creates: "{{ dpiste_git }}/envc"
+    creates: "{{ dpiste_git }}/env"
+  become_user: "{{ ssh_user }}"
+  tags: [export]
+- name: installing deep.piste on nodes  
+  shell: |
+          export PATH={{ python_path }}:$PATH
+          make install
+  args:
+    chdir: "{{ dpiste_git  }}"
+    creates: "{{ dpiste_git }}/envid"
   become_user: "{{ ssh_user }}"
   tags: [export]
 
