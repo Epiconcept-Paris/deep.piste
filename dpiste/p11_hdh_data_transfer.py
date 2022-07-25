@@ -199,8 +199,9 @@ def init_distant_files(sftp: SFTPClient, id_worker: int) -> None:
 
 def create_study_dirs(deid_study_id: str, id_worker: int, sftp: SFTPClient) -> None:
     """Creates study directories in .tmp/id_worker/"""
-    if deid_study_id not in sftp.listdir(path=TMP_DIRNAME):
-        path = os.path.join(TMP_DIRNAME,  str(id_worker), deid_study_id)
+    tmp_worker_path = os.path.join(TMP_DIRNAME, str(id_worker))
+    if deid_study_id not in sftp.listdir(path=tmp_worker_path):
+        path = os.path.join(tmp_worker_path, deid_study_id)
         sftp.mkdir(path)
     return
 
