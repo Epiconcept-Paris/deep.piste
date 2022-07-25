@@ -10,7 +10,7 @@ def refusing_list():
   if os.path.exists(path):
     df = pd.read_csv(path, dtype = object)
   else :
-    df = pd.DataFrame(columns = ["NIR", "Nom Famille"], dtype = object) 
+    df = pd.DataFrame(columns = ["NIR", "Nom Famille", "Naiss"], dtype = object) 
   return df
 
 def refusing_random_ids(dfs = {}):

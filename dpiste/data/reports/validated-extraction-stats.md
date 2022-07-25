@@ -145,3 +145,6 @@ if s1 == s2:
 else:
   print(f'Failure: s1 = {s1} and s2  = {s2}')
 ```
+## Confirming that only the excluded women explain the difference on the count per year of birth
+
+
