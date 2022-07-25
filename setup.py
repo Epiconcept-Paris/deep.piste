@@ -23,7 +23,8 @@ setup(
       "nbconvert",
       "jupytext",
       "plotly",
-      "python-gnupg"
+      "python-gnupg",
+      "paramiko"
     ],
     packages=find_packages(exclude=('tests', 'docs')),
     include_package_data=True

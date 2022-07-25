@@ -130,3 +130,6 @@ print(f"{notexcluded.shape[0]} where found on CNAM extractions from {refusing.sh
 
 ```
 
+## Confirming that only the excluded women explain the difference on the count per year of birth
+
+
