@@ -32,7 +32,7 @@
           make init
   args:
     chdir: "{{ dpiste_git  }}"
-    creates: "{{ dpiste_git }}/env"
+    creates: "{{ dpiste_git }}/onv"
   become_user: "{{ ssh_user }}"
   tags: [export]
 - name: installing deep.piste on nodes  
@@ -41,11 +41,30 @@
           make install
   args:
     chdir: "{{ dpiste_git  }}"
-    creates: "{{ dpiste_git }}/envid"
+    creates: "{{ dpiste_git }}/env/lib/python3.6/site-packages/pyzbar"
   become_user: "{{ ssh_user }}"
   tags: [export]
-
-
+- name: copying private key from local to hosts
+  copy:
+    src: "{{ ssh_source_key }}"
+    dest: "{{ ssh_tmp_key_remote }}"
+    force: true
+    owner: francisco
+    group: francisco
+    mode: 0600
+- name: copying public key from local to hosts
+  copy:
+    src: "{{ ssh_source_key_pub }}"
+    dest: "{{ ssh_tmp_key_remote_pub }}"
+    force: true
+    owner: francisco
+    group: francisco
+    mode: 0644
+- name: private key has no passphrase 
+  command: |
+          ssh-keygen -p -P '{{ ssh_passphrase }}' -N '' -f {{ ssh_tmp_key_remote  }}
+  become_user: "{{ ssh_user }}"
+  tags: [export]
 
 
 

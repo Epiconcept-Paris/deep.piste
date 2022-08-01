@@ -1,0 +1,24 @@
+---
+- name: puting input data into sftp
+  shell: |
+          echo put -r {{ dp_home }}/data/{{ item }} input_data/{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
+  become_user: "{{ ssh_user }}"
+  tags: [sftp]
+  with_items:
+  - input/crcdc/refusing-list.csv
+  - input/epiconcept/mapping-table.csv
+  - input/esis/esis_dicom_guid.parquet
+  - input/hdh/p11_encryption_public.rsa
+  - input/neo/extraction_neoscope.zip
+  - input/mammogram_words
+  - output/cnam/duplicates_to_keep.csv
+  - output/cnam/safe.zip
+  - output/hdh/p11_transfer_private_key.rsa
+  - output/hdh/p11_transfer_public_key.rsa
+
+- name: puting output data into sftp
+  shell: |
+          echo put -r {{ output_path }} output_data | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
+  become_user: "{{ ssh_user }}"
+  tags: [sftp, ttt]
+

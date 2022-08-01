@@ -11,12 +11,12 @@
     HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
     http_proxy: "{{ proxy_host }}:{{ proxy_port }}"
     https_proxy: "{{ proxy_host }}:{{ proxy_port }}"
-#- name: Users on head node & register worker hosts
-#  hosts: [namenode, spark_edge] 
+#- name: data is updated on the sftp
+#  hosts: [main] 
 #  gather_facts: false
-#  become: true
+#  become: false
 #  roles: 
-#  - ssh2nodes 
+#  - input2sftp
 #- name: worker nodes users & passwordless ssh
 #  hosts: [nodes]
 #  gather_facts: false

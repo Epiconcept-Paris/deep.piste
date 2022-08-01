@@ -244,10 +244,6 @@ def p11_decrypt_hdh(enc_file, unenc_file):
     unencrypted_file.write(str(decrypted_data))
   return
 
-def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
-def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_private_key.rsa")
-def p11_public_hdh_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
-# def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_encryption_public.rsa")
 def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
 
 
