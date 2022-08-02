@@ -29,6 +29,11 @@
     HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
   become_user: "{{ ssh_user }}"
   tags: [export]
+- name: ensuring gpg agent is not currently running
+  shell: |
+          pkill -u {{ ssh_user  }} gpg-agent 
+  become_user: "{{ ssh_user }}"
+  tags: [export]
 - name: creating deep.piste virtual envirobment on nodes
   shell: |
           export PYTHON={{ python_bin }}
