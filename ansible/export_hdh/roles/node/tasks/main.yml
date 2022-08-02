@@ -1,4 +1,8 @@
 ---
+- name: Transform folder is not present
+  file:
+    state: absent
+    path: "{{ transform_path }}"
 - name: folders exists on all nodes
   file:
     path:
@@ -32,7 +36,7 @@
           make init
   args:
     chdir: "{{ dpiste_git  }}"
-    creates: "{{ dpiste_git }}/onv"
+    creates: "{{ dpiste_git }}/env"
   become_user: "{{ ssh_user }}"
   tags: [export]
 - name: installing deep.piste on nodes  

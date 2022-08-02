@@ -11,12 +11,18 @@
     HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
     http_proxy: "{{ proxy_host }}:{{ proxy_port }}"
     https_proxy: "{{ proxy_host }}:{{ proxy_port }}"
-#- name: data is updated on the sftp
-#  hosts: [main] 
-#  gather_facts: false
-#  become: false
-#  roles: 
-#  - input2sftp
+- name: data is updated on the sftp
+  hosts: [main] 
+  gather_facts: false
+  become: false
+  roles: 
+  - input2sftp
+- name: data is obtained from the sftp
+  hosts: [secondary] 
+  gather_facts: false
+  become: false
+  roles: 
+  - sftp2input
 #- name: worker nodes users & passwordless ssh
 #  hosts: [nodes]
 #  gather_facts: false

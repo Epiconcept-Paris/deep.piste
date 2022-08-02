@@ -13,6 +13,7 @@ from dpiste.p08_mammogram_deidentification import p08_001_export_hdh, filter_scr
 from kskit.dicom.get_dicom import get_dicom
 from kskit.dicom.dicom2df import dicom2df
 from kskit.dicom.utils import log
+from dpiste.utils import get_home
 
 TAG = '0x00181405'
 
@@ -59,7 +60,7 @@ def run(folder: str, verbose: True) -> None:
         sftpu='HDH_deeppiste', 
         batch_size=200,
         sftp_limit=50,
-        tmp_fol='/space/Work/william2/deep.piste/home/data/input/dcm4chee/consistency_test/',
+        tmp_fol=get_home('data/input/dcm4chee/consistency_test/'),
         id_worker=0,
         nb_worker=1,
         reset_sftp=True,
@@ -93,4 +94,4 @@ def run(folder: str, verbose: True) -> None:
 
 
 if __name__ == '__main__':
-    run('/space/Work/william2/deep.piste/home/data/input/dcm4chee/consistency_test/')
+    run(get_home('data/input/dcm4chee/consistency_test/'))

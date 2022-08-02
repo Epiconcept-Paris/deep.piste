@@ -1,4 +1,57 @@
 ---
+- name: input folder exists
+  file:
+    path: "{{ dp_home }}/data/{{ item }}"
+    state: directory
+    mode: u=rwx,g=,o=,g+s
+  become_user: "{{ ssh_user }}"
+  with_items:
+  - input
+  - input/crcdc
+  - input/epiconcept
+  - input/esis
+  - input/hdh
+  - input/neo
+  - output
+  - output/cnam
+  - output/hdh
+- name: ensuring folders exists on sftp
+  shell: |
+          echo mkdir input_data{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
+  become_user: "{{ ssh_user }}"
+  tags: [sftp]
+  failed_when: False
+  with_items:
+  - 
+  - /input
+  - /input/crcdc
+  - /input/epiconcept
+  - /input/esis
+  - /input/hdh
+  - /input/neo
+  - /output
+  - /output/cnam
+  - /output/hdh
+- name: scanning expected input files
+  stat: path={{ dp_home}}/data/{{ item }}
+  register: filespresent
+  with_items:
+  - input/crcdc/refusing-list.csv
+  - input/epiconcept/mapping-table.csv
+  - input/esis/esis_dicom_guid.parquet
+  - input/hdh/p11_encryption_public.rsa
+  - input/neo/extraction_neoscope.zip
+  - input/mammogram_words
+  - output/cnam/duplicates_to_keep.csv
+  - output/cnam/safe.zip
+  - output/hdh/p11_transfer_private_key.rsa
+  - output/hdh/p11_transfer_public_key.rsa
+  tags: [sftp]
+- name: fail if some expected file is missing
+  fail: msg="a needed file could not be found on head node"
+  when: not item.stat.exists
+  with_items: "{{ filespresent.results }}"
+  tags: [sftp]
 - name: puting input data into sftp
   shell: |
           echo put -r {{ dp_home }}/data/{{ item }} input_data/{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
@@ -15,10 +68,3 @@
   - output/cnam/safe.zip
   - output/hdh/p11_transfer_private_key.rsa
   - output/hdh/p11_transfer_public_key.rsa
-
-- name: puting output data into sftp
-  shell: |
-          echo put -r {{ output_path }} output_data | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
-  become_user: "{{ ssh_user }}"
-  tags: [sftp, ttt]
-

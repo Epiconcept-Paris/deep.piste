@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 from dpiste.utils import recursive_count_files
-
+from dpiste.utils import get_home
 
 def checkfiles(path: str, tmpdir: str) -> None:
     mean, nb_files = 0, 0
@@ -41,6 +41,6 @@ def compare_arrays(original: np.ndarray, saved: np.ndarray) -> None:
 
 if __name__ == '__main__':
     checkfiles(
-        '/space/Work/william2/deep.piste/home/input/dcm4chee/dicom_negative',
-        '/space/Work/william2/deep.piste/home/input/dcm4chee/checkfiles'
+        get_home("data/input/dcm4chee/dicom_negative"),
+        get_home("data/input/dcm4chee/checkfiles")
     )

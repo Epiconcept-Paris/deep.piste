@@ -168,7 +168,7 @@ def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh"
 def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_private_key.rsa")
 def p11_fake_public_transfer_key_path(): return utils.get_home("data", "output","hdh","fake_crypt", "p11_fake_transfer_public_key.rsa")
 def p11_fake_private_transfer_key_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "p11_fake_transfer_private_key.rsa")
-def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_hdh_public.rsa")
+def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_encryption_public.rsa")
 def p11_fake_hdh_public_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_public.rsa")
 def p11_fake_hdh_priv_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_priv.rsa")
 def p11_test_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "crypto_test.csv.gzip")

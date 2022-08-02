@@ -10,6 +10,7 @@ from tqdm import tqdm
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p08_mammogram_deidentification import build_studies
 from dpiste.utils import cleandir
+from dpiste.utils import get_home
 
 from kskit.dicom.get_dicom import get_dicom
 from kskit.dicom.utils import log
@@ -186,7 +187,7 @@ def see_broken_studies_details(broken_stud_dir: str):
             
 
 if __name__ == '__main__':
-    # search4ccmlo('/space/Work/william2/deep.piste/home/input/dcm4chee/count', 2000)
-    # get_broken_studies('/home/william2/logs/69', '/space/Work/william2/deep.piste/home/input/dcm4chee/broken')
-    see_broken_studies_details('/space/Work/william2/deep.piste/home/input/dcm4chee/broken')
-    # get_detailed_viewcodes('/space/Work/william2/deep.piste/home/input/dcm4chee/count', 2000)
+    # search4ccmlo(get_home('data/input/dcm4chee/count'), 2000)
+    # get_broken_studies(get_home('logs/69'), get_home('data/input/dcm4chee/broken'))
+    see_broken_studies_details(get_home('data/input/dcm4chee/broken'))
+    # get_detailed_viewcodes(get_home('data/input/dcm4chee/count'), 2000)
