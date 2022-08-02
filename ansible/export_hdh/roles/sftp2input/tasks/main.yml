@@ -9,6 +9,7 @@
   - input
   - input/crcdc
   - input/epiconcept
+  - input/easyocr
   - input/esis
   - input/hdh
   - input/neo
@@ -23,11 +24,27 @@
   with_items:
   - input/crcdc/refusing-list.csv
   - input/epiconcept/mapping-table.csv
+  - input/epiconcept/ocr_deid_ignore.txt
+  - input/easyocr/craft_mlt_25k.pth
+  - input/easyocr/latin_g2.pth
   - input/esis/esis_dicom_guid.parquet
   - input/hdh/p11_encryption_public.rsa
   - input/neo/extraction_neoscope.zip
-  - input/mammogram_words
   - output/cnam/duplicates_to_keep.csv
   - output/cnam/safe.zip
   - output/hdh/p11_transfer_private_key.rsa
   - output/hdh/p11_transfer_public_key.rsa
+- name: ensure easyocr model folder exists
+  file:
+    path: "/home/{{ ssh_user }}/.EasyOCR/model"
+    state: directory
+  become_user: "{{ ssh_user }}"
+- name: copying easyocr models to model folder
+  copy:
+    src: "{{ dp_home }}/data/input/easyocr/{{ item  }}"
+    dest: "/home/{{ ssh_user }}/.EasyOCR/model/{{ item }}"
+    remote_src: yes
+  with_items:
+  - craft_mlt_25k.pth
+  - latin_g2.pth
+  tags: [sftp]

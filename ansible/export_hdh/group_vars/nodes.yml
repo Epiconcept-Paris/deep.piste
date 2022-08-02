@@ -1,6 +1,7 @@
 #passwords
 ansible_become_pass: "{{lookup('passwordstore', 'infra/bgdt')}}"
 ssh_passphrase: "{{lookup('passwordstore', 'infra/sshpassphrase')}}"
+ssh_epi_transfer_passphrase: "{{lookup('passwordstore', 'epitools/hdh_epi_transfer_passphrase')}}"
 
 #general
 proxy_host: proxy.admin2.oxa.tld

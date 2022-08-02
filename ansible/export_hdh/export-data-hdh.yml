@@ -23,39 +23,9 @@
   become: false
   roles: 
   - sftp2input
-#- name: worker nodes users & passwordless ssh
-#  hosts: [nodes]
-#  gather_facts: false
-#  become: true
-#  roles: 
-#  - ssh2me 
-#- name: local user can impersonate users on remote hosts
-#  hosts: [localsshnodes]
-#  gather_facts: false
-#  become: true
-#  roles: 
-#  - sshAsUsers 
-#- name: if we are about to upgrade hadoop wze need to start the upgrade and unlink services
-#  hosts: namenode
-#  gather_facts: false
-#  become: true
-#  roles:
-#  - prepare_upgrade_namenode
-#- name: if we are about to upgrade hadoop we will stop name nodes and unmlink datanode service
-#  hosts: datanodes
-#  gather_facts: false
-#  become: true
-#  roles:
-#  - prepare_upgrade_datanode
-#- name: installing hadoop components
-#  hosts: nodes
-#  gather_facts: false
-#  become: true
-#  roles: 
-#  - hadoop_node 
-#  environment:
-#    TMPDIR: "{{ tmp_dir }}"
-#    HTTPS_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
-#    HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
-#    http_proxy: "{{ proxy_host }}:{{ proxy_port }}"
-#    https_proxy: "{{ proxy_host }}:{{ proxy_port }}"
+- name: The data export is running
+  hosts: [nodes] 
+  gather_facts: false
+  become: true
+  roles: 
+  - running_export 

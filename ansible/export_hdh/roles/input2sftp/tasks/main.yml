@@ -9,39 +9,55 @@
   - input
   - input/crcdc
   - input/epiconcept
+  - input/easyocr
   - input/esis
   - input/hdh
   - input/neo
   - output
   - output/cnam
   - output/hdh
+  tags: [sftp]
+- name: emptying sftp
+  shell: |
+          source {{ dp_code  }}/deep.piste/env/bin/activate
+          python -m dpiste export hdh sftp -s {{ sftp_server }} -u {{ sftp_user }} -b 0 -l 150 -t {{ tmp_dir }} -i 0 -w 4 -r TRUE 
+  args:
+      executable: /bin/bash
+  environment:
+    DP_HOME: "{{ dp_home }}"
+    DP_KEY_PASSPHRASE: "{{ ssh_epi_transfer_passphrase }}"
+  become_user: "{{ ssh_user }}"
+  tags: [sftp]
 - name: ensuring folders exists on sftp
   shell: |
           echo mkdir input_data{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
   become_user: "{{ ssh_user }}"
-  tags: [sftp]
   failed_when: False
   with_items:
   - 
   - /input
   - /input/crcdc
   - /input/epiconcept
+  - /input/easyocr
   - /input/esis
   - /input/hdh
   - /input/neo
   - /output
   - /output/cnam
   - /output/hdh
+  tags: [sftp]
 - name: scanning expected input files
   stat: path={{ dp_home}}/data/{{ item }}
   register: filespresent
   with_items:
   - input/crcdc/refusing-list.csv
   - input/epiconcept/mapping-table.csv
+  - input/epiconcept/ocr_deid_ignore.txt
+  - input/easyocr/craft_mlt_25k.pth
+  - input/easyocr/latin_g2.pth
   - input/esis/esis_dicom_guid.parquet
   - input/hdh/p11_encryption_public.rsa
   - input/neo/extraction_neoscope.zip
-  - input/mammogram_words
   - output/cnam/duplicates_to_keep.csv
   - output/cnam/safe.zip
   - output/hdh/p11_transfer_private_key.rsa
@@ -60,10 +76,12 @@
   with_items:
   - input/crcdc/refusing-list.csv
   - input/epiconcept/mapping-table.csv
+  - input/epiconcept/ocr_deid_ignore.txt
+  - input/easyocr/craft_mlt_25k.pth
+  - input/easyocr/latin_g2.pth
   - input/esis/esis_dicom_guid.parquet
   - input/hdh/p11_encryption_public.rsa
   - input/neo/extraction_neoscope.zip
-  - input/mammogram_words
   - output/cnam/duplicates_to_keep.csv
   - output/cnam/safe.zip
   - output/hdh/p11_transfer_private_key.rsa
