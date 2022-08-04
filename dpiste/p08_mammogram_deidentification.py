@@ -186,9 +186,43 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         utils.cleandir(worker_indir)
         utils.cleandir(worker_outdir)
+        update_progress(uploaded, total2upload, outdir, id_worker, sftp)
         wait4hdh(sftph, sftpu, sftp, c, batch_size, sftp_limit)
         uploaded += 1
+    sftp.close()
+    c.close()
     return
+
+
+def p08_002_status_hdh(sftph: str, sftpu: str, nb_worker: int) -> None:
+    tmp_folder = utils.get_home('reports', '')
+    progress_folder = os.path.join(tmp_folder, 'progress')
+    c, sftp = renew_sftp(sftph, sftpu)
+    utils.cleandir(progress_folder, deldir=True) if os.path.exists(progress_folder) else None
+    get_folder_content(sftp, WORKER_FOLDER, tmp_folder, None, verbose=False)
+    status = {'progress': None, 'last_modifications': None}
+    status['progress'] = read_progress_files(progress_folder)
+    status['last_modifications'] = get_all_modifications(sftp)
+    
+    for i in range(nb_worker):
+        worker_name = f'worker-{i}'
+        last_mod = status['last_modifications'][worker_name]
+        progress = status['progress'][worker_name]
+        total_to_upload = status['progress']['total-to-upload']
+        log(f'WORKER {i}: Last mod. {last_mod} | Number of studies uploaded: {progress}')
+    total_uploaded = status['progress']['total-uploaded']
+    log(f'Total number of studies uploaded: {total_uploaded}')
+    sftp.close()
+    c.close()
+    utils.cleandir(progress_folder, deldir=True)
+    return
+
+
+def p08_003_reset_sftp(sftph: str, sftpu: str) -> None:
+    c, sftp = renew_sftp(sftph, sftpu)
+    utils.sftp_reset(sftp)
+    c.close()
+    sftp.close()
 
 
 def init_local_files(tmp_fol: str, id_worker: int):

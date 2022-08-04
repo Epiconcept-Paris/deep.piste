@@ -1,10 +1,12 @@
 import os
 import json
 import time
+import pytz
 import pandas as pd
 from tqdm import tqdm
 from paramiko.sftp_client import SFTPClient
 from fabric import Connection
+from datetime import datetime, timezone
 
 from dpiste.p11_hdh_encryption import p11_encrypt_hdh, p11_decrypt_hdh
 from dpiste.utils import sftp_cleandir, sftp_get_available_size, cleandir
@@ -14,6 +16,7 @@ ROOT_PATH = 'dpiste'
 WORKER_FOLDER = os.path.join(ROOT_PATH, 'progress')
 TMP_DIRNAME = os.path.join(ROOT_PATH, '.tmp')
 OK_DIRNAME = os.path.join(ROOT_PATH, 'screening')
+TIMEZONE = pytz.timezone("Europe/Paris")
 
 def init_distant_root(sftp: SFTPClient) -> None:
     """Initializes dpiste/ and dpiste/progress"""
@@ -216,7 +219,35 @@ def get_all_studies(sftp: SFTPClient, destination: str, id_worker: int = 0, spec
     return
 
 
-def get_folder_content(sftp: SFTPClient, folder: str, destination: str, specific_file: str) -> None:
+def read_progress_files(tmp_folder) -> dict:
+    progress = {}
+    total = 0
+    for file in os.listdir(tmp_folder):
+        file_path = os.path.join(tmp_folder, file)
+        with open(file_path, 'r') as f:
+            content = json.loads(f.read())
+            for i in range(4):
+                if str(i) in file:
+                    worker_name = f'worker-{i}'
+        progress[worker_name] = content['uploaded']
+        total += content['uploaded']
+    progress['total-uploaded'] = total
+    progress['total-to-upload'] = content['total']
+    return progress
+
+
+def get_all_modifications(sftp) -> dict:
+    modifications = {}
+    for attr in sftp.listdir_attr(path=WORKER_FOLDER):
+        for i in range(4):
+            if str(i) in attr.filename:
+                worker_name = f'worker-{i}'
+        date = datetime.fromtimestamp(attr.st_mtime, tz=TIMEZONE)
+        modifications[worker_name] = datetime.strftime(date, '%d-%m-%Y %H:%M:%S')
+    return modifications
+
+
+def get_folder_content(sftp: SFTPClient, folder: str, destination: str, specific_file: str, verbose=False) -> None:
     """Gets a whole folder from SFTP and put it in destination folder"""
     folder_remote_path = folder
     folder_local_path = os.path.join(destination, os.path.basename(folder))
@@ -225,7 +256,7 @@ def get_folder_content(sftp: SFTPClient, folder: str, destination: str, specific
         if specific_file == None or specific_file in file:
             file_remote_path = os.path.join(folder_remote_path, file)
             file_local_path = os.path.join(folder_local_path, file)
-            log(f"Getting {file_local_path}...")
+            log(f"Getting {file_local_path}...") if verbose else None
             sftp.get(file_remote_path, file_local_path)
     return
 
