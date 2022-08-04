@@ -151,10 +151,7 @@ def send2hdh_df(df: pd.DataFrame, outdir: str, filename: str,
 def send2hdh_study_content(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
     """Transfers study_dir files into the corresponding dir in the SFTP"""
     log(f'Transferring study data to HDH SFTP...')
-    i = 1 
     for file in tqdm(os.listdir(study_dir), ascii=True):
-        i = i + 1
-        log(f"sending {i}\n")
         unencrypted_filepath = os.path.join(study_dir, file)
         encrypted_filepath = os.path.join(study_dir, f'{file}.gpg')
         p11_encrypt_hdh(unencrypted_filepath, encrypted_filepath, rmold=True)

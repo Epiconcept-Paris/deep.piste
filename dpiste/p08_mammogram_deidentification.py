@@ -179,6 +179,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
         deidentify_mammograms_hdh(worker_indir, study_dir, sftp)
+        c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         send2hdh_study_content(study_dir, id_worker, sftp)
         uploaded = 1 if uploaded == 0 else uploaded
         update_progress(uploaded, total2upload, outdir, id_worker, sftp)
