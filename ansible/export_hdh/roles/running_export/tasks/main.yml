@@ -16,7 +16,7 @@
           export LC_ALL=en_US.UTF-8
           export LANGUAGE=en_US.UTF-8
           source {{ dp_code  }}/deep.piste/env/bin/activate
-          nohup python -m dpiste export hdh sftp -s {{ sftp_server }} -u {{ sftp_user }} -b 0 -l 150 -t {{ tmp_dir }} -i {{ play_hosts.index(inventory_hostname) }} -w {{ play_hosts|length }} > {{ dp_home }}/out.log 2> {{ dp_home }}/out.log < /dev/null & 
+          nohup python -m dpiste export hdh sftp -s {{ sftp_server }} -u {{ sftp_user }} -b 0 -l 50 -t {{ tmp_dir }} -i {{ play_hosts.index(inventory_hostname) }} -w {{ play_hosts|length }} > {{ dp_home }}/out.log 2> {{ dp_home }}/out.log < /dev/null & 
   args:
       executable: /bin/bash
   environment:
