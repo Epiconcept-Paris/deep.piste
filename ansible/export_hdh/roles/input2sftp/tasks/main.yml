@@ -20,7 +20,7 @@
 - name: emptying sftp
   shell: |
           source {{ dp_code  }}/deep.piste/env/bin/activate
-          python -m dpiste export hdh sftp -s {{ sftp_server }} -u {{ sftp_user }} -b 0 -l 150 -t {{ tmp_dir }} -i 0 -w 4 -r TRUE 
+          python -m dpiste export hdh sftp-reset -s {{ sftp_server }} -u {{ sftp_user }}
   args:
       executable: /bin/bash
   environment:
