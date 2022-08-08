@@ -3,6 +3,7 @@ import numpy as np
 import zipfile
 import datetime
 import os
+import hashlib
 from . import utils
 from .. import utils as dputils
 
@@ -34,11 +35,19 @@ def neo_df(name, dfs = {}):
 def add_random_id(df):
   mapping_path = dputils.get_home("data", "input", "epiconcept", "mapping-table.csv")
   if not os.path.exists(mapping_path):
+    raise ValueError("The mapping table has not been found and mapping table reconstruction has been deactivated (on code). Please find the mapping table")
     dputils.log(f"Creating random ids!!! Please backup {mapping_path}")
     random_id = pd.Series(np.random.permutation(df.shape[0]))
     bci = pd.Series(df["id_bci"].to_numpy())
     mapping = pd.concat({"id_bci":bci, "id_random":random_id}, axis = 1)
     mapping.to_csv(mapping_path, index = False)
+  else:
+    # Validate the expected md5
+    md5hash = hashlib.md5(open(mapping_path,'rb').read()).hexdigest()
+    expected_hash = '143dc8dbf1815ee5fc158be350e22086'
+    if md5hash != expected_hash:
+      raise ValueError(f"The mapping table may not be the right one. The expected md5 hash is '{expected_hash}'")
+
   remap = remap = pd.read_csv(mapping_path).set_index("id_bci")
   return df.join(remap, "id_bci")
 
