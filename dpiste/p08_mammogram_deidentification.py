@@ -131,7 +131,6 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
     if reset_sftp:
         log('-r option enabled : erasing all information on SFTP', logtype=1)
         utils.sftp_reset(sftp)
-        return
     df = depistage_pseudo()
     df = filter_screening(df) if screening_filter else df
     studies = build_studies(df, date_mammo_only=True) if screening_filter else build_studies(df)
