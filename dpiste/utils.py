@@ -128,12 +128,13 @@ def sftp_reset(sftp: SFTPClient, path: str = None) -> None:
   """Clean an entire SFTP server from root"""
   path = '.' if path is None else path
   for file in sftp.listdir_attr(path):
-    filepath = os.path.join(path, file.filename)
-    if not stat.S_ISDIR(file.st_mode):
-      sftp.remove(filepath)
-    else:
-      sftp_reset(sftp, path=filepath)
-      sftp.rmdir(filepath)
+    if not file.filename.startswith("."):
+      filepath = os.path.join(path, file.filename)
+      if not stat.S_ISDIR(file.st_mode):
+        sftp.remove(filepath)
+      else:
+        sftp_reset(sftp, path=filepath)
+        sftp.rmdir(filepath)
   return
 
 def sftp_cleandir(sftp: SFTPClient, dirpath: str, deldir=False) -> None:
