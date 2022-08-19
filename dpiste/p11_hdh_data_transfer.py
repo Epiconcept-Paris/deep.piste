@@ -118,15 +118,16 @@ def wait_until(sftph: str, sftpu: str, sftp: SFTPClient, c: Connection,
     while folders_amount >= batch_size and batch_size != 0 or sftp_available_size < sftp_limit:
         if display_max_msg:
             log('Waiting for files to be deleted in HDH SFTP', logtype=1)
-            sftp.close()
-            sftp_available_size = sftp_get_available_size()
-            c, sftp = renew_sftp(sftph, sftpu, None, c)
-            logtype = 1 if sftp_available_size < sftp_limit else 0
+        sftp.close()
+        sftp_available_size = sftp_get_available_size()
+        c, sftp = renew_sftp(sftph, sftpu, None, c)
+        logtype = 1 if sftp_available_size < sftp_limit else 0
+        if display_max_msg:
             log(f'{sftp_available_size} GB available in SFTP', logtype=logtype)
             display_max_msg = False
         sftp.close()
         c.close()
-        time.sleep(10)
+        time.sleep(60*30)
         c, sftp = renew_sftp(sftph, sftpu)
         folders_amount = len(sftp.listdir(path=OK_DIRNAME))
     sftp.close()
