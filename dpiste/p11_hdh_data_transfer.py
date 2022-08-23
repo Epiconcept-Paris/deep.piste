@@ -188,6 +188,8 @@ def tmp2ok(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
             ok_filepath = os.path.join(ok_study_path, f.filename)
             sftp.rename(tmp_filepath, ok_filepath)
             done = True
+        except:
+          pass
         tries = tries - 1
     return
 
