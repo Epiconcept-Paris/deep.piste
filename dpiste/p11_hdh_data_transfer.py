@@ -169,12 +169,26 @@ def tmp2ok(study_dir: str, id_worker: int, sftp: SFTPClient) -> None:
     """Moves SFTP tmp/study_dir to ok/study_dir"""
     tmp_study_path = os.path.join(TMP_DIRNAME, str(id_worker), study_dir)
     ok_study_path = os.path.join(OK_DIRNAME, str(id_worker), study_dir)
-    if study_dir not in sftp.listdir(path=os.path.join(OK_DIRNAME, f'{id_worker}')):
-        sftp.mkdir(ok_study_path)
     for f in sftp.listdir_attr(tmp_study_path):
-        tmp_filepath = os.path.join(tmp_study_path, f.filename)
-        ok_filepath = os.path.join(ok_study_path, f.filename)
-        sftp.rename(tmp_filepath, ok_filepath)
+      done = False
+      tries = 2
+      while tries >= 0 and not done:
+        if tries < 2:
+          log(f'Retrying moving file to {ok_study_path}. Tries remaining: {tries}')
+        try:
+          sftp.mkdir(os.path.join(OK_DIRNAME, f'{id_worker}'))
+        except:
+          pass
+        try:
+          sftp.mkdir(ok_study_path)
+        except:
+          pass
+        try:
+            tmp_filepath = os.path.join(tmp_study_path, f.filename)
+            ok_filepath = os.path.join(ok_study_path, f.filename)
+            sftp.rename(tmp_filepath, ok_filepath)
+            done = True
+        tries = tries - 1
     return
 
 
