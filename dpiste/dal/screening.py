@@ -33,6 +33,7 @@ def screening_path(name): return dputils.get_home("data", "transform", "screenin
 def screening_df(name, dfs = {}): 
   if dfs.get(name) is None:
     if os.path.exists(screening_path(f"{name}_orig")):
+      ma_var = screening_path(f"{name}_orig")
       df = pd.read_parquet(screening_path(f"{name}_orig"))
     else:
       df = calculate_df(name, dfs)
@@ -105,7 +106,7 @@ def calculate_df(name, dfs = {}):
       "id_bci",
       "id_event",
       "Date_Mammo",
-      "Age_Mammo",
+      #"Age_Mammo",
       "num_ref_Population",
       "id_assure_Population",
       "id_bci_Population",
@@ -122,7 +123,6 @@ def calculate_df(name, dfs = {}):
       "k_adicap",
       "k_adicap2"
     ]
-    
     for col in to_remove_cols:
       del ret[col]
     to_rename_cols = {

@@ -1,4 +1,5 @@
 import os
+import subprocess
 import stat
 from tkinter import Tk
 from tkinter import filedialog
@@ -88,14 +89,11 @@ def recursive_count_files(dir: str) -> int:
 def cleandir(dirlist: Union[str, list], deldir=False) -> None:
   if type(dirlist) == str:
     dirlist = [dirlist]
-  for repository in dirlist:
-    for root, dirs, files in os.walk(repository):
-      for file in files:
-        os.remove(os.path.join(root, file))
-    for root, dirs, files in os.walk(repository):
-      for d in dirs:
-        os.rmdir(os.path.join(root, d))
-    os.rmdir(repository) if deldir else None
+  for directory in dirlist:
+    for path in os.scandir(directory):
+      full_path = os.path.join(directory, path.name)
+      cleandir(full_path, deldir=True) if os.path.isdir(full_path) else os.remove(full_path)
+    os.rmdir(directory) if deldir else None
 
 def avg_mammogram_size(dirpath: str) -> float:
   """Calculate the avg size of a mammogram (in bytes) based on a folder of studies"""
@@ -115,6 +113,10 @@ def do_calculate_avg_file_size(dirpath: str, extension: str = '') -> tuple:
       nb_files += res[1]
   return s, nb_files
 
+def reset_local_files(tmp_fol: str) -> None:
+  """Reset local files"""
+  cleandir(tmp_fol) if os.path.exists(tmp_fol) else None
+
 def sftp_recursive_count_files(path: str, sftp: SFTPClient) -> int:
   items = sftp.listdir(path)
   nb = 0
@@ -126,12 +128,13 @@ def sftp_reset(sftp: SFTPClient, path: str = None) -> None:
   """Clean an entire SFTP server from root"""
   path = '.' if path is None else path
   for file in sftp.listdir_attr(path):
-    filepath = os.path.join(path, file.filename)
-    if not stat.S_ISDIR(file.st_mode):
-      sftp.remove(filepath)
-    else:
-      sftp_reset(sftp, path=filepath)
-      sftp.rmdir(filepath)
+    if (not file.filename.startswith(".")) or file.filename.startswith(".tmp"):
+      filepath = os.path.join(path, file.filename)
+      if not stat.S_ISDIR(file.st_mode):
+        sftp.remove(filepath)
+      else:
+        sftp_reset(sftp, path=filepath)
+        sftp.rmdir(filepath)
   return
 
 def sftp_cleandir(sftp: SFTPClient, dirpath: str, deldir=False) -> None:
@@ -147,10 +150,40 @@ def sftp_cleandir(sftp: SFTPClient, dirpath: str, deldir=False) -> None:
 def sftp_calculate_size(sftp: SFTPClient, dirpath: str = '.') -> int:
   """Calculate the size of a SFTP folder including all of its subdirectories"""
   sftp_size = 0
-  for file in sftp.listdir_attr(dirpath):
-    filepath = os.path.join(dirpath, file.filename)
-    if not stat.S_ISDIR(file.st_mode):
-      sftp_size += file.st_size
-    else:
-      sftp_size += sftp_calculate_size(sftp, filepath)
+  # We remove .tmp/* files from the calcul because if Worker 0 wants to
+  # read a file in tmp/1/ but Worker 1 deletes it at the same time : crash
+  if not ".tmp" in dirpath:
+    for file in sftp.listdir_attr(dirpath):
+      filepath = os.path.join(dirpath, file.filename)
+      if not stat.S_ISDIR(file.st_mode):
+        sftp_size += file.st_size
+      else:
+        sftp_size += sftp_calculate_size(sftp, filepath)
   return sftp_size
+
+def sftp_get_available_size() -> float:
+  """Get available size of the SFTP"""
+  echo = ['echo', 'df', '/space/home/hdh-deeppiste']
+  sftp = ['sftp', '-b', '-', 'HDH_deeppiste@procom2.front2']
+  awk = ['awk', '{print $3/1024/1024}']
+  tail = ['tail', '-n', '1']
+
+  p1 = subprocess.Popen(echo, stdout=subprocess.PIPE)
+  p2 = subprocess.Popen(sftp, stdin=p1.stdout, stdout=subprocess.PIPE)
+  p1.stdout.close()
+  p3 = subprocess.Popen(awk, stdin=p2.stdout, stdout=subprocess.PIPE)
+  p2.stdout.close()
+  p4 = subprocess.Popen(tail, stdin=p3.stdout, stdout=subprocess.PIPE)
+  p3.stdout.close()
+
+  output = p4.communicate()[0].decode('utf8')
+  output = output.replace('\n', '') if '\n' in output else output  
+  for p in [p1, p2, p3, p4]:
+    p.kill()
+
+  try:
+    sftp_available_size = float(output)
+  except ValueError:
+    raise ValueError(f'Expected type float is str (value=[{output}]). SFTP might be unreachable.')
+  
+  return sftp_available_size

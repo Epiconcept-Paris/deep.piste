@@ -1,0 +1,31 @@
+---
+- name: nodes setup
+  hosts: [nodes]
+  gather_facts: false
+  become: true
+  roles: 
+  - node 
+  environment:
+    TMPDIR: "{{ tmp_dir }}"
+    HTTPS_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
+    HTTP_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
+    http_proxy: "{{ proxy_host }}:{{ proxy_port }}"
+    https_proxy: "{{ proxy_host }}:{{ proxy_port }}"
+- name: data is updated on the sftp
+  hosts: [main] 
+  gather_facts: false
+  become: false
+  roles: 
+  - input2sftp
+- name: data is obtained from the sftp
+  hosts: [secondary] 
+  gather_facts: false
+  become: false
+  roles: 
+  - sftp2input
+- name: The data export is running
+  hosts: [nodes] 
+  gather_facts: false
+  become: true
+  roles: 
+  - running_export 

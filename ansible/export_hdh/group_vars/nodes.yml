@@ -1,0 +1,30 @@
+#passwords
+ansible_become_pass: "{{lookup('passwordstore', 'infra/bgdt')}}"
+ssh_passphrase: "{{lookup('passwordstore', 'infra/sshpassphrase')}}"
+ssh_epi_transfer_passphrase: "{{lookup('passwordstore', 'epitools/hdh_epi_transfer_passphrase')}}"
+
+#general
+proxy_host: proxy.admin2.oxa.tld
+proxy_port: 3128 
+tmp_dir: "/space/tmp"
+ssh_user: francisco
+ssh_tmp_key: "tempkey"
+ssh_source_key: "/home/fod/.ssh/id_rsa"
+ssh_source_key_pub: "/home/fod/.ssh/id_rsa.pub"
+ssh_tmp_key_remote: "/home/{{ssh_user}}/.ssh/{{ssh_tmp_key}}"
+ssh_tmp_key_remote_pub: "/home/{{ssh_user}}/.ssh/{{ssh_tmp_key}}.pub"
+python_path: /space/hadoop/lib/python-3.6.7-lib/bin
+python_bin: /space/hadoop/lib/python-3.6.7-lib/bin/python3.6
+
+#deep.piste
+dp_home: /space/Work/francisco/deep.piste
+dp_code: /space/Work/francisco/deep.piste
+sftp_server: procom2.front2
+sftp_user: HDH_deeppiste
+
+# calculated
+dpiste_git: "{{ dp_code }}/deep.piste"
+kskit_git: "{{ dp_code }}/kskit"
+input_path: "{{ dp_home }}/data/input"
+transform_path: "{{ dp_home }}/data/transform"
+out_path: "{{ dp_home }}/data/output"

@@ -1,0 +1,88 @@
+---
+- name: input folder exists
+  file:
+    path: "{{ dp_home }}/data/{{ item }}"
+    state: directory
+    mode: u=rwx,g=,o=,g+s
+  become_user: "{{ ssh_user }}"
+  with_items:
+  - input
+  - input/crcdc
+  - input/epiconcept
+  - input/easyocr
+  - input/esis
+  - input/hdh
+  - input/neo
+  - output
+  - output/cnam
+  - output/hdh
+  tags: [sftp]
+- name: emptying sftp
+  shell: |
+          source {{ dp_code  }}/deep.piste/env/bin/activate
+          python -m dpiste export hdh sftp-reset -s {{ sftp_server }} -u {{ sftp_user }}
+  args:
+      executable: /bin/bash
+  environment:
+    DP_HOME: "{{ dp_home }}"
+    DP_KEY_PASSPHRASE: "{{ ssh_epi_transfer_passphrase }}"
+  become_user: "{{ ssh_user }}"
+  tags: [sftp]
+- name: ensuring folders exists on sftp
+  shell: |
+          echo mkdir input_data{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
+  become_user: "{{ ssh_user }}"
+  failed_when: False
+  with_items:
+  - 
+  - /input
+  - /input/crcdc
+  - /input/epiconcept
+  - /input/easyocr
+  - /input/esis
+  - /input/hdh
+  - /input/neo
+  - /output
+  - /output/cnam
+  - /output/hdh
+  tags: [sftp]
+- name: scanning expected input files
+  stat: path={{ dp_home}}/data/{{ item }}
+  register: filespresent
+  with_items:
+  - input/crcdc/refusing-list.csv
+  - input/epiconcept/mapping-table.csv
+  - input/epiconcept/ocr_deid_ignore.txt
+  - input/easyocr/craft_mlt_25k.pth
+  - input/easyocr/latin_g2.pth
+  - input/esis/esis_dicom_guid.parquet
+  - input/hdh/p11_encryption_public.rsa
+  - input/neo/extraction_neoscope.zip
+  - output/cnam/duplicates_to_keep.csv
+  - output/cnam/safe.zip
+  - output/hdh/p11_transfer_private_key.rsa
+  - output/hdh/p11_transfer_public_key.rsa
+  tags: [sftp]
+- name: fail if some expected file is missing
+  fail: msg="a needed file could not be found on head node"
+  when: not item.stat.exists
+  with_items: "{{ filespresent.results }}"
+  tags: [sftp]
+- name: puting input data into sftp
+  shell: |
+          echo put -r {{ dp_home }}/data/{{ item }} input_data/{{ item  }} | sftp -o StrictHostKeyChecking=no -b - {{ sftp_user }}@{{ sftp_server }}  
+  become_user: "{{ ssh_user }}"
+  tags: [sftp]
+  with_items:
+  - input/crcdc/refusing-list.csv
+  - input/epiconcept/mapping-table.csv
+  - input/epiconcept/ocr_deid_ignore.txt
+  - input/easyocr/craft_mlt_25k.pth
+  - input/easyocr/latin_g2.pth
+  - input/esis/esis_dicom_guid.parquet
+  - input/hdh/p11_encryption_public.rsa
+  - input/neo/extraction_neoscope.zip
+  - output/cnam/duplicates_to_keep.csv
+  - output/cnam/safe.zip
+  - output/hdh/p11_transfer_private_key.rsa
+  - output/hdh/p11_transfer_public_key.rsa

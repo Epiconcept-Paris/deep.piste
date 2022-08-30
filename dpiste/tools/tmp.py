@@ -1,5 +1,6 @@
 import pandas as pd
 from mkhtmltable import build_table
+from dpiste.utils import get_home
 
 def get_table(fpath: str) -> pd.DataFrame:
     return pd.read_html(fpath)[0]
@@ -91,5 +92,5 @@ def remove_false_positives(allpaths: list) -> list:
 def count_diff_btw_str(s1, s2):
     return sum(1 for a, b in zip(s1, s2) if a != b) + abs(len(s1) - len(s2))
 
-df = get_table('/home/williammadie/DPISTE/Resources/rapport-all-dcm2.html')
+df = get_table(get_home('resources/rapport-all-dcm2.html'))
 find_attribute_with_different_path(df)

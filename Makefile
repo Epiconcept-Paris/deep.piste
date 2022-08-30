@@ -1,12 +1,16 @@
 SHELL = bash
 
 init:
-	if [ -f env ]; then\
+	if [ -d env ]; then\
 	  rm -r env;\
-	fi 
-	python3 -m venv env;
-	source env/bin/activate;
-	python3 -m pip install --upgrade pip;
+	fi;
+	if [ -f ${PYTHON} ]; then \
+	  ${PYTHON} -m venv env; \
+	else \
+	  python3 -m venv env;\
+	fi
+	source  env/bin/activate; \
+	python3 -m pip install --upgrade pip; \
 	python3 -m pip install --upgrade setuptools wheel twine
 
 install-dependencies:

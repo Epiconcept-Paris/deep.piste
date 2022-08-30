@@ -5,25 +5,23 @@ from dpiste import utils
 from kskit.dicom2png import dicom2narray, narray2dicom
 from kskit.test_deid_mammogram import *
 from kskit.test_df2dicom import test_df2dicom
+from kskit.dicom.deid_mammogram import load_authorized_words
 
 
 def test_OCR(font, size, blur, repetition, indir = None, outdir = None):    
     """
     Evaluates the OCR package abilities. It generates and adds random texts to 
-    test images and then treats them with the OCR module.
+    test images and then processes them with the OCR module.
     """
     start_time = time.time()
     #Default values
-    utils.get_home('data', 'input', 'test_deid_ocr','')
-    utils.get_home('data','output','test_deid_ocr','')
-    utils.get_home('data','transform','test_deid_ocr','')
     if indir == None:
-        indir = os.environ.get('DP_HOME') + '/data/input/test_deid_ocr'
+        indir = utils.get_home('data', 'input', 'test_deid_ocr','')
     if outdir == None:
-        outdir = os.environ.get('DP_HOME') + '/data/output/test_deid_ocr'
+        outdir = utils.get_home('data','output','test_deid_ocr','')
 
     pkg_dir, this_filename = os.path.split(__file__)
-    PATH_FONTS = os.path.join(pkg_dir, "data/resources/fonts/")
+    PATH_FONTS = os.path.join(pkg_dir, 'data', 'resources', 'fonts')
     
     if font is None:
         font = ['FreeMono.ttf']
@@ -35,22 +33,18 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
         repetition = 1
 
     check_resources(PATH_FONTS, font, size, blur)
-
+    log(f'Words ignored by OCR: {load_authorized_words()}')
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
     
     pathname = indir + "/**/*"
     list_dicom = glob.glob(pathname, recursive=True)
     list_dicom = sorted(list_dicom)
-    list_dicom = []
-    for root, dirs, files in os.walk(indir):
-        for f in files:
-            list_dicom.append(os.path.join(root, f))
     
     if not list_dicom:
-        raise ValueError(indir + " seems to be empty or does not exist") 
+        raise ValueError(f'{indir} seems to be empty or does not exist') 
     
-    list_chosen = []
+    list_chosen, deleted_words = [], []
     result = ""
 
     #Tests for false positives
@@ -79,7 +73,7 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
                     test_words_keep = test_words
                     (pixels, words_array, test_words) = add_words_on_image(
                         pixels, test_words, size[index_size], 
-                        font=(PATH_FONTS + font[index_font]), blur=blur[index_blur]
+                        font=(os.path.join(PATH_FONTS, font[index_font])), blur=blur[index_blur]
                         )
 
                     img = Image.fromarray(pixels)
@@ -96,6 +90,8 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
                     ocr_data = get_text_areas(pixels)
                     if ocr_data is None:
                         ocr_data = []
+                    else:
+                        deleted_words.extend([data[1] for data in ocr_data])
                     (ocr_recognized_words, total_words) = compare_ocr_data_and_reality(
                         test_words, words_array, ocr_data
                         )
@@ -109,14 +105,9 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
                         total_words, ocr_recognized_words, tp, tn, fn
                         )
 
-                    if outdir.endswith("/"):
-                        output_path = outdir  + os.path.basename(file_path)
-                        output_ds = outdir + os.path.basename(file_path) + ".txt"
-                        output_summary = outdir + "summary.log"
-                    else:
-                        output_path = outdir  + '/' + os.path.basename(file_path)
-                        output_ds = outdir + "/" + os.path.basename(file_path) + ".txt"
-                        output_summary = outdir + "/summary.log"
+                    output_path = os.path.join(outdir, os.path.basename(file_path))
+                    output_ds = os.path.join(outdir, f'{os.path.basename(file_path)}.txt')
+                    output_summary = os.path.join(outdir, 'summary.log')
                     
                     output_path = file_path.replace(indir, outdir)
                     output_ds = file_path.replace(indir, outdir)
@@ -156,11 +147,11 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
 
 
 
-    time_taken = time.time() - start_time
-    with open(outdir + '/test_summary.log', 'w') as f:
-        f.write(
-          str(round(time_taken/60)) + " minutes taken to process all images.\n" + \
-          summary)
+    duration = int((time.time() - start_time) / 60)
+    with open(os.path.join(outdir, 'test_summary.log'), 'w') as f:
+        f.write(f"Duration of exexcution: {duration}.\n" + summary)
+    with open(os.path.join(outdir, 'deleted_words'), 'w') as f:
+        list(map(lambda x: f.write(f'{x}\n'), deleted_words))
 
 
 def prep_test_df2dicom(indir, tmp_dir):

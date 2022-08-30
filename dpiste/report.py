@@ -29,7 +29,7 @@ def generate(source = None, dest = None, report = None):
   Path(dest).mkdir(parents=False, exist_ok=True)
 
   #setting up the jupyter kernel name
-  ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+  ep = ExecutePreprocessor(timeout=900, kernel_name='python3')
   c = Config()
 
   # Configure our tag removal

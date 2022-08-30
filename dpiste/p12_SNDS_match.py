@@ -37,3 +37,28 @@ def p12_003_safe_duplicates_to_keep():
   dest = dputils.get_home("data", "output", "cnam", "duplicates_to_keep.csv")
   df = dal.cnam.duplicates_to_keep()
   df.to_csv(dest, encoding='utf-8')
+
+def p12_004_safe_file():
+  file_name = dputils.get_home("data", "output", "cnam", "safe.zip")
+  if os.path.exists(file_name):
+    with zipfile.ZipFile(file_name) as zipf:
+      with zipf.open('deep-piste-test.safe') as file:
+        lines = file.readlines()[2:-2]
+    nnis2, ids_random = [], []
+    for line in lines:
+      nni2, id_random = line.decode('utf-8').split()
+      nnis2.append(nni2)
+      ids_random.append(id_random)
+    prefix = os.path.commonprefix(ids_random)
+    ids_random = [int(id_random.replace(prefix, '')) for id_random in ids_random]
+    nnis2 = [nni2[-13:] for nni2 in nnis2]
+    data = {'pk': ids_random, 'NNI_2': nnis2, 'id_random': ids_random}
+    print('Getting Safe file...')
+    df = pd.DataFrame(data).set_index('pk')
+    df['NNI_2'] = df['NNI_2'].astype(str)
+  else:
+    print('Getting CNAM Mapping file...')
+    df = dal.screening.cnam(dfs0)
+  return df
+
+

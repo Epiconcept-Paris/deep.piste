@@ -10,7 +10,7 @@ import hashlib
 def p11_getGpg():
   path=utils.get_home("data", "transform","hdh", "gpg")
   os.makedirs(name = path, exist_ok = True)
-  return gnupg.GPG(gnupghome = path, verbose = True)
+  return gnupg.GPG(gnupghome=path, use_agent=True, verbose=False)
 
 def p11_000_generate_fake_transfer_keys(passphrase):
   p11_generate_keys(
@@ -168,7 +168,7 @@ def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh"
 def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p11_transfer_private_key.rsa")
 def p11_fake_public_transfer_key_path(): return utils.get_home("data", "output","hdh","fake_crypt", "p11_fake_transfer_public_key.rsa")
 def p11_fake_private_transfer_key_path(): return utils.get_home("data", "output","hdh", "fake_crypt", "p11_fake_transfer_private_key.rsa")
-def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_hdh_public.rsa")
+def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_encryption_public.rsa")
 def p11_fake_hdh_public_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_public.rsa")
 def p11_fake_hdh_priv_key_path(): return utils.get_home("data", "output", "hdh", "fake_crypt", "p11_fake_hdh_priv.rsa")
 def p11_test_tocrypt_file_path(): return utils.get_home("data", "output","hdh", "crypto_test.csv.gzip")
@@ -224,7 +224,7 @@ def p11_encrypt_hdh(unenc_file, enc_file, rmold=False):
   with open(unenc_file, 'rb') as f:
     to_crypt = f.read()
   #Doing encryption
-  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], always_trust=True)
+  encrypted_data = gpg.encrypt(to_crypt, encrypt_key.fingerprints[0], sign=signing_key.fingerprints[0], always_trust=True, passphrase=os.environ.get('DP_KEY_PASSPHRASE'))
   # If encryption doesn't work, check that you've run "export GPG_TTY=$(tty)"
   if not encrypted_data.ok:
     raise ValueError(f'Encryption failed: {encrypted_data.status}')
@@ -244,10 +244,6 @@ def p11_decrypt_hdh(enc_file, unenc_file):
     unencrypted_file.write(str(decrypted_data))
   return
 
-def p11_public_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
-def p11_private_transfer_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_private_key.rsa")
-def p11_public_hdh_key_path(): return utils.get_home("data", "output","hdh","p_11_transfer_public_key.rsa")
-# def p11_public_hdh_key_path(): return utils.get_home("data", "input", "hdh", "p11_encryption_public.rsa")
 def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
 
 

@@ -1,3 +1,6 @@
+ansible/export_hdh/hosts
+ansible/export_hdh/ansible.cfg
+
 scala/lib_managed
 *.swo
 *.swp

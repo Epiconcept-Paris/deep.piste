@@ -275,9 +275,25 @@ def main(a):
   hdh_sftp_parser.add_argument("-s", "--server-sftp", required=True, help="Hostname of the hdh dedicated sftp")
   hdh_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
   hdh_sftp_parser.add_argument("-t", "--tmp-folder", required=True, help="Temporary storage before files are send to the sftp", type=str)
-  hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default = 20, type=int)
-  hdh_sftp_parser.add_argument("-c","--server-capacity", required=True, help="Server capacity in GB", type=int)
+  hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default=20, type=int)
+  hdh_sftp_parser.add_argument("-l", "--sftp-limit", required=True, help="Free space to leave at any time on the SFTP (in GB)", type=float)
+  hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default=0, type=int)
+  hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
+  hdh_sftp_parser.add_argument("-r", "--reset-sftp", required=False, help="Erase all data on the SFTP server", default=False, type=bool)
   hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
+
+  # -- sftp-status
+  hdh_status_sftp_parser = hdhout_subs.add_parser("sftp-status", help = "Shows SFTP info")
+  hdh_status_sftp_parser.add_argument("-s", "--server-sftp", required=True, help="Hostname of the hdh dedicated sftp")
+  hdh_status_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
+  hdh_status_sftp_parser.add_argument("-w", "--nb-worker", required=True, help="Amount of Workers", type=int)
+  hdh_status_sftp_parser.set_defaults(func = do_show_status_hdh)
+
+  # -- sftp-reset
+  hdh_reset_sftp_parser = hdhout_subs.add_parser("sftp-reset", help = "Deletes all files on SFTP server (Irreversible)")
+  hdh_reset_sftp_parser.add_argument("-s", "--server-sftp", required=True, help="Hostname of the hdh dedicated sftp")
+  hdh_reset_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
+  hdh_reset_sftp_parser.set_defaults(func = do_reset_sftp)
 
 #calling handlers
   func = None
@@ -372,7 +388,7 @@ def do_safe_test_file(args, *other): #kwargs ,
 def do_send_crypted_hdh_test(args, *other):
   phrase = getpass.getpass(prompt='Please type private key passphrase for sender:', stream=None) 
   p11_001_generate_transfer_keys(passphrase = phrase)
-  p11_003_encrypt_hdh_extraction_test(passphrase = phrase) 
+  p11_003_encrypt_hdh_extraction_test() 
 
 def do_fake_crypted_test(args, *other):
   sender_phrase = getpass.getpass(prompt='Please type fake private key passphrase for sender:', stream=None) 
@@ -388,9 +404,22 @@ def do_send_crypted_hdh(args, *other):
     sftph = args.server_sftp,
     sftpu = args.username_sftp,
     batch_size = args.batch_size,
-    server_capacity = args.server_capacity,
-    tmp_fol = args.tmp_folder
+    sftp_limit = args.sftp_limit,
+    tmp_fol = args.tmp_folder,
+    id_worker = args.id_worker,
+    nb_worker = args.nb_worker,
+    reset_sftp = args.reset_sftp
     )
+
+def do_show_status_hdh(args, *other):
+  p08_002_status_hdh(
+    sftph = args.server_sftp,
+    sftpu = args.username_sftp,
+    nb_worker = args.nb_worker
+  )
+
+def do_reset_sftp(args, *other):
+  p08_003_reset_sftp(sftph = args.server_sftp, sftpu = args.username_sftp)
 
 def do_safe_file(args, *other): #kwargs ,
   p12_002_safe(
