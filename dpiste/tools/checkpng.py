@@ -4,21 +4,18 @@ import os
 import pydicom
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
 from dpiste.utils import recursive_count_files
 
 
 def checkfiles(path: str, tmpdir: str) -> None:
     mean, nb_files = 0, 0
     total_files = recursive_count_files(path)
-    pbar = tqdm(total=total_files)
     for root, dirs, files in os.walk(path):
         for file in files:
             pixels = get_nparray(os.path.join(root, file))
             saved_pixels = write_and_get_png(pixels, tmpdir)
             mean += compare_arrays(pixels, saved_pixels)
             nb_files += 1
-            pbar.update(1)
     print(f'Mean: {mean / nb_files * 100}')
     return
 

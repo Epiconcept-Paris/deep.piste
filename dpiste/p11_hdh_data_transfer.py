@@ -2,7 +2,6 @@ import os
 import json
 import time
 import pandas as pd
-from tqdm import tqdm
 from paramiko.sftp_client import SFTPClient
 from fabric import Connection
 
@@ -130,7 +129,7 @@ def send2hdh_study_content(study_dir: str, sftp: SFTPClient) -> None:
     """Transfers study_dir files into the corresponding dir in the SFTP"""
     log(f'Transferring study data to HDH SFTP...')
     
-    for file in tqdm(os.listdir(study_dir), ascii=True):
+    for file in os.listdir(study_dir):
         unencrypted_filepath = os.path.join(study_dir, file)
         encrypted_filepath = os.path.join(study_dir, f'{file}.bz2')
         p11_encrypt_hdh(unencrypted_filepath, encrypted_filepath, rmold=True)

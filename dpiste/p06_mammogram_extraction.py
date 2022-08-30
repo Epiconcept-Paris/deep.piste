@@ -10,7 +10,6 @@ import numpy as np
 from dpiste import report
 from . import dal
 from . import utils
-from tqdm import tqdm
 from kskit.dicom.utils import log
 
 def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = None, page_size = 10, filter_field = None, filter_value = None):
@@ -38,10 +37,8 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
   nb_studies = 0
   if limit is None:
     log("Extracting all Studies...")
-    pbar = tqdm(total=len(uids))
   else:
     log(f"Extracting {limit} Studies...")
-    pbar = tqdm(total=limit)
   for page in range(0, pages):
     chunk_uids = [uid for i, uid in enumerate(uids) if i % chunks == page - 1]
 
@@ -56,7 +53,6 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
             os.makedirs(dest)
           kskit.dicom.get_dicom(key=uid, dest=dest, server=server, port=port, title=title, retrieveLevel=retrieveLevel, silent=True)
           nb_studies += 1
-          pbar.update(1)
         else:
           break
 
@@ -65,9 +61,7 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
           os.makedirs(dest)
         kskit.dicom.get_dicom(key=uid, dest=dest, server=server, port=port, title=title, retrieveLevel=retrieveLevel, silent=True)
         nb_studies += 1
-        pbar.update(1)
 
-  pbar.close()
   log("Producing consolidated dicom dataframe")
   dicom_dir = utils.get_home("input", "dcm4chee", "dicom")
   df = kskit.dicom.dicom2df.dicom2df(dicom_dir)
