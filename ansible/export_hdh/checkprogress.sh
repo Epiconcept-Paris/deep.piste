@@ -1,1 +1,5 @@
-ssh bgdth1.oxa 'echo ls -l /dpiste/progress | sftp -b - HDH_deeppiste@procom2.front2'
+ssh bgdth1.oxa 'echo get dpiste/progress/worker3_progress.json wp3.json | sftp -b - HDH_deeppiste@procom2.front2'
+ssh bgdth1.oxa 'echo get dpiste/progress/worker2_progress.json wp2.json | sftp -b - HDH_deeppiste@procom2.front2'
+ssh bgdth1.oxa 'echo get dpiste/progress/worker1_progress.json wp1.json | sftp -b - HDH_deeppiste@procom2.front2'
+ssh bgdth1.oxa 'echo get dpiste/progress/worker0_progress.json wp0.json | sftp -b - HDH_deeppiste@procom2.front2'
+ssh bgdth1.oxa 'source /space/Work/francisco/deep.piste/deep.piste/env/bin/activate;python dpreport.py'
