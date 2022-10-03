@@ -191,6 +191,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         uploaded += 1
     sftp.close()
     c.close()
+    log('All done!')
     return
 
 
