@@ -228,8 +228,8 @@ def p11_encrypt_hdh(unenc_file, enc_file, rmold=False):
   # If encryption doesn't work, check that you've run "export GPG_TTY=$(tty)"
   if not encrypted_data.ok:
     raise ValueError(f'Encryption failed: {encrypted_data.status}')
-  with open(enc_file, 'w') as crypted_file:
-    crypted_file.write(str(encrypted_data))
+  with open(enc_file, 'wb') as crypted_file:
+    crypted_file.write(str(encrypted_data.data))
   os.remove(unenc_file) if rmold else None
 
 
@@ -240,8 +240,8 @@ def p11_decrypt_hdh(enc_file, unenc_file):
     decrypted_data = gpg.decrypt(crypted_data)
   if not decrypted_data.ok:
     raise ValueError(f'Decryption failed: {decrypted_data.status}')
-  with open(unenc_file, 'w') as unencrypted_file:
-    unencrypted_file.write(str(decrypted_data))
+  with open(unenc_file, 'wb') as unencrypted_file:
+    unencrypted_file.write(str(decrypted_data.data))
   return
 
 def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
