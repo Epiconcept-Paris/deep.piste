@@ -229,7 +229,7 @@ def p11_encrypt_hdh(unenc_file, enc_file, rmold=False):
   if not encrypted_data.ok:
     raise ValueError(f'Encryption failed: {encrypted_data.status}')
   with open(enc_file, 'wb') as crypted_file:
-    crypted_file.write(str(encrypted_data.data))
+    crypted_file.write(encrypted_data.data)
   os.remove(unenc_file) if rmold else None
 
 
@@ -241,7 +241,7 @@ def p11_decrypt_hdh(enc_file, unenc_file):
   if not decrypted_data.ok:
     raise ValueError(f'Decryption failed: {decrypted_data.status}')
   with open(unenc_file, 'wb') as unencrypted_file:
-    unencrypted_file.write(str(decrypted_data.data))
+    unencrypted_file.write(decrypted_data.data)
   return
 
 def p11_test_crypted_path(): return utils.get_home("data", "output", "hdh", "p11_test_crypted.png")
