@@ -7,7 +7,7 @@ with open('README.md') as f:
 
 setup(
     name='deep-piste',
-    version='0.0.17',
+    version='0.0.18',
     description='Evaluating the impact of IA on Breast Cancer Screening Program',
     long_description=readme,
     long_description_content_type='text/markdown',

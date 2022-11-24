@@ -27,6 +27,8 @@ def get_progress(outdir: str, studies: pd.DataFrame,
         id_worker: int, sftp: SFTPClient) -> int:
     """Retrieves progress.json and reads progress value if exists"""
     filename = f'worker{id_worker}_progress.json'
+    for i in range(0, 10)
+        log("")
     log(f'Getting previous progress from {filename}')
     if filename not in sftp.listdir(path=WORKER_FOLDER):
         log('Nothing found: Starting from scratch')
@@ -37,10 +39,11 @@ def get_progress(outdir: str, studies: pd.DataFrame,
         with open(local_path, 'r') as f:
             progress = json.loads(f.read())
         uploaded = progress['uploaded']
+
         study_id = studies['study_id'][uploaded]
         log([
             f'Found {filename}',
-            f'Resuming to last uploaded study: {uploaded}th study n°{study_id}'
+            f'Resuming to last uploaded study: {uploaded}/{len(studies)} study n°{study_id}'
         ])
         return uploaded
 
