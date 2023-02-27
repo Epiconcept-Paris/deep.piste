@@ -256,33 +256,101 @@ def deidentify_study_id(studies: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_studies(df: pd.DataFrame, date_mammo_only=False) -> pd.DataFrame:
-    """Returns a DataFrame made of 3 columns [id_random, date, study_id]"""
+    """
+    Extracts study information from a dataframe and returns a new dataframe with 3 columns [id_random, date, study_id].
+
+    Args:
+    - df: A pandas dataframe containing studies information.
+    - date_mammo_only: A boolean that indicates whether to filter only studies whose date is equal to the date in the 'Date_Mammo' column.
+
+    Returns:
+    - A new pandas dataframe with 3 columns [id_random, date, study_id].
+    """
     df = df[pd.notna(df['DICOM_Studies'])]
-    #df = df[df['BDI_Echographie'] == False]    # Removes echography from studies list
     data = []
     for index in df.index:
         dates = json.loads(df['DICOM_Studies'][index])
         if not date_mammo_only:
-            # Normal loop 
+            # Method n°1: Keep all studies 
             for date in dates:
                 for study_id in dates[date][0]:
                     row = []
                     row.extend([df['id_random'][index], date, study_id])
                 data.append(row)
         else:
-            # Integration Test loop
+            # Method n°2: Keep only studies whose date is equal to the date in the 'Date_Mammo' col (~1month)
             for k, v in dates.items():
                 for study_id in v[0]:
                     row = []
                     key_date = datetime.strptime(k, '%Y-%m-%d %H:%M:%S')
                     key_date = key_date.replace(hour=0, minute=0, second=0)
-                    if key_date in list(map(lambda d: datetime.strptime(str(d)[0:10], '%Y-%m-%d'), df['Date_Mammo'].values)):
-                        row.extend([df['id_random'][index], k, study_id])
+                    date_mammo = df["Date_Mammo"][index]
+                    month_delta = (date_mammo.year - key_date.year) * 12 + date_mammo.month - key_date.month
+                    if abs(month_delta) <= 1:
+                        row.extend([int(df['id_random'][index]), k, study_id])
                 data.append(row)
     studies = pd.DataFrame(data, columns = ['id_random', 'date', 'study_id'])
     studies = studies.drop_duplicates()
-    studies = studies.sort_values(by=['study_id'])
+    studies = studies.sort_values(by=['study_id'], ignore_index=True)
     return studies.dropna()
+
+
+def filter_depistage_pseudo(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Removes NaN studies from the dataframe and splits the studies to keep only the ones 
+    where the date equals the value in the 'Date_Mammo' column (~1 month).
+    
+    Args:
+        df (pandas.DataFrame): DataFrame containing DICOM studies information.
+    
+    Returns:
+        pandas.DataFrame: DataFrame with NaN studies removed and only studies where the date 
+        equals the value in the 'Date_Mammo' column.
+    """
+    df = df[pd.notna(df['DICOM_Studies'])]
+    # Apply function to each row (with axis=1)
+    # used copy() and result_type="expand" for preventing SetWithCopyWarning from pandas
+    df["DICOM_Study"] = df.copy().apply(lambda row: get_dicom(row), axis=1, result_type="expand")
+    return df
+
+
+def get_dicom(row: pd.Series) -> pd.Series:
+    """
+    Filters a DICOM studies Pandas Series to keep only the study IDs where the DICOM study date is equal to the 
+    date in the 'Date_Mammo' column.
+
+    Args:
+        row (pd.Series): Pandas Series representing a row in the dataframe.
+        date_mammo (str): Date of mammogram.
+
+    Returns:
+        Union[None, str]: Returns None if the DICOM study date is different than the 'Date_Mammo' column, else
+        returns only the DICOM study ID.
+    """
+    dates = json.loads(row['DICOM_Studies'])
+    for k, v in dates.items():
+        for study_id in v[0]:
+            key_date = datetime.strptime(k, '%Y-%m-%d %H:%M:%S')
+            key_date = key_date.replace(hour=0, minute=0, second=0)
+            date_mammo = row["Date_Mammo"]
+            month_delta = (date_mammo.year - key_date.year) * 12 + date_mammo.month - key_date.month
+            return study_id if abs(month_delta) <= 1 else None
+
+
+def get_higher_acr_lvl(df: pd.DataFrame, index: int) -> int:
+    """
+    Returns the higher ACR level found in the 4 columns L1_ACR_SD, L1_ACR_SG, L2_ACR_SD, and L2_ACR_SG for the given row index.
+
+    Args:
+        df (pd.DataFrame): The dataframe with 4 columns L1_ACR_SD, L1_ACR_SG, L2_ACR_SD, and L2_ACR_SG.
+        index (int): The index of the row for which to find the higher ACR level.
+
+    Returns:
+        int: The higher ACR level found in the 4 columns for the given row index.
+    """
+    acr_lvls = [df['L1_ACR_SD'][index], df['L1_ACR_SG'][index], df['L2_ACR_SD'][index], df['L2_ACR_SG'][index]]
+    normalized_acr_lvls = [int(acr_lvl) if not pd.isnull(acr_lvl) and acr_lvl.isnumeric() else 0 for acr_lvl in acr_lvls]
+    return np.nanmax(normalized_acr_lvls)
 
 
 def filter_screening(df: pd.DataFrame) -> pd.DataFrame:

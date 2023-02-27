@@ -21,6 +21,7 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
   studies = apply_filter(dal.screening.depistage_pseudo(), filter_field, filter_value)
  
   studies = studies.sort_values(by=['Date_Mammo'], ascending=False)
+  log(f"{len(studies)} studies found with applied filter")
   uids = []
   uids_without_duplicates = set()
   for i, exam in enumerate(studies['DICOM_Studies']):
@@ -30,7 +31,7 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
             if uid not in uids_without_duplicates:
                 uids.append(uid)
                 uids_without_duplicates.add(uid)
-
+  log(f"{len(studies)} results containing {len(uids)} unique studies")
   chunks = math.floor(len(uids) / page_size)
   pages = math.ceil(len(uids) / page_size)
 
@@ -61,6 +62,7 @@ def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = Non
           os.makedirs(dest)
         kskit.dicom.get_dicom(key=uid, dest=dest, server=server, port=port, title=title, retrieveLevel=retrieveLevel, silent=True)
         nb_studies += 1
+      print(f"{nb_studies}/{len(uids)} retrieved")
 
   log("Producing consolidated dicom dataframe")
   dicom_dir = utils.get_home("input", "dcm4chee", "dicom")
@@ -99,7 +101,31 @@ def remove_empty_columns(df):
 
 
 def get_acr5(df):
+  """
+    Filters a pandas DataFrame containing DICOM studies information to keep only rows where the ACR level is 5.
+
+    Args:
+        df (pandas.DataFrame): The input DataFrame containing DICOM studies information.
+
+    Returns:
+        pandas.DataFrame: The filtered DataFrame, with only rows where the ACR level is 5.
+    """
   return df[(df['L1_ACR_SG'] == '5') | (df['L1_ACR_SD'] == '5') | (df['L2_ACR_SG'] == '5') | (df['L2_ACR_SD'] == '5')]
+
+
+def get_positive_studies_only(df):
+  """
+    Filter a pandas DataFrame containing DICOM studies information to keep only rows where
+    the first or the second radiography reading is cancer positive.
+
+    Args:
+        df (pandas.DataFrame): The input DataFrame containing DICOM studies information.
+
+    Returns:
+        pandas.DataFrame: A new DataFrame containing only the rows where the first or the second
+        radiography reading is cancer positive.
+    """
+  return df[df["L1L2_positif"] == True]
 
 
 def get_patient_random_id(df):

@@ -29,6 +29,12 @@ CODING_SCHEME = {
     'G-8310': '?',
 }
 
+MLO = 'R-10226'
+CC = 'R-10242'
+
+PATIENT_ID = 0x00100020
+STUDY_DATE = 0x00080020
+
 def search4ccmlo(indir: str, samples: int):
     log('Getting depistage_pseudo...')
     df = depistage_pseudo()
@@ -55,7 +61,10 @@ def search4ccmlo(indir: str, samples: int):
 
 
 def isccmlo(dirpath: str):
-    """Search for RCC, LCC, RMLO or LMLO in a study"""
+    """
+    Return true if 4 images with the following respective types are found: 
+    RCC, LCC, RMLO or LMLO in a study.
+    """
     tags = {'rcc': 0, 'lcc': 0, 'rmlo': 0, 'lmlo': 0}
     for file in os.listdir(dirpath):
         ds = pydicom.dcmread(os.path.join(dirpath, file))
@@ -65,9 +74,9 @@ def isccmlo(dirpath: str):
         except KeyError:
             continue
         ccmlo = ''
-        if code_value == 'R-10226':
+        if code_value == MLO:
             ccmlo = 'rmlo' if img_laterality == 'R' else 'lmlo'
-        elif code_value == 'R-10242':
+        elif code_value == CC:
             ccmlo = 'rcc' if img_laterality == 'R' else 'lcc'
         else:
             continue
@@ -78,6 +87,49 @@ def isccmlo(dirpath: str):
         if v < 1:
             log(f'Not present: {k.upper()}')
     return res
+
+
+def isccmlo_view_position(dirpath: str):
+    """
+    Return true if 4 images with the following respective types are found: 
+    RCC, LCC, RMLO or LMLO in a study.
+    """
+    tags = {'rcc': 0, 'lcc': 0, 'rmlo': 0, 'lmlo': 0}
+    for file in os.listdir(dirpath):
+        ds = pydicom.dcmread(os.path.join(dirpath, file))
+        try:
+            code_value = ds[0x00185101].value.upper()
+            img_laterality = ds[0x00200062].value.upper()
+        except KeyError:
+            continue
+        ccmlo = ''
+        if code_value == "MLO":
+            ccmlo = 'rmlo' if img_laterality == 'R' else 'lmlo'
+        elif code_value == "CC":
+            ccmlo = 'rcc' if img_laterality == 'R' else 'lcc'
+        else:
+            continue
+        tags[ccmlo] += 1
+    checkf = lambda x: True if x >= 1 else False
+    res = all(map(checkf, tags.values()))
+    for k, v in tags.items():
+        if v < 1:
+            log(f'Not present: {k.upper()}')
+    return res
+
+
+def search_view_position(dirpath: str, view_position: bool = False) -> None:
+    num = 0
+    den = 0
+    for root, dirs, files in os.walk(dirpath):
+        for dir in dirs:
+            if view_position:
+                num += 1 if isccmlo_view_position(os.path.join(root, dir)) else 0
+            else:
+                num += 1 if isccmlo(os.path.join(root, dir)) else 0
+            den += 1
+    print(f"{num}/{den} ccmlo")
+    return
 
 
 def get_detailed_viewcodes(indir: str, samples: int) -> None:
@@ -173,7 +225,7 @@ def see_broken_studies_details(broken_stud_dir: str):
             elif code_value != 'N/A':
                 ccmlo = CODING_SCHEME[code_value]
             try:
-                print(f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}|{ds[0x00181400].value}')
+                print(f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}|{ds[0x00181400].value}|{ds[0x00185101]}')
             except KeyError:
                 print(f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}')
             one_per_study = False
@@ -184,10 +236,30 @@ def see_broken_studies_details(broken_stud_dir: str):
     print(f'Other causes: {valid_studies_filenumber}')
     print('='*100)
     print(f'{us_mammograms} Ultrasound (= Echograph) found in {us_study} studies')
-            
+
+
+def find_all_studies_associated_with(patient_id: str = "4161741") -> set:
+    test_path = "/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive"
+    associated_studies = set()
+    for root, dirs, files in os.walk(test_path):
+        for file in files:
+            fullpath = os.path.join(root, file)
+            ds = pydicom.dcmread(fullpath)
+            if ds[PATIENT_ID].value == patient_id:
+                study_directory = os.path.dirname(os.path.realpath(fullpath))
+                print(f"date: {ds[STUDY_DATE].value}")
+                print(ds[PATIENT_ID].value)
+                print(isccmlo(study_directory))
+                associated_studies.add(study_directory)
+                break
+    return associated_studies
+
+
 
 if __name__ == '__main__':
-    # search4ccmlo(get_home('data/input/dcm4chee/count'), 2000)
+    #search_view_position("/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive")
+    search_view_position("/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive", True)
+    #search4ccmlo(get_home('data/input/dcm4chee/count'), 2000)
     # get_broken_studies(get_home('logs/69'), get_home('data/input/dcm4chee/broken'))
     see_broken_studies_details(get_home('data/input/dcm4chee/broken'))
     # get_detailed_viewcodes(get_home('data/input/dcm4chee/count'), 2000)
