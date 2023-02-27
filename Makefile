@@ -1,3 +1,4 @@
+.EXPORT_ALL_VARIABLES:
 SHELL = bash
 
 init:
@@ -36,7 +37,7 @@ release-test:
 
 release:
 	source env/bin/activate;\
-	rm dist/*;\
+	rm -f dist/*;\
 	python setup.py sdist bdist_wheel;\
 	python -m twine upload dist/*
 
