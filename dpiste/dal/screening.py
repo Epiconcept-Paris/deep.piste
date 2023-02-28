@@ -181,6 +181,7 @@ def calculate_df(name, dfs = {}):
     }
     if len(to_rename_cols) > 0:
       ret.rename(columns = to_rename_cols, inplace = True)
+      # TODO: Add L1_Result, L2_Result, DICOM_Study to ret
   else:
     raise ValueError(f"{name} is not recognized as a screening calculated table")
   return ret

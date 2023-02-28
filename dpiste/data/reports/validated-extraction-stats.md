@@ -148,4 +148,52 @@ print("test ignored")
 ```
 ## Confirming that only the excluded women explain the difference on the count per year of birth
 
+```python tags=["hide-input"]
+
+df = depistage_pseudo()
+df_with_study_id = filter_depistage_pseudo(df)
+df_with_study_id_and_lecture_results = calculate_l1_l2_result(df_with_study_id)
+df_with_positive_only = get_positive_studies_only(df_with_study_id_and_lecture_results)
+df_without_nan_study_ids = keep_only_studies_with_images(df_with_positive_only)
+```
+
+
+## Matched study ids (screening with mammograms)
+
+```python tags=["hide-input"]
+
+df_with_study_id["has_mammogram"] = df_with_study_id.apply(lambda row: 1 if not pd.isna(row["DICOM_Study"]) else 0, axis=1)
+df_with_study_id.groupby("has_mammogram")["has_mammogram"].count()
+```
+
+## Testing L1L2_Results coherence
+
+```python tags=["hide-input"]
+# 1. without has_mammogram
+
+df_without_nan_study_ids.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+df_with_study_id_and_lecture_results.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+
+# 2. with has_mammogram
+
+df_without_nan_study_ids.groupby(["has_mammogram", "L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+df_with_study_id_and_lecture_results.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+```
+## Testing L1_Result coherence
+
+```python tags=["hide-input"]
+df_without_nan_study_ids.groupby(["L1_Result", "L1_ACR_SD", "L1_ACR_SG"])["L1_Result"].count()
+```
+
+## Testing L2_Result coherence
+
+```python tags=["hide-input"]
+df_without_nan_study_ids.groupby(["L2_Result", "L2_ACR_SD", "L2_ACR_SG"])["L2_Result"].count()
+```
+
+## Valid DICOM Extraction
+
+```python tags=["hide-input"]
+# TODO: Implement this test
+```
 
