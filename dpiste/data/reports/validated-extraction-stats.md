@@ -17,6 +17,7 @@ jupyter:
 ```python tags=["hide-cell"]
 # imports and global parameters
 import os
+import json
 import pandas as pd
 import numpy as np
 
@@ -25,6 +26,14 @@ import dpiste.dal.screening
 from dpiste.utils import stat_df, get_home, cleandir
 from dpiste.tools.evaluate_consistency import run
 from dpiste.p12_SNDS_match import p12_004_safe_file
+from dpiste.p06_mammogram_extraction import (
+  filter_depistage_pseudo,
+  calculate_l1_l2_result,
+  get_positive_studies_only,
+  keep_only_studies_with_images
+)
+
+pd.options.mode.chained_assignment = None  # default='warn'
 
 dfs = {}
 cnam = dal.screening.cnam(dfs)
@@ -150,50 +159,83 @@ print("test ignored")
 
 ```python tags=["hide-input"]
 
-df = depistage_pseudo()
+df = dal.screening.depistage_pseudo()
 df_with_study_id = filter_depistage_pseudo(df)
+df_with_study_id["has_mammogram"] = df_with_study_id.apply(lambda row: 1 if not pd.isna(row["DICOM_Study"]) else 0, axis=1)
 df_with_study_id_and_lecture_results = calculate_l1_l2_result(df_with_study_id)
 df_with_positive_only = get_positive_studies_only(df_with_study_id_and_lecture_results)
 df_without_nan_study_ids = keep_only_studies_with_images(df_with_positive_only)
 ```
 
-
 ## Matched study ids (screening with mammograms)
 
 ```python tags=["hide-input"]
-
-df_with_study_id["has_mammogram"] = df_with_study_id.apply(lambda row: 1 if not pd.isna(row["DICOM_Study"]) else 0, axis=1)
-df_with_study_id.groupby("has_mammogram")["has_mammogram"].count()
+df_with_study_id.groupby("has_mammogram")["has_mammogram"].count().to_frame()
 ```
 
 ## Testing L1L2_Results coherence
 
 ```python tags=["hide-input"]
-# 1. without has_mammogram
+print("Depistage Pseudo without has_mammogram: ")
+print("Unfiltered")
 
-df_without_nan_study_ids.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
-df_with_study_id_and_lecture_results.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+df_with_study_id_and_lecture_results.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["Date_Mammo"].count().to_frame().reset_index()
+```
 
-# 2. with has_mammogram
+```python tags=["hide-input"]
+print("Depistage Pseudo with has_mammogram: ")
+print("Unfiltered")
 
-df_without_nan_study_ids.groupby(["has_mammogram", "L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
-df_with_study_id_and_lecture_results.groupby(["L1L2_positif", "L1_Result", "L2_Result"])["L1L2_positif"].count()
+df_with_study_id_and_lecture_results.groupby(["has_mammogram", "L1L2_positif", "L1_Result", "L2_Result"])["Date_Mammo"].count().to_frame().reset_index()
 ```
 ## Testing L1_Result coherence
 
 ```python tags=["hide-input"]
-df_without_nan_study_ids.groupby(["L1_Result", "L1_ACR_SD", "L1_ACR_SG"])["L1_Result"].count()
+df_without_nan_study_ids.groupby(["L1_Result", "L1_ACR_SD", "L1_ACR_SG"])["Date_Mammo"].count().to_frame().reset_index()
 ```
 
 ## Testing L2_Result coherence
 
 ```python tags=["hide-input"]
-df_without_nan_study_ids.groupby(["L2_Result", "L2_ACR_SD", "L2_ACR_SG"])["L2_Result"].count()
+df_without_nan_study_ids.groupby(["L2_Result", "L2_ACR_SD", "L2_ACR_SG"])["Date_Mammo"].count().to_frame().reset_index()
 ```
 
 ## Valid DICOM Extraction
 
 ```python tags=["hide-input"]
-# TODO: Implement this test
+print("Number of DICOM Studies not NA")
+print(df_with_study_id[pd.notna(df_with_study_id["DICOM_Studies"])]["DICOM_Studies"].count())
+
+df_studies_no_mammo = df_with_study_id[(pd.notna(df_with_study_id["DICOM_Studies"])) & (df_with_study_id["has_mammogram"] == 0)]
+print("Number of DICOM Studies not NA and has_mammogram == 0:")
+print(df_studies_no_mammo["DICOM_Studies"].count())
+
+ids = [patient_id for patient_id in df_studies_no_mammo["id_random"]]
+print(f"Number of ids with studies and has_mammogram == 0: {len(ids)}")
+total_common_dates = 0
+total_dict_lines = 0
+dates_without_mammo_per_year = {}
+for patient_id in ids:
+  df_for_patient = df_studies_no_mammo[df_studies_no_mammo["id_random"] == patient_id]
+  dates_mammo = set([date.date() for date in set(df_for_patient["Date_Mammo"])])
+  patient_studies_json = list(df_for_patient["DICOM_Studies"])
+  studies_dates = set()
+  nb_dict_lines = len(patient_studies_json)
+  # Get all dates in DICOM_Studies and compare them to the dates in the col Date_Mammo
+  for patient_study_json in patient_studies_json:
+    patient_study_dict = json.loads(patient_study_json)
+    new_studies_dates = [pd.Timestamp(study_date).date() for study_date in list(patient_study_dict.keys())]
+    studies_dates.update(new_studies_dates)
+  dates_without_mammo = dates_mammo - studies_dates
+  # Mark down dates without associated mammograms in the referential
+  for date in dates_without_mammo:
+    try:
+      dates_without_mammo_per_year[date.year] += 1
+    except KeyError:
+      dates_without_mammo_per_year[date.year] = 1
+
+print("Number of Date_Mammo with no associated DICOM_Study per year:")
+for year, number_of_dates_without_mammo in sorted(dates_without_mammo_per_year.items()):
+  print(f"Year {year} : {number_of_dates_without_mammo}")
 ```
 

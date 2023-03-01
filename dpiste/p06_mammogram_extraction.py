@@ -11,6 +11,7 @@ from dpiste import report
 from . import dal
 from . import utils
 from kskit.dicom.utils import log
+from datetime import datetime
 
 def p06_001_get_dicom(server, port = 11112, retrieveLevel = 'STUDY', limit = None, page_size = 10, filter_field = None, filter_value = None):
   title = "DCM4CHEE"
@@ -140,11 +141,11 @@ def get_patient_random_id(df):
 
 def extract_positive_studies(server="127.0.0.1", port=11112, title="DCM4CHEE", retrieveLevel="STUDY"):
   utils.cleandir(utils.get_home('input', 'dcm4chee', 'dicom'))
-df = depistage_pseudo()
-df_with_study_id = filter_depistage_pseudo(df)
-df_with_study_id_and_lecture_results = calculate_l1_l2_result(df_with_study_id)
-df_with_positive_only = get_positive_studies_only(df_with_study_id_and_lecture_results)
-df_without_nan_study_ids = keep_only_studies_with_images(df_with_positive_only)
+  df = depistage_pseudo()
+  df_with_study_id = filter_depistage_pseudo(df)
+  df_with_study_id_and_lecture_results = calculate_l1_l2_result(df_with_study_id)
+  df_with_positive_only = get_positive_studies_only(df_with_study_id_and_lecture_results)
+  df_without_nan_study_ids = keep_only_studies_with_images(df_with_positive_only)
   nb_studies_retrieved = 0
   
   for study_id in df_without_nan_study_ids["DICOM_Study"]:
@@ -186,13 +187,16 @@ def get_dicom(row: pd.Series) -> pd.Series:
         returns only the DICOM study ID.
     """
     dates = json.loads(row['DICOM_Studies'])
+    study_id = None
     for k, v in dates.items():
         for study_id in v[0]:
             key_date = datetime.strptime(k, '%Y-%m-%d %H:%M:%S')
             key_date = key_date.replace(hour=0, minute=0, second=0)
             date_mammo = row["Date_Mammo"]
             month_delta = (date_mammo.year - key_date.year) * 12 + date_mammo.month - key_date.month
-            return study_id if abs(month_delta) <= 1 else None
+            if abs(month_delta) <= 1:
+              return study_id
+    return None
 
 
 def get_higher_acr_lvl(df: pd.DataFrame, index: int) -> int:
