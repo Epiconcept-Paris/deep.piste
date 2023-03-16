@@ -13,7 +13,7 @@ from .dal import cnam
 from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
-
+from kskit import backup
 
 def main(a):
   # Base argument parser
@@ -31,6 +31,14 @@ def main(a):
   # export command
   export_parser = subs.add_parser("export", help = "Sending data") 
   export_subs = export_parser.add_subparsers()
+  
+  # backup command
+  backup_parser = subs.add_parser("backup", help = "Back up data") 
+  backup_subs = backup_parser.add_subparsers()
+  
+  # mapping table backup
+  back_mapping_parser = backup_subs.add_parser("mapping", help = "Backup mapping table")
+  back_mapping_subs = back_mapping_parser.add_subparsers()
   
   # extract neoscope command
   neoextract_parser = extract_subs.add_parser("neoscope", help = "Invoke neoscope extractions commands")
@@ -137,8 +145,7 @@ def main(a):
   cnam_file_parser.add_argument("-name", "--nom-projet", required=True, help="nom du projet", type=str)
   cnam_file_parser.set_defaults(func = do_safe_file)
 
-
-  # -- get neoscope key to clipboard
+  # -- copy neoscope key to the clipboard
   neokey2clipboard_parser = neoextract_subs.add_parser("readkey", aliases=['key'], help = "Copy the neoscope extraction key from qrcode to clipboard")
   neokey2clipboard_parser.set_defaults(func = do_neokey2clipboard)
 
@@ -149,6 +156,22 @@ def main(a):
   encrypt_neoextract_parser.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = True)
   encrypt_neoextract_parser.set_defaults(func = do_encrypt_neoscope_extractions)
 
+  # -- generate backup key
+  create_backup_key_parser = back_mapping_subs.add_parser("create-key", aliases=['key'], help = "Created the backup key")
+  create_backup_key_parser.set_defaults(func = do_create_backup_key)
+
+  # -- generate encrypted mapping table
+  backup_mappint_table = back_mapping_subs.add_parser("backup", help = "Backup the mapping table")
+  backup_mappint_table.add_argument("-w", "--webcam", required=False, help="Flag to establish that system webcam will be used to get password", action = "store_true", default = False)
+  backup_mappint_table.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = False)
+  backup_mappint_table.set_defaults(func = do_backup_mapping_table)
+
+  # -- generate encrypted mapping table
+  restore_mappint_table = back_mapping_subs.add_parser("restore", help = "Restore the mapping table")
+  restore_mappint_table.add_argument("-w", "--webcam", required=False, help="Flag to establish that system webcam will be used to get password", action = "store_true", default = False)
+  restore_mappint_table.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = False)
+  restore_mappint_table.set_defaults(func = do_restore_mapping_table)
+  
   # -- upload encrypted files to epifiles
   neoextract2epifiles_parser = neoextract_subs.add_parser(
     "push2epifiles",
@@ -307,6 +330,14 @@ def main(a):
 
 
 # handlers
+def do_create_backup_key(args, *other):
+  p02_012_generate_backup_key() 
+def do_backup_mapping_table(args, *other):
+  p02_013_backup_mapping_table(webcam_pwd = args.webcam, clipboard_pwd = args.clipboard) 
+
+def do_restore_mapping_table(args, *other):
+  p02_014_restore_mapping_table( webcam_pwd = args.webcam, clipboard_pwd = args.clipboard)
+
 def do_neokey2clipboard(args, *other):
   p02_002_neoscope_key_to_clipboard()
 

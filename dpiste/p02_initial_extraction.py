@@ -2,13 +2,13 @@ import kskit
 import os
 import math
 import base64
-import clipboard
 import urllib.parse
 from tkinter import Tk
 from tkinter import filedialog
 from kskit import voo
 import kskit.crypto
 from kskit.dicom.dicom2df import dicom2df
+from kskit import backup
 import tempfile
 import subprocess
 import pandas as pd
@@ -16,6 +16,7 @@ import numpy as np
 from dpiste import report
 from . import dal
 from .utils import get_home
+from getpass import getpass
 
 def p02_001_generate_neoscope_key():
   """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
@@ -25,6 +26,7 @@ def p02_001_generate_neoscope_key():
   
 def p02_002_neoscope_key_to_clipboard():   
   """Use user webcam to copy the neoscope encryption base 64 key to the clipboard"""
+  import clipboard
   b64key = kskit.crypto.read_webcam_key(auto_close = True, camera_index = 0)
   clipboard.copy(b64key)
   print(f"the key has been copied to the clipboard, put it to the server clipboard and call p02_003_encrypt_neoscope_extractions on it")
@@ -32,15 +34,18 @@ def p02_002_neoscope_key_to_clipboard():
 def p02_003_encrypt_neoscope_extractions(source, webcam_pwd = True, clipboard_pwd = False):   
   """Encrypts the provided file to the dp_home directory using a clipboard pasted base 64 key"""
   dest = get_home("input", "neo", "extraction_neoscope.aes")
+  if webcam_pwd or clipboard_pwd:
+    import clipboard
   if webcam_pwd:
     b64key = kskit.crypto.read_webcam_key(auto_close = True, camera_index = 0)
   elif clipboard_pwd:
     b64key = clipboard.paste()
   else:
-    raise ValueError("either webcam or clipboard password has to be usef")
+    b64key = getpass("Please type encryption key")
   kskit.encrypt(source, dest, b64key)
   #cleaning clipboard
-  clipboard.copy("")
+  if webcam_pwd or clipboard_pwd:
+    clipboard.copy("")
   print(f"file has been encrypted and stored on {dest} please proceed delete {source}, send to epiconcept via Epifiles and then remove {dest} too")
 
 def p02_004_send_neoscope_extractions_to_epifiles(epifiles, login, password):
@@ -115,3 +120,28 @@ def p02_010_esis_report():
 def p02_011_dicom_report():                                                                                                                       
   report.generate(report = "dcm4chee-import")                                                                                                     
 
+def p02_012_generate_backup_key():
+  print("generating backup key")
+  back_key_path = get_home("data", "input", "epiconcept","back_key.png")
+  backup.create_backup_key(back_key_path)
+  print(f"The key has been produced on {back_key_path} please print it and store it on a safe plase. You have to delete it after printing it")
+
+def p02_013_backup_mapping_table( webcam_pwd = True, clipboard_pwd = False):
+  print("making crypted backup of mapping table")
+  mapping_path = get_home("data", "input", "epiconcept", "mapping-table.csv")
+  crypted_path = get_home("data", "input", "epiconcept", "mapping-table.csv.aes")
+  md5sum = '143dc8dbf1815ee5fc158be350e22086'
+  backup.backup_file(source = mapping_path, crypted_dest = crypted_path,  webcam_pwd = webcam_pwd, clipboard_pwd = clipboard_pwd, md5sum = md5sum)
+  print(f"The crypted backup has been produced in {crypted_path}")
+
+
+def p02_014_restore_mapping_table( webcam_pwd = True, clipboard_pwd = False):
+  mapping_path = get_home("data", "input", "epiconcept", "mapping-table.csv")
+  crypted_path = get_home("data", "input", "epiconcept", "mapping-table.csv.aes")
+  restore_path = get_home("data", "input", "epiconcept", "mapping-table.csv.restored")
+  md5sum = '143dc8dbf1815ee5fc158be350e22086'
+  backup.restore_file(crypted_source = crypted_path, dest = restore_path,  webcam_pwd = webcam_pwd, clipboard_pwd = clipboard_pwd, md5sum = md5sum)
+  print(f"The mapping table has been restored on {restore_path}, in order to use it you have to copy it to mapping path")
+
+
+   

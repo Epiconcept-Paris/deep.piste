@@ -45,8 +45,8 @@ def add_random_id(df):
     # Validate the expected md5
     md5hash = hashlib.md5(open(mapping_path,'rb').read()).hexdigest()
     expected_hash = '143dc8dbf1815ee5fc158be350e22086'
-    #if md5hash != expected_hash:
-    #  raise ValueError(f"The mapping table may not be the right one. The expected md5 hash is '{expected_hash}'")
+    if md5hash != expected_hash:
+      raise ValueError(f"The mapping table may not be the right one. The expected md5 hash is '{expected_hash}'")
 
   remap = remap = pd.read_csv(mapping_path).set_index("id_bci")
   return df.join(remap, "id_bci")
@@ -208,4 +208,4 @@ def read_source_csv(name):
     if len(rename)>0:                                                                                                                             
       df.rename(columns=rename, inplace = True)
   return df
-
+  
