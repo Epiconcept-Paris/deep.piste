@@ -60,6 +60,10 @@ def main(a):
   validated_parser = transform_subs.add_parser("validated-extraction", help = "Invoke initial extractoin validation command")
   validated_parser.set_defaults(func = do_validated_initial_extraction)
 
+# transfrom validated extraction report
+  validated_parser = transform_subs.add_parser("report", help = "Invoke initial extractoin validation report")
+  validated_parser.set_defaults(func = do_validated_initial_extraction_report)
+
   # transform dicom-deid command
   dicom_deid_parser = transform_subs.add_parser("dicom-deid", help = "De-identify a complete directory of DICOMs ")
   dicom_deid_parser.add_argument("-i", 
@@ -385,6 +389,9 @@ def do_esis_report(args, *other):
 
 def do_dcm4chee_report(args, *other):
   p02_011_dicom_report()
+
+def do_validated_initial_extraction_report(args, *other):
+  p03_002_validated_extraction_report()
 
 def do_validated_initial_extraction(args, *other):
   p03_001_generate_validated_extraction()
