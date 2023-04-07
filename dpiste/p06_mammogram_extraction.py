@@ -84,6 +84,10 @@ def apply_filter(df: pd.DataFrame, field: str = None, value: str = None) -> pd.D
   elif field == 'GET_ACR5':
     df = get_acr5(df)
     return df[pd.notna(df['DICOM_Studies'])]
+  elif field == 'GET_POSITIVE_WITH_IMG_ONLY':
+    df = get_positive_studies_only(df)
+    df = keep_only_studies_with_images(df)
+    return df[pd.notna(df['DICOM_Studies'])]
   elif value == 'True':
     return df[(df[field] == True) & (pd.notna(df['DICOM_Studies']))]
   elif value == 'False':
@@ -168,7 +172,7 @@ def filter_depistage_pseudo(df: pd.DataFrame) -> pd.DataFrame:
         pandas.DataFrame: DataFrame with NaN studies removed and only studies where the date 
         equals the value in the 'Date_Mammo' column.
     """
-    df = df[pd.notna(df['DICOM_Studies'])]
+    df = df[pd.notna(df['DICOM_Studies'])].copy()
     df["DICOM_Study"] = df.apply(lambda row: get_dicom(row), axis=1)
     return df
 
