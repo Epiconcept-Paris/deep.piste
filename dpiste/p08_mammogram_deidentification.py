@@ -118,16 +118,16 @@ def deid_mammogram2(indir = None, outdir = None):
     df2dicom(df, outdir, do_image_deidentification=True)
 
 
-def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient, images_allowed: bool=True):
+def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient, exclude_images: bool=False):
     df = deidentify_attributes(indir, outdir, erase_outdir=False)
     log('Deidentifying mammograms...')
-    df2hdh(df, outdir, images_allowed)
+    df2hdh(df, outdir, exclude_images)
     return
 
 
 def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: float,
     tmp_fol: str, id_worker: int, nb_worker: int, reset_sftp=False, screening_filter=False, 
-    test=False, images_allowed=True, only_positive=False) -> None:
+    test=False, exclude_images=False, only_positive=False) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
     indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
@@ -191,7 +191,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         get_dicom(key=study_id, dest=worker_indir, server='10.1.2.9', port=11112,
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
-        deidentify_mammograms_hdh(worker_indir, study_dir, sftp, images_allowed=images_allowed)
+        deidentify_mammograms_hdh(worker_indir, study_dir, sftp, exclude_images=exclude_images)
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         send2hdh_study_content(study_dir, id_worker, sftp)
         uploaded = 1 if uploaded == 0 else uploaded

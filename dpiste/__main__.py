@@ -280,7 +280,7 @@ def main(a):
   hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default=0, type=int)
   hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
   hdh_sftp_parser.add_argument("-r", "--reset-sftp", required=False, help="Erase all data on the SFTP server", default=False, type=bool)
-  hdh_sftp_parser.add_argument("-a", "--images-allowed", required=False, help="Include/Excluse mammogram images in the process (default: True)", default=False, action='store_true')
+  hdh_sftp_parser.add_argument("-e", "--exclude-images", required=False, help="Exclude mammogram images of the process and keep only meta files (default: False)", default=False, action='store_true')
   hdh_sftp_parser.add_argument("-p", "--only-positive", required=False, help="Process only positive images (L1L2_positif = True) (default: False)", default=False, action='store_true')
   hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
 
@@ -419,7 +419,7 @@ def do_send_crypted_hdh(args, *other):
     id_worker = args.id_worker,
     nb_worker = args.nb_worker,
     reset_sftp = args.reset_sftp,
-    images_allowed = args.images_allowed,
+    exclude_images = args.exclude_images,
     only_positive = args.only_positive
     )
 
