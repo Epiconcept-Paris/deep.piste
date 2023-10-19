@@ -306,6 +306,7 @@ def main(a):
   hdh_sftp_parser.add_argument("-l", "--sftp-limit", required=True, help="Free space to leave at any time on the SFTP (in GB)", type=float)
   hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default=0, type=int)
   hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
+  hdh_sftp_parser.add_argument("-o", "--org-root", required=True, help="Organization root used for building new DICOM UIDs", type=str)
   hdh_sftp_parser.add_argument("-r", "--reset-sftp", required=False, help="Erase all data on the SFTP server", default=False, type=bool)
   hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
 
@@ -446,6 +447,7 @@ def do_send_crypted_hdh(args, *other):
     tmp_fol = args.tmp_folder,
     id_worker = args.id_worker,
     nb_worker = args.nb_worker,
+    org_root = args.org_root,
     reset_sftp = args.reset_sftp
     )
 

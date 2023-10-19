@@ -63,6 +63,7 @@ def run(folder: str, verbose: True) -> None:
         tmp_fol=get_home('data/input/dcm4chee/consistency_test/'),
         id_worker=0,
         nb_worker=1,
+        org_root="2.25" # Derived DICOM UID Construction method (for tests only)
         reset_sftp=True,
         screening_filter=True,
         test=True
