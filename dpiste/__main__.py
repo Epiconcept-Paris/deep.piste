@@ -13,7 +13,7 @@ from .dal import cnam
 from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
-
+from kskit import backup
 
 def main(a):
   # Base argument parser
@@ -31,6 +31,14 @@ def main(a):
   # export command
   export_parser = subs.add_parser("export", help = "Sending data") 
   export_subs = export_parser.add_subparsers()
+  
+  # backup command
+  backup_parser = subs.add_parser("backup", help = "Back up data") 
+  backup_subs = backup_parser.add_subparsers()
+  
+  # mapping table backup
+  back_mapping_parser = backup_subs.add_parser("mapping", help = "Backup mapping table")
+  back_mapping_subs = back_mapping_parser.add_subparsers()
   
   # extract neoscope command
   neoextract_parser = extract_subs.add_parser("neoscope", help = "Invoke neoscope extractions commands")
@@ -51,6 +59,10 @@ def main(a):
   # transfrom validated extraction command
   validated_parser = transform_subs.add_parser("validated-extraction", help = "Invoke initial extractoin validation command")
   validated_parser.set_defaults(func = do_validated_initial_extraction)
+
+# transfrom validated extraction report
+  validated_parser = transform_subs.add_parser("report", help = "Invoke initial extractoin validation report")
+  validated_parser.set_defaults(func = do_validated_initial_extraction_report)
 
   # transform dicom-deid command
   dicom_deid_parser = transform_subs.add_parser("dicom-deid", help = "De-identify a complete directory of DICOMs ")
@@ -137,8 +149,7 @@ def main(a):
   cnam_file_parser.add_argument("-name", "--nom-projet", required=True, help="nom du projet", type=str)
   cnam_file_parser.set_defaults(func = do_safe_file)
 
-
-  # -- get neoscope key to clipboard
+  # -- copy neoscope key to the clipboard
   neokey2clipboard_parser = neoextract_subs.add_parser("readkey", aliases=['key'], help = "Copy the neoscope extraction key from qrcode to clipboard")
   neokey2clipboard_parser.set_defaults(func = do_neokey2clipboard)
 
@@ -149,6 +160,22 @@ def main(a):
   encrypt_neoextract_parser.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = True)
   encrypt_neoextract_parser.set_defaults(func = do_encrypt_neoscope_extractions)
 
+  # -- generate backup key
+  create_backup_key_parser = back_mapping_subs.add_parser("create-key", aliases=['key'], help = "Created the backup key")
+  create_backup_key_parser.set_defaults(func = do_create_backup_key)
+
+  # -- generate encrypted mapping table
+  backup_mappint_table = back_mapping_subs.add_parser("backup", help = "Backup the mapping table")
+  backup_mappint_table.add_argument("-w", "--webcam", required=False, help="Flag to establish that system webcam will be used to get password", action = "store_true", default = False)
+  backup_mappint_table.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = False)
+  backup_mappint_table.set_defaults(func = do_backup_mapping_table)
+
+  # -- generate encrypted mapping table
+  restore_mappint_table = back_mapping_subs.add_parser("restore", help = "Restore the mapping table")
+  restore_mappint_table.add_argument("-w", "--webcam", required=False, help="Flag to establish that system webcam will be used to get password", action = "store_true", default = False)
+  restore_mappint_table.add_argument("-c", "--clipboard", required=False, help="Flag to establish that system clipboard will be used to get password", action = "store_true", default = False)
+  restore_mappint_table.set_defaults(func = do_restore_mapping_table)
+  
   # -- upload encrypted files to epifiles
   neoextract2epifiles_parser = neoextract_subs.add_parser(
     "push2epifiles",
@@ -279,6 +306,7 @@ def main(a):
   hdh_sftp_parser.add_argument("-l", "--sftp-limit", required=True, help="Free space to leave at any time on the SFTP (in GB)", type=float)
   hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default=0, type=int)
   hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
+  hdh_sftp_parser.add_argument("-o", "--org-root", required=True, help="Organization root used for building new DICOM UIDs", type=str)
   hdh_sftp_parser.add_argument("-r", "--reset-sftp", required=False, help="Erase all data on the SFTP server", default=False, type=bool)
   hdh_sftp_parser.add_argument("-e", "--exclude-images", required=False, help="Exclude mammogram images of the process and keep only meta files (default: False)", default=False, action='store_true')
   hdh_sftp_parser.add_argument("-p", "--only-positive", required=False, help="Process only positive images (L1L2_positif = True) (default: False)", default=False, action='store_true')
@@ -317,6 +345,14 @@ def main(a):
 
 
 # handlers
+def do_create_backup_key(args, *other):
+  p02_012_generate_backup_key() 
+def do_backup_mapping_table(args, *other):
+  p02_013_backup_mapping_table(webcam_pwd = args.webcam, clipboard_pwd = args.clipboard) 
+
+def do_restore_mapping_table(args, *other):
+  p02_014_restore_mapping_table( webcam_pwd = args.webcam, clipboard_pwd = args.clipboard)
+
 def do_neokey2clipboard(args, *other):
   p02_002_neoscope_key_to_clipboard()
 
@@ -364,6 +400,9 @@ def do_esis_report(args, *other):
 
 def do_dcm4chee_report(args, *other):
   p02_011_dicom_report()
+
+def do_validated_initial_extraction_report(args, *other):
+  p03_002_validated_extraction_report()
 
 def do_validated_initial_extraction(args, *other):
   p03_001_generate_validated_extraction()
@@ -418,6 +457,7 @@ def do_send_crypted_hdh(args, *other):
     tmp_fol = args.tmp_folder,
     id_worker = args.id_worker,
     nb_worker = args.nb_worker,
+    org_root = args.org_root,
     reset_sftp = args.reset_sftp,
     exclude_images = args.exclude_images,
     only_positive = args.only_positive
