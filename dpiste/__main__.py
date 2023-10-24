@@ -308,7 +308,17 @@ def main(a):
   hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
   hdh_sftp_parser.add_argument("-o", "--org-root", required=True, help="Organization root used for building new DICOM UIDs", type=str)
   hdh_sftp_parser.add_argument("-r", "--reset-sftp", required=False, help="Erase all data on the SFTP server", default=False, type=bool)
+  hdh_sftp_parser.add_argument("-e", "--exclude-images", required=False, help="Exclude mammogram images of the process and keep only meta files (default: False)", default=False, action='store_true')
+  hdh_sftp_parser.add_argument("-p", "--only-positive", required=False, help="Process only positive images (L1L2_positif = True) (default: False)", default=False, action='store_true')
   hdh_sftp_parser.set_defaults(func = do_send_crypted_hdh)
+
+  # -- local-test
+  hdh_sftp_parser = hdhout_subs.add_parser("local-test", help = "Writes mammograms locally to test the pipeline")
+  hdh_sftp_parser.add_argument("-t", "--tmp-folder", required=True, help="Temporary storage before files are send to the sftp", type=str)
+  hdh_sftp_parser.add_argument("-b", "--batch-size", required=False, help="Maximum number of files in the sftp, default = 20", default=20, type=int)
+  hdh_sftp_parser.add_argument("-i", "--id-worker", required=False, help="Worker ID (0-n)(default: 0)", default=0, type=int)
+  hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False, help="Amount of Workers (default: 1)", default=1, type=int)
+  hdh_sftp_parser.set_defaults(func = do_local_pipeline_test)
 
   # -- sftp-status
   hdh_status_sftp_parser = hdhout_subs.add_parser("sftp-status", help = "Shows SFTP info")
@@ -448,8 +458,18 @@ def do_send_crypted_hdh(args, *other):
     id_worker = args.id_worker,
     nb_worker = args.nb_worker,
     org_root = args.org_root,
-    reset_sftp = args.reset_sftp
+    reset_sftp = args.reset_sftp,
+    exclude_images = args.exclude_images,
+    only_positive = args.only_positive
     )
+
+def do_local_pipeline_test(args, *other):
+  p08_001_export_local(
+    batch_size = args.batch_size,
+    tmp_fol = args.tmp_folder,
+    id_worker =  args.id_worker,
+    nb_worker = args.nb_worker
+  )
 
 def do_show_status_hdh(args, *other):
   p08_002_status_hdh(

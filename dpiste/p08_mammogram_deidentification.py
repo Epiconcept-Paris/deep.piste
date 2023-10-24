@@ -5,7 +5,13 @@ import time
 
 from dpiste import utils
 from dpiste.dal.screening import depistage_pseudo
-from dpiste.p06_mammogram_extraction import get_acr5
+from dpiste.p06_mammogram_extraction import (
+    get_acr5,
+    get_positive_studies_only,
+    filter_depistage_pseudo,
+    keep_only_studies_with_images,
+    calculate_l1_l2_result,
+)
 from dpiste.p11_hdh_data_transfer import *
 from dpiste.p11_hdh_encryption import p11_001_generate_transfer_keys
 
@@ -112,16 +118,16 @@ def deid_mammogram2(indir = None, outdir = None, org_root):
     df2dicom(df, outdir, do_image_deidentification=True)
 
 
-def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient, org_root: str):
+def deidentify_mammograms_hdh(indir: str, outdir: str, sftp: SFTPClient, org_root: str, exclude_images: bool=False):
     df = deidentify_attributes(indir, outdir, org_root, erase_outdir=False)
     log('Deidentifying mammograms...')
-    df2hdh(df, outdir)
+    df2hdh(df, outdir, exclude_images)
     return
 
 
 def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: float,
     tmp_fol: str, id_worker: int, nb_worker: int, org_root: str, reset_sftp=False, screening_filter=False, 
-    test=False) -> None:
+    test=False, exclude_images=False, only_positive=False) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
     indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
@@ -134,6 +140,13 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         utils.sftp_reset(sftp)
     df = depistage_pseudo()
     df = filter_screening(df) if screening_filter else df
+    
+    if only_positive:
+        df_with_study_id = filter_depistage_pseudo(df)
+        df_with_study_id_and_lecture_results = calculate_l1_l2_result(df_with_study_id)
+        df_with_positive_only = get_positive_studies_only(df_with_study_id_and_lecture_results)
+        df = keep_only_studies_with_images(df_with_positive_only)
+
     studies = build_studies(df, date_mammo_only=True) if screening_filter else build_studies(df)
     total2upload = len(studies.index)
     deid_studies = deidentify_study_id(studies.copy())
@@ -178,7 +191,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         get_dicom(key=study_id, dest=worker_indir, server='10.1.2.9', port=11112,
             title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
-        deidentify_mammograms_hdh(worker_indir, study_dir, sftp, org_root)
+        deidentify_mammograms_hdh(worker_indir, study_dir, sftp, org_root, exclude_images=exclude_images)
         c, sftp = renew_sftp(sftph, sftpu, sftp, c)
         send2hdh_study_content(study_dir, id_worker, sftp)
         uploaded = 1 if uploaded == 0 else uploaded
@@ -194,6 +207,61 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
     c.close()
     log('All done!')
     return
+
+
+def p08_001_export_local(batch_size: int, tmp_fol: str, id_worker: int, nb_worker: int, screening_filter=False) -> None:
+    """Gets, deidentifies and writes mammograms locally"""
+    indir, outdir = init_local_files(tmp_fol, id_worker)
+    worker_indir = os.path.join(indir, str(id_worker))
+    worker_outdir = os.path.join(outdir, str(id_worker))
+    final_dir = os.path.join(tmp_fol, "final")
+    
+    df = depistage_pseudo()
+    df = filter_screening(df) if screening_filter else df
+    studies = build_studies(df, date_mammo_only=True) if screening_filter else build_studies(df)
+    total2upload = len(studies.index)
+    deid_studies = deidentify_study_id(studies.copy())
+    
+    utils.reset_local_files(worker_indir)
+    if id_worker == 0:
+        deid_studies.to_csv(os.path.join(final_dir, 'studies.csv'))
+        df.drop(columns='DICOM_Studies').to_csv(os.path.join(final_dir, 'screening.csv'))
+    
+    progress = 0
+    count = 0
+    log(f'Words ignored by OCR: {load_authorized_words()}')
+    for index in studies.index[:10]:
+        study_id = studies['study_id'][index]
+        study_hash = int(hashlib.sha512(study_id.encode('utf-8')).hexdigest(), 16)
+        if abs(study_hash) % nb_worker == id_worker:
+            count += 1
+        if progress >= count or \
+            abs(study_hash) % nb_worker != id_worker:
+            continue
+
+        id_random = studies['id_random'][index]
+        deid_study_id = gen_dicom_uid(id_random, study_id)
+
+        study_dir = os.path.join(worker_outdir, deid_study_id)
+        worker_studies = os.listdir(os.path.join(worker_outdir))
+        os.mkdir(study_dir) if deid_study_id not in worker_studies else None
+
+        log(f'Getting study n°{study_id}')
+        get_dicom(key=study_id, dest=worker_indir, server='10.1.2.9', port=11112,
+            title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+
+        deidentify_mammograms_hdh(worker_indir, study_dir, None)
+        move_all_files_to_final(worker_outdir, study_dir, final_dir)
+        utils.cleandir(worker_indir)
+        utils.cleandir(worker_outdir)
+    log('All done!')
+    return
+
+def move_all_files_to_final(worker_outdir: str, study_dir: str, final_dir: str) -> None:
+    final_study_dir = os.path.join(final_dir, os.path.basename(study_dir))
+    os.mkdir(final_study_dir)
+    for file in os.listdir(study_dir):
+        os.rename(os.path.join(study_dir, file), os.path.join(final_study_dir, file))
 
 
 def p08_002_status_hdh(sftph: str, sftpu: str, nb_worker: int) -> None:
@@ -303,4 +371,3 @@ def filter_screening(df: pd.DataFrame) -> pd.DataFrame:
     df_acr5 = get_acr5(df_without_na)
     df_acr5_age = df_acr5[df_acr5['Age_Mammo'] == 69]
     return df_acr5_age
-

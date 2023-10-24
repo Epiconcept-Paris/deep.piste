@@ -146,7 +146,6 @@ def send2hdh_df(df: pd.DataFrame, outdir: str, filename: str,
     df.to_csv(filepath)
     p11_encrypt_hdh(filepath, encrypted_filepath, rmold=True)
     sftp_fpath = os.path.join(OK_DIRNAME, os.path.basename(encrypted_filepath))
-    print(sftp_fpath)
     sftp.put(encrypted_filepath, sftp_fpath)
     return
 
