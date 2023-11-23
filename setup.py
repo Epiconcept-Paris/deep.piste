@@ -2,7 +2,7 @@
 
 from setuptools import setup, find_packages
 
-with open('README.md') as f:
+with open('README.md', encoding="utf-8") as f:
     readme = f.read()
 
 setup(
@@ -16,18 +16,23 @@ setup(
     url='https://github.com/Epiconcept-Paris/deep.piste',
     license="GNU General Public License v2.0",
     install_requires=[
-      "kskit",
-      "clipboard",
-      "pyarrow",
-      "ipykernel",
-      "nbconvert",
-      "jupytext",
-      "plotly",
-      "python-gnupg",
-      "fabric",
-      "paramiko"
+        "kskit",
+        "clipboard",
+        "pyarrow",
+        "ipykernel",
+        "nbconvert",
+        "jupytext",
+        "plotly",
+        "python-gnupg",
+        "fabric",
+        "paramiko"
     ],
     packages=find_packages(exclude=('tests', 'docs')),
-    include_package_data=True
+    include_package_data=True,
+    extras_require={
+        "quality-tools": [
+            "pylint",
+            "autopep8"
+        ]
+    }
 )
-
