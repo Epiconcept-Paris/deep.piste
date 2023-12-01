@@ -13,7 +13,6 @@ from .dal import cnam
 from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
-from kskit import backup
 
 def main(a):
   # Base argument parser
