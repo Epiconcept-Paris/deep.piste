@@ -14,7 +14,7 @@ from dpiste import utils
 # Epiconcept DICOM prefix (see user manual)
 # TODO: This org_root is a sample one. Replace it with the correct one before
 # running the patch 
-ORG_ROOT = "1.2.826.2.4.3667563.20.866"
+ORG_ROOT = "replaceme"
 BATCH_SIZE = 10
 INDIR_EXTRACT = "/space/Work/william2/deep.piste/home/input/dcm4chee/indir_extract"
 PATCH_FILE = "/space/Work/william2/deep.piste/home/input/dcm4chee/patch.csv"
