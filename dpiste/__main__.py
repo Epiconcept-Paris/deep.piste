@@ -13,6 +13,7 @@ from .dal import cnam
 from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
+from .tools.patch_extraction import run_patch
 from kskit import backup
 
 def main(a):
@@ -333,6 +334,14 @@ def main(a):
   hdh_reset_sftp_parser.add_argument("-u", "--username-sftp", required=True, help="Username to connect to the hdh dedicated sftp")
   hdh_reset_sftp_parser.set_defaults(func = do_reset_sftp)
 
+  # -- patch-extraction
+  hdh_patch_extraction_parser = hdhout_subs.add_parser("patch-extraction", help = "Extract mammograms from PACS and produces a CSV file with missing elements")
+  hdh_patch_extraction_parser.add_argument("-e", "--extraction-directory", required=True, help="Folder where mammograms will be extracted (deleted once processed)", type=str)
+  hdh_patch_extraction_parser.add_argument("-p", "--patch-filepath", required=True, help="Filepath of the output CSV file (/path/to/my_patch_file.csv)", type=str)
+  hdh_patch_extraction_parser.add_argument("-o", "--org-root", required=True, help="Organization root used for building new DICOM UIDs", type=str)
+  hdh_patch_extraction_parser.add_argument("-b", "--batch-size", required=False, help="Number of lines to write in the output CSV file (default=500)", default=500, type=int)
+  hdh_patch_extraction_parser.set_defaults(func = do_patch_extraction)
+
 #calling handlers
   func = None
   try:
@@ -495,6 +504,14 @@ def do_export_emails(args, *other):
     epifiles = args.epifiles_host,
     login=args.epi_user,
     password=utils.get_password(f"epifiles", f"Password for {args.epi_user}")
+  )
+
+def do_patch_extraction(args, *other):
+  run_patch(
+    indir=args.extraction_directory,
+    batch_size=args.batch_size,
+    org_root=args.org_root,
+    patch_filepath=args.patch_filepath
   )
 
 

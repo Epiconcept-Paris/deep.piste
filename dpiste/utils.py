@@ -43,7 +43,7 @@ def sparkly_cp(source, dest):
   java.java_job(main_class = "fr.epiconcept.sparkly.Command", class_path = f"{os.path.join(get_home(), 'libs', 'jars')}" , memory = "1g", args = ["storage", "cp", "from", source, "to", dest, "force", "true"])
 
 def log(message):
-  print(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} {message}")
+  print(f"[\033[94m{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\033[0m] {message}")
 
 
 def stat_df(df, disclose_limit = 100, undisclosed_types = {}, metadata = None):

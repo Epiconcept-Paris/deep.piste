@@ -8,7 +8,6 @@ import os
 from datetime import datetime
 
 from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.dicom2df import dicom2df
 from kskit.dicom.df2dicom import df2dicom
 from kskit.dicom.deid_mammogram import deidentify_attributes
 
@@ -25,6 +24,12 @@ ORG_ROOT = 'replaceme'
 OUTDIR_DEID = os.path.join(os.environ['DP_HOME'], 'data', 'output', 'custom_local_pipeline')
 
 def run() -> None:
+    """
+    1. Read a custom CSV file containing a list of studies to extract.
+    2. Extract given studies from DCM4CHEE in INDIR_EXTRACT
+    3. Deidentify mammograms from INDIR_EXTRACT to OUTDIR_EXTRACT
+       (Image + Attributes) as DCM and PNG.    
+    """
     studies_df = _prepare_source_file()
     os.makedirs(OUTDIR_DEID, exist_ok=True)
 
@@ -40,6 +45,10 @@ def run() -> None:
 
 
 def _prepare_source_file() -> pd.DataFrame:
+    """
+    Read a custom CSV file containing a list of studies to extract
+    and return the content as a dataframe.
+    """
     df = pd.read_csv(SOURCE_FILE_PATH, encoding=SOURCE_FILE_ENCODING)
     
     df.sort_values(by='BCI', axis=0, ascending=True, inplace=True)

@@ -2,9 +2,8 @@ import time
 import numpy as np
 from dpiste.p08_mammogram_deidentification import *
 from dpiste import utils
-from kskit.dicom2png import dicom2narray, narray2dicom
-from kskit.test_deid_mammogram import *
-from kskit.test_df2dicom import test_df2dicom
+from kskit.deid_verification import *
+from kskit.df2dicom_verification import df2dicom_test
 from kskit.dicom.deid_mammogram import load_authorized_words
 
 
@@ -157,11 +156,11 @@ def test_OCR(font, size, blur, repetition, indir = None, outdir = None):
 def prep_test_df2dicom(indir, tmp_dir):
     """
     Calls the tests evaluating the performances of df2dicom() in the 
-    test_df2dicom.py module located in the library kskit
+    df2dicom_verification.py module located in the library kskit
     """
     indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')[:-1] if indir == None else indir
     tmp_dir = utils.get_home('data', 'transform', 'dcm4chee', 'test_dicom','')[:-1] if tmp_dir == None else tmp_dir
-    test_df2dicom(indir, tmp_dir)
+    df2dicom_test(indir, tmp_dir)
 
 
 def prep_test_deid_attributes(indir, outdir):
