@@ -66,7 +66,6 @@ def run(folder: str, verbose: True) -> None:
         org_root="2.25" # Derived DICOM UID Construction method (for tests only)
         reset_sftp=True,
         screening_filter=True,
-        test=True
     )
 
     deid_studies_folder = os.path.join(folder, 'deid_studies')
