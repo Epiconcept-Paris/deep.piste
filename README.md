@@ -4,10 +4,16 @@ Tools for implementing Deep.piste study.
 
 ## Installation
 
-<<<<<<< HEAD
 ### Prerequisites
 
-On windows you may need to install ["Visual C++ Redistributable Packages for Visual Studio 2013" Microsoft C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
+**On windows:**
+
+You may need to install ["Visual C++ Redistributable Packages for Visual Studio 2013" Microsoft C++ Build Tools](https://www.microsoft.com/en-us/download/details.aspx?id=40784).
+
+**On Ubuntu:**
+```bash
+sudo apt-get install python3-tk
+```
 
 ### Installation
 
