@@ -19,7 +19,7 @@ class TransformCliTest(unittest.TestCase):
     def tearDown(self):
         """this method is called after each test"""
         utils.cleandir(FileOperations.input_dir())
-        utils.cleandir(TestFileOperations.output_dir())
+        utils.cleandir(FileOperations.output_dir())
 
     def test_dicom_deid(self):
         """

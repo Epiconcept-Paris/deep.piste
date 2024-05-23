@@ -14,7 +14,7 @@ class FileOperations:
     Example:
         import os
 
-        TestFileOperations.test_root()
+        FileOperations.test_root()
 
     """
     CURRENT_FILE_PATH = os.path.abspath(__file__)
