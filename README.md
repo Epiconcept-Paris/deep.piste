@@ -94,7 +94,28 @@ options:
 pip install -e .[quality-tools]
 ```
 
-## Usage
+## Test and Test Coverage
+
+### Tests
+
+Run all tests
+```py
+pytest
+```
+
+### Calculate and Visualize Test Coverage
+
+1. Run test coverage
+```py
+coverage run --omit="*/test*,*/kskit/*" -m pytest
+```
+
+2. Visualize report in terminal
+```py
+coverage report -i
+```
+
+## Formatter and Linter
 
 Format your files with `python3 -m autopep8 --in-place file/to/format`
 
