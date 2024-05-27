@@ -3,17 +3,17 @@ import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from datetime import datetime as dt
-from .p02_initial_extraction import *
-from .p03_validated_extraction import *
-from .p12_SNDS_match import *
-from .p11_hdh_encryption import *
-from . import utils
-from . import dal
-from .dal import cnam
-from .p06_mammogram_extraction import *
-from .p08_mammogram_deidentification import *
-from .p08_test_deid_df2dicom import *
-from .tools.patch_extraction import run_patch
+from dpiste.p02_initial_extraction import *
+from dpiste.p03_validated_extraction import *
+from dpiste.p12_SNDS_match import *
+from dpiste.p11_hdh_encryption import *
+from dpiste. import utils
+from dpiste. import dal
+from dpiste.dal import cnam
+from dpiste.p06_mammogram_extraction import *
+from dpiste.p08_mammogram_deidentification import *
+from dpiste.p08_test_deid_df2dicom import *
+from dpiste.tools.patch_extraction import run_patch
 from kskit import backup
 
 def main(a):
