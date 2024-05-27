@@ -30,7 +30,7 @@ class TransformCliTest(unittest.TestCase):
         __main__.main(
             [
                 'transform',
-                'dicom-deid',
+                'dcm-deid-png',
                 '-i', FileOperations.sample_mammograms(),
                 '-o', FileOperations.output_dir(),
                 '-r', org_root

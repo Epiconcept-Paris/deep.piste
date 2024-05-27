@@ -72,9 +72,9 @@ def main(a=None):
         "report", help="Invoke initial extractoin validation report")
     validated_parser.set_defaults(func=do_validated_initial_extraction_report)
 
-    # transform dicom-deid command
+    # transform dicom-deid-png command
     dicom_deid_parser = transform_subs.add_parser(
-        "dicom-deid", help="De-identify a complete directory of DICOMs ")
+        "dcm-deid-png", help="De-identify a directory of DICOMs and create CSV + PNG files")
     dicom_deid_parser.add_argument("-i",
                                    "--indir",
                                    type=str,
