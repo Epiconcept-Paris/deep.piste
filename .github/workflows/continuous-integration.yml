@@ -1,10 +1,8 @@
 name: Deep.piste Continuous Integration
 
 on:
-  #pull_request:
-  #  branches: ["main"]
-  push:
-    branches: ["feature/dcm-deid-png"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   codebase-checks:
@@ -28,6 +26,7 @@ jobs:
         name: Ensure Default Package Manager is up to date
         run: python3 -m pip install --upgrade pip setuptools wheel
       -
+        # TODO: change the hardcoded branch when kskit dependencies' versions will be unlocked 
         name: Retrieve kskit Package
         run: |
           git config --global url.https://github.com/.insteadOf git://github.com/
