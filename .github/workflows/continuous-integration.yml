@@ -31,7 +31,7 @@ jobs:
         name: Retrieve kskit Package
         run: |
           git config --global url.https://github.com/.insteadOf git://github.com/
-          git clone https://github.com/Epiconcept-Paris/kskit
+          git clone -b hotfix/typo-and-locked-imports https://github.com/Epiconcept-Paris/kskit
       -
         name: Install kskit Package
         run: |
