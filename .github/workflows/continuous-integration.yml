@@ -1,8 +1,8 @@
 name: Deep.piste Continuous Integration
 
 on:
-  pull_request:
-    branches: ["main"]
+  #pull_request:
+  #  branches: ["main"]
   push:
     branches: ["feature/dcm-deid-png"]
 
@@ -27,6 +27,16 @@ jobs:
       -
         name: Ensure Default Package Manager is up to date
         run: python3 -m pip install --upgrade pip setuptools wheel
+      -
+        name: Retrieve kskit Package
+        run: |
+          git config --global url.https://github.com/.insteadOf git://github.com/
+          git clone https://github.com/Epiconcept-Paris/kskit
+      -
+        name: Install kskit Package
+        run: |
+          cd kskit
+          pip install -e .[quality-tools]
       -
         name: Install Deep.piste Package
         run: pip install -e .[quality-tools]
