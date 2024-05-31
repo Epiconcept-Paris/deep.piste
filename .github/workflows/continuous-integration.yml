@@ -10,7 +10,7 @@ jobs:
     timeout-minutes: 10
     strategy:
       matrix:
-        python-version: ["3.6", "3.10.12"]
+        python-version: ['3.7', '3.10', '3.x']
     steps:
       -
         name: Checkout Repository
