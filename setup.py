@@ -17,6 +17,12 @@ setup(
     license="GNU General Public License v2.0",
     install_requires=[
         "deidcm",
+        "pycryptodome ",
+        "qrcode",
+        "pyzbar[scripts]",
+        "requests",
+        "pynetdicom",
+        "xmltodict",
         "clipboard",
         "pyarrow",
         "ipykernel",

@@ -1,13 +1,14 @@
-from Crypto.Cipher import AES
 import secrets
 import base64
+import sys
+import os
+import struct
+
+from Crypto.Cipher import AES
 import qrcode
 from PIL import Image
 import cv2
 import numpy as np
-import sys
-import os
-import struct
 
 def generate_qr_key(dest, nBytes=512):
   key = secrets.token_bytes(nBytes)

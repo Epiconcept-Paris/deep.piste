@@ -3,6 +3,8 @@ name: Deep.piste Continuous Integration
 on:
   pull_request:
     branches: ["main"]
+  push:
+    branches: ["main"]
 
 jobs:
   codebase-checks:
