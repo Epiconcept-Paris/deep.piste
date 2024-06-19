@@ -26,18 +26,17 @@ jobs:
         name: Ensure Default Package Manager is up to date
         run: python3 -m pip install --upgrade pip setuptools wheel
       -
-        # TODO: change the hardcoded branch when kskit dependencies' versions will be unlocked 
-        name: Retrieve kskit Package
+        name: Retrieve deidcm Package
         run: |
           git config --global url.https://github.com/.insteadOf git://github.com/
-          git clone -b hotfix/typo-and-locked-imports https://github.com/Epiconcept-Paris/kskit
+          git clone https://github.com/Epiconcept-Paris/deidcm
       -
-        name: Install kskit prerequisites for Ubuntu
+        name: Install deidcm prerequisites for Ubuntu
         run: sudo apt-get install zbar-tools
       -
-        name: Install kskit Package
+        name: Install deidcm Package
         run: |
-          cd kskit
+          cd deidcm
           pip install -e .[quality-tools]
       -
         name: Install Deep.piste Package

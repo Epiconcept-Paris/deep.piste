@@ -15,10 +15,10 @@
 - name: folders exists on all nodes
   file:
     path:
-    - "{{ dp_home  }}"
-    - "{{ dp_code  }}"
-    - "{{ dpiste_git  }}"
-    - "{{ kskit_git  }}"
+      - "{{ dp_home  }}"
+      - "{{ dp_code  }}"
+      - "{{ dpiste_git  }}"
+      - "{{ deidcm_git  }}"
     state: directory
     mode: 0700
     owner: "{{ ssh_user }}"
@@ -27,11 +27,19 @@
 - name: deep.piste github libraries are updated
   git:
     repo: "{{ item.repo }}"
-    dest: "{{ dp_code }}/{{ item.name }}" 
+    dest: "{{ dp_code }}/{{ item.name }}"
     version: "{{ item.version }}"
   with_items:
-  - {name: "deep.piste", repo: "https://github.com/Epiconcept-Paris/deep.piste/", version: "main" }
-  - {name: "kskit", repo: "https://github.com/Epiconcept-Paris/kskit", version: "main" }
+    - {
+        name: "deep.piste",
+        repo: "https://github.com/Epiconcept-Paris/deep.piste/",
+        version: "main",
+      }
+    - {
+        name: "deidcm",
+        repo: "https://github.com/Epiconcept-Paris/deidcm",
+        version: "main",
+      }
   environment:
     TMPDIR: "{{ tmp_dir }}"
     HTTPS_PROXY: "http://{{ proxy_host }}:{{ proxy_port }}"
@@ -40,7 +48,7 @@
   tags: [export, git]
 - name: ensuring gpg agent is not currently running
   shell: |
-          pkill -u {{ ssh_user  }} gpg-agent 
+    pkill -u {{ ssh_user  }} gpg-agent
   register: out
   become_user: "{{ ssh_user }}"
   changed_when: out.rc == 0
@@ -48,18 +56,18 @@
   tags: [export]
 - name: creating deep.piste virtual envirobment on nodes
   shell: |
-          export PYTHON={{ python_bin }}
-          export PATH={{ python_path }}:$PATH
-          make init
+    export PYTHON={{ python_bin }}
+    export PATH={{ python_path }}:$PATH
+    make init
   args:
     chdir: "{{ dpiste_git  }}"
     creates: "{{ dpiste_git }}/env"
   become_user: "{{ ssh_user }}"
   tags: [export]
-- name: installing deep.piste on nodes  
+- name: installing deep.piste on nodes
   shell: |
-          export PATH={{ python_path }}:$PATH
-          make install
+    export PATH={{ python_path }}:$PATH
+    make install
   args:
     chdir: "{{ dpiste_git  }}"
     creates: "{{ dpiste_git }}/env/lib/python3.6/site-packages/pyzbar"
@@ -81,19 +89,19 @@
     owner: francisco
     group: francisco
     mode: 0644
-- name: private key has no passphrase 
+- name: private key has no passphrase
   command: |
-          ssh-keygen -p -P '{{ ssh_passphrase }}' -N '' -f {{ ssh_tmp_key_remote  }}
+    ssh-keygen -p -P '{{ ssh_passphrase }}' -N '' -f {{ ssh_tmp_key_remote  }}
   become_user: "{{ ssh_user }}"
   tags: [export]
 - name: using custom key for ssh configurations
   blockinfile:
     path: "/home/{{ ssh_user  }}/.ssh/config"
     block: |
-            Host {{ sftp_server  }}
-               User {{ sftp_user }}
-               IdentityFile {{ ssh_tmp_key_remote  }}
-               IdentitiesOnly yes
+      Host {{ sftp_server  }}
+         User {{ sftp_user }}
+         IdentityFile {{ ssh_tmp_key_remote  }}
+         IdentitiesOnly yes
     marker: "# {mark} ANSIBLE MANAGED BLOCK sftp deep.piste"
     create: True
     group: "{{ ssh_user }}"

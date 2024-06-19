@@ -98,3 +98,6 @@ ENV/
 
 # Test file structure
 tests/assets/dp_home
+
+# IDE settings
+.vscode

@@ -22,7 +22,7 @@ install-dependencies:
 install:
 	source env/bin/activate;\
 	python3 -m pip install -e .;\
-	python3 -m pip install -e ../kskit\
+	python3 -m pip install -e ../deidcm\
 
 package:
 	source env/bin/activate;\

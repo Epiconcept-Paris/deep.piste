@@ -11,10 +11,10 @@ import glob
 import hashlib
 import pandas as pd
 
-from kskit import dicom2png
-from kskit.dicom.df2dicom import (df2dicom, df2hdh)
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.deid_mammogram import (
+from deidcm import dicom2png
+from deidcm.dicom.utils import log
+from deidcm.dicom.df2dicom import (df2dicom, df2hdh)
+from deidcm.dicom.deid_mammogram import (
     gen_dicom_uid,
     load_authorized_words,
     deidentify_attributes,
@@ -22,9 +22,9 @@ from kskit.dicom.deid_mammogram import (
     get_text_areas,
     p08_005_update_summary
 )
-from kskit.dicom.utils import log
 
 from dpiste import utils
+from dpiste.dicom.get_dicom import get_dicom
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p06_mammogram_extraction import (
     get_acr5,

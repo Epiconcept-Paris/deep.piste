@@ -2,20 +2,19 @@
 A simple script for extracting from a PACS and storing mammograms inside
 a local folder.
 """
-
-import pandas as pd
 import os
+import pandas as pd
 import pydicom
 
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.deid_mammogram import get_PIL_image 
+from deidcm.dicom.deid_mammogram import get_PIL_image
 
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p08_mammogram_deidentification import build_studies
+from dpiste.dicom.get_dicom import get_dicom
+from dpiste.utils import cleandir
 
-from dpiste.utils import cleandir 
-
-INDIR_EXTRACT = os.path.join(os.environ['DP_HOME'], 'data', 'transform', 'removeme')
+INDIR_EXTRACT = os.path.join(
+    os.environ['DP_HOME'], 'data', 'transform', 'removeme')
 ORG_ROOT = 'replaceme'
 
 OUTDIR_DEID = os.path.join(os.environ['DP_HOME'], 'data', 'output', 'removeme')
@@ -33,8 +32,8 @@ def run() -> None:
         os.makedirs(deid_study_dir, exist_ok=True)
 
         get_dicom(key=study_id, dest=study_dir, server='10.1.2.9', port=11112,
-                    title='DCM4CHEE', retrieveLevel='STUDY', silent=False)
-        
+                  title='DCM4CHEE', retrieveLevel='STUDY', silent=False)
+
         if len(os.listdir(study_dir)) <= 4:
             continue
 
@@ -42,7 +41,8 @@ def run() -> None:
             try:
                 ds = pydicom.dcmread(os.path.join(study_dir, file))
                 img = get_PIL_image(ds)
-                img.save(os.path.join(deid_study_dir, f"{ds.SOPInstanceUID}.png"))
+                img.save(os.path.join(deid_study_dir,
+                         f"{ds.SOPInstanceUID}.png"))
             except pydicom.errors.InvalidDicomError:
                 print(f"cannot load image in {os.path.join(study_dir, file)}")
                 continue
