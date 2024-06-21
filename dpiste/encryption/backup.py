@@ -1,10 +1,10 @@
-from . import crypto
+from . import encryption
 import os
 import hashlib
 from getpass import getpass
 
 def create_backup_key(key_dest):
-  crypto.generate_qr_key(key_dest, 32) #256 bits    
+  encryption.generate_qr_key(key_dest, 32) #256 bits    
 
 def backup_file(source, crypted_dest,  webcam_pwd = True, clipboard_pwd = False, md5sum = None):   
   if not os.path.exists(source):
@@ -18,13 +18,13 @@ def backup_file(source, crypted_dest,  webcam_pwd = True, clipboard_pwd = False,
   if webcam_pwd or clipboard_pwd:
     import clipboard
   if webcam_pwd:
-    b64key = crypto.read_webcam_key(auto_close = True, camera_index = 0)
+    b64key = encryption.read_webcam_key(auto_close = True, camera_index = 0)
   elif clipboard_pwd:
     b64key = clipboard.paste()
   else:
     b64key = getpass("Please type ecryption key")
     raise ValueError("either webcam or clipboard password has to be usef")
-  crypto.encrypt(source, crypted_dest, b64key)
+  encryption.encrypt(source, crypted_dest, b64key)
   if webcam_pwd or clipboard_pwd:
     clipboard.copy("")
   
@@ -33,7 +33,7 @@ def restore_file(crypted_source, dest,  webcam_pwd = True, clipboard_pwd = False
   if webcam_pwd or clipboard_pwd:
     import clipboard
   if webcam_pwd:
-    b64key = crypto.read_webcam_key(auto_close = True, camera_index = 0)
+    b64key = encryption.read_webcam_key(auto_close = True, camera_index = 0)
   elif clipboard_pwd:
     b64key = clipboard.paste()
   else:
@@ -41,7 +41,7 @@ def restore_file(crypted_source, dest,  webcam_pwd = True, clipboard_pwd = False
     raise ValueError("either webcam or clipboard password has to be usef")
   if os.path.exists(dest):
     raise ValueError("Destination file already exists cannot override it")
-  crypto.decrypt(crypted_source, dest, b64key)
+  encryption.decrypt(crypted_source, dest, b64key)
 
   if webcam_pwd or clipboard_pwd:
     clipboard.copy("")

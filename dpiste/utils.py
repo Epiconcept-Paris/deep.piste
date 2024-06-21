@@ -8,7 +8,7 @@ from paramiko.sftp_client import SFTPClient
 import datetime
 import pandas as pd
 from dpiste.java import java
-from dpiste.crypto import password
+from dpiste.encryption import password
 
 
 def get_home(*paths):

@@ -1,17 +1,39 @@
+import glob
+import os
+import random
 import time
-from dpiste.p08_mammogram_deidentification import *
-from dpiste import utils
-from deidcm.deid_verification import *
+from PIL import Image
+
+from deidcm.deid_verification import (
+    check_resources,
+    search_false_positives,
+    get_random_dicom_ds_array,
+    generate_random_words,
+    add_words_on_image,
+    get_text_areas,
+    compare_ocr_data_and_reality,
+    calculate_test_values,
+    save_test_information,
+    save_dicom_info,
+    run_test_deid_attributes
+)
 from deidcm.df2dicom_verification import df2dicom_test
-from deidcm.dicom.deid_mammogram import load_authorized_words
+from deidcm.dicom.deid_mammogram import hide_text
+from deidcm import dicom2png
+from deidcm.config import Config
+
+from dpiste import utils
+from dpiste.utils import log
 
 
-def test_OCR(font, size, blur, repetition, indir=None, outdir=None):
+def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=None, authorized_words_path=None):
     """
     Evaluates the OCR package abilities. It generates and adds random texts to 
     test images and then processes them with the OCR module.
     """
     start_time = time.time()
+    deid_config = Config(recipe_path=recipe_path,
+                         authorized_words_path=authorized_words_path)
     # Default values
     if indir == None:
         indir = utils.get_home('data', 'input', 'test_deid_ocr', '')
@@ -31,7 +53,7 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None):
         repetition = 1
 
     check_resources(PATH_FONTS, font, size, blur)
-    log(f'Words ignored by OCR: {load_authorized_words()}')
+    log(f'Words ignored by OCR: {deid_config.authorized_words}')
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
 

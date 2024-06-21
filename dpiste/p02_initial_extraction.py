@@ -9,7 +9,7 @@ import clipboard
 from deidcm.dicom.dicom2df import dicom2df
 
 from dpiste import report
-from dpiste.crypto import crypto, backup
+from dpiste.encryption import backup, encryption
 from dpiste.dicom.get_dicom import get_dicom
 from dpiste.voo import voo
 from dpiste import dal
@@ -19,14 +19,14 @@ from dpiste import utils
 def p02_001_generate_neoscope_key():
     """Generate a 256bit random QR code to be used as an AES encryption simmetric key"""
     neo_key_path = utils.get_home("input", "neo", "neo_key.png")
-    crypto.generate_qr_key(neo_key_path, 32)  # 32 bytes = 256bits
+    encryption.generate_qr_key(neo_key_path, 32)  # 32 bytes = 256bits
     print(
         f"Neoscope extractios key produced on '{neo_key_path}'. Please print too copies of this file, send one to Neoscope operator end delete this file")
 
 
 def p02_002_neoscope_key_to_clipboard():
     """Use user webcam to copy the neoscope encryption base 64 key to the clipboard"""
-    b64key = crypto.read_webcam_key(auto_close=True, camera_index=0)
+    b64key = encryption.read_webcam_key(auto_close=True, camera_index=0)
     clipboard.copy(b64key)
     print(f"the key has been copied to the clipboard, put it to the server clipboard and call p02_003_encrypt_neoscope_extractions on it")
 
@@ -35,12 +35,12 @@ def p02_003_encrypt_neoscope_extractions(source, webcam_pwd=True, clipboard_pwd=
     """Encrypts the provided file to the dp_home directory using a clipboard pasted base 64 key"""
     dest = utils.get_home("input", "neo", "extraction_neoscope.aes")
     if webcam_pwd:
-        b64key = crypto.read_webcam_key(auto_close=True, camera_index=0)
+        b64key = encryption.read_webcam_key(auto_close=True, camera_index=0)
     elif clipboard_pwd:
         b64key = clipboard.paste()
     else:
         b64key = getpass("Please type encryption key")
-    crypto.encrypt(source, dest, b64key)
+    encryption.encrypt(source, dest, b64key)
     # cleaning clipboard
     if webcam_pwd or clipboard_pwd:
         clipboard.copy("")
@@ -67,7 +67,7 @@ def p02_006_decrypt_neoscope_extractions(key):
     crypted = utils.get_home("input", "neo", "extraction_neoscope.aes")
     orig = utils.get_home("input", "neo", "extraction_neoscope.zip")
     b64key = key
-    crypto.decrypt(crypted, orig, b64key)
+    encryption.decrypt(crypted, orig, b64key)
     print(
         f"file has been decrypted and stored on {orig} please proceed delete {crypted} and run the extractions")
 

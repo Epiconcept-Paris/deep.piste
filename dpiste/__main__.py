@@ -3,7 +3,20 @@ import argparse
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 from datetime import datetime as dt
-from .p02_initial_extraction import *
+
+from dpiste.p02_initial_extraction import (
+    p02_002_neoscope_key_to_clipboard,
+    p02_003_encrypt_neoscope_extractions,
+    p02_004_send_neoscope_extractions_to_epifiles,
+    p02_005_get_neoscope_extractions_from_epifiles,
+    p02_006_decrypt_neoscope_extractions,
+    p02_007_get_dicom_guid,
+    p02_010_esis_report,
+    p02_011_dicom_report,
+    p02_012_generate_backup_key,
+    p02_013_backup_mapping_table,
+    p02_014_restore_mapping_table
+)
 from .p03_validated_extraction import *
 from .p12_SNDS_match import *
 from .p11_hdh_encryption import *
@@ -131,6 +144,10 @@ def main(a=None):
                                         type=int,
                                         help="Number of test repetition per criteria (default is 1)",
                                         required=False)
+    test_dicom_deid_parser.add_argument("-c", "--recipe", required=False,
+                                        help="Path of recipe.json", default=None, type=str)
+    test_dicom_deid_parser.add_argument("-a", "--authorized-words", required=False,
+                                        help="Path of authorized_words.txt", default=None, type=str)
     test_dicom_deid_parser.set_defaults(func=do_test_ocr)
 
    # transform test-dicom-deid
@@ -389,6 +406,10 @@ def main(a=None):
                                  help="Exclude mammogram images of the process and keep only meta files (default: False)", default=False, action='store_true')
     hdh_sftp_parser.add_argument("-p", "--only-positive", required=False,
                                  help="Process only positive images (L1L2_positif = True) (default: False)", default=False, action='store_true')
+    hdh_sftp_parser.add_argument("-c", "--recipe", required=False,
+                                 help="Path of recipe.json", default=None, type=str)
+    hdh_sftp_parser.add_argument("-a", "--authorized-words", required=False,
+                                 help="Path of authorized_words.txt", default=None, type=str)
     hdh_sftp_parser.set_defaults(func=do_send_crypted_hdh)
 
     # -- local-test
@@ -402,6 +423,10 @@ def main(a=None):
                                  help="Worker ID (0-n)(default: 0)", default=0, type=int)
     hdh_sftp_parser.add_argument("-w", "--nb-worker", required=False,
                                  help="Amount of Workers (default: 1)", default=1, type=int)
+    hdh_sftp_parser.add_argument("-r", "--recipe", required=False,
+                                 help="Path of recipe.json", default=None, type=str)
+    hdh_sftp_parser.add_argument("-a", "--authorized-words", required=False,
+                                 help="Path of authorized_words.txt", default=None, type=str)
     hdh_sftp_parser.set_defaults(func=do_local_pipeline_test)
 
     # -- sftp-status
@@ -546,7 +571,9 @@ def do_test_ocr(args, *other):
         blur=args.blur,
         repetition=args.repetition,
         indir=args.indir,
-        outdir=args.outdir
+        outdir=args.outdir,
+        recipe_path=args.recipe,
+        authorized_words_path=args.authorized_words
     )
 
 
@@ -603,7 +630,9 @@ def do_send_crypted_hdh(args, *other):
         org_root=args.org_root,
         reset_sftp=args.reset_sftp,
         exclude_images=args.exclude_images,
-        only_positive=args.only_positive
+        only_positive=args.only_positive,
+        recipe_path=args.recipe,
+        authorized_words_path=args.authorized_words
     )
 
 
@@ -612,7 +641,9 @@ def do_local_pipeline_test(args, *other):
         tmp_fol=args.tmp_folder,
         org_root=args.org_root,
         id_worker=args.id_worker,
-        nb_worker=args.nb_worker
+        nb_worker=args.nb_worker,
+        recipe_path=args.recipe,
+        authorized_words_path=args.authorized_words
     )
 
 

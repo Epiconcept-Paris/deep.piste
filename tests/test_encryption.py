@@ -7,7 +7,7 @@ import tempfile
 import filecmp
 import base64
 
-from dpiste.crypto.crypto import (
+from dpiste.encryption.encryption import (
     generate_qr_key,
     get_qr_key,
     decrypt,
