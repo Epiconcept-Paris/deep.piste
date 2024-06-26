@@ -35,13 +35,13 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
     deid_config = Config(recipe_path=recipe_path,
                          authorized_words_path=authorized_words_path)
     # Default values
-    if indir == None:
+    if indir is None:
         indir = utils.get_home('data', 'input', 'test_deid_ocr', '')
-    if outdir == None:
+    if outdir is None:
         outdir = utils.get_home('data', 'output', 'test_deid_ocr', '')
 
-    pkg_dir, this_filename = os.path.split(__file__)
-    PATH_FONTS = os.path.join(pkg_dir, 'data', 'resources', 'fonts')
+    pkg_dir, _ = os.path.split(__file__)
+    path_fonts = os.path.join(pkg_dir, 'data', 'resources', 'fonts')
 
     if font is None:
         font = ['FreeMono.ttf']
@@ -52,7 +52,7 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
     if repetition is None:
         repetition = 1
 
-    check_resources(PATH_FONTS, font, size, blur)
+    check_resources(path_fonts, font, size, blur)
     log(f'Words ignored by OCR: {deid_config.authorized_words}')
     sum_ocr_recognized_words, sum_total_words, nb_images_tested = 0, 0, 1
     tp, tn, fp, fn = 0, 0, 0, 0
@@ -76,9 +76,9 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
     nb_images_total = len(font)*len(size)*len(blur)*repetition + repetition
     summary += "\n\n\nTested with several FONT SIZE & BLUR parameters x" + \
         str(nb_images_total - 3) + "\n\n\n"
-    for index_font in range(len(font)):
-        for index_size in range(len(size)):
-            for index_blur in range(len(blur)):
+    for index_font, _ in enumerate(font):
+        for index_size, _ in enumerate(size):
+            for index_blur, _ in enumerate(blur):
                 for r in range(repetition):
                     (pixels, ds, dicom, file_path, list_chosen) = get_random_dicom_ds_array(
                         list_dicom, indir, list_chosen
@@ -96,7 +96,7 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
                     test_words_keep = test_words
                     (pixels, words_array, test_words) = add_words_on_image(
                         pixels, test_words, size[index_size],
-                        font=(os.path.join(PATH_FONTS, font[index_font])), blur=blur[index_blur]
+                        font=(os.path.join(path_fonts, font[index_font])), blur=blur[index_blur]
                     )
 
                     img = Image.fromarray(pixels)
@@ -104,7 +104,7 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
                         outdir,
                         os.path.basename(dicom),
                         size[index_size],
-                        font[index_font],
+                        os.path.basename(font[index_font]),
                         blur[index_blur]
                     )
                     dicom2png.narray2png(pixels, output_png)
@@ -147,7 +147,7 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
                             outdir,
                             os.path.basename(dicom),
                             size[index_size],
-                            font[index_font],
+                            os.path.basename(font[index_font]),
                             blur[index_blur]
                         ),
                         file_path, ds, ocr_data, test_words_keep, total_words)
@@ -165,15 +165,15 @@ def test_OCR(font, size, blur, repetition, indir=None, outdir=None, recipe_path=
                         outdir,
                         os.path.basename(dicom),
                         size[index_size],
-                        font[index_font],
+                        os.path.basename(font[index_font]),
                         blur[index_blur]
                     )
                     dicom2png.narray2png(pixels, output_png)
 
     duration = int((time.time() - start_time) / 60)
-    with open(os.path.join(outdir, 'test_summary.log'), 'w') as f:
+    with open(os.path.join(outdir, 'test_summary.log'), 'w', encoding='utf8') as f:
         f.write(f"Duration of exexcution: {duration}.\n" + summary)
-    with open(os.path.join(outdir, 'deleted_words'), 'w') as f:
+    with open(os.path.join(outdir, 'deleted_words'), 'w', encoding='utf8') as f:
         list(map(lambda x: f.write(f'{x}\n'), deleted_words))
 
 
@@ -183,9 +183,9 @@ def prep_test_df2dicom(indir, tmp_dir):
     df2dicom_verification.py module located in the library deidcm
     """
     indir = utils.get_home('data', 'input', 'dcm4chee', 'dicom', '')[
-        :-1] if indir == None else indir
+        :-1] if indir is None else indir
     tmp_dir = utils.get_home('data', 'transform', 'dcm4chee', 'test_dicom', '')[
-        :-1] if tmp_dir == None else tmp_dir
+        :-1] if tmp_dir is None else tmp_dir
     df2dicom_test(indir, tmp_dir)
 
 
