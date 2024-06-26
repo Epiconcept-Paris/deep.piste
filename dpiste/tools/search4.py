@@ -1,19 +1,17 @@
 #!/usr/bin/env python3
 
 import os
-import json
 import pydicom
-import pandas as pd
 
 from tqdm import tqdm
+
+from deidcm.dicom.utils import log
 
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p08_mammogram_deidentification import build_studies
 from dpiste.utils import cleandir
 from dpiste.utils import get_home
-
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.utils import log
+from dpiste.dicom.get_dicom import get_dicom
 
 CODING_SCHEME = {
     'R-10224': 'ml',
@@ -35,6 +33,7 @@ CC = 'R-10242'
 PATIENT_ID = 0x00100020
 STUDY_DATE = 0x00080020
 
+
 def search4ccmlo(indir: str, samples: int):
     log('Getting depistage_pseudo...')
     df = depistage_pseudo()
@@ -45,7 +44,7 @@ def search4ccmlo(indir: str, samples: int):
     for imam, index in enumerate(studies.index):
         study_id = studies['study_id'][index]
         get_dicom(key=study_id, dest=indir, server='10.1.2.9', port=11112,
-            title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+                  title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
         if isccmlo(indir):
             ccmlo += 1
@@ -81,7 +80,8 @@ def isccmlo(dirpath: str):
         else:
             continue
         tags[ccmlo] += 1
-    checkf = lambda x: True if x >= 1 else False
+
+    def checkf(x): return True if x >= 1 else False
     res = all(map(checkf, tags.values()))
     for k, v in tags.items():
         if v < 1:
@@ -110,7 +110,8 @@ def isccmlo_view_position(dirpath: str):
         else:
             continue
         tags[ccmlo] += 1
-    checkf = lambda x: True if x >= 1 else False
+
+    def checkf(x): return True if x >= 1 else False
     res = all(map(checkf, tags.values()))
     for k, v in tags.items():
         if v < 1:
@@ -124,7 +125,8 @@ def search_view_position(dirpath: str, view_position: bool = False) -> None:
     for root, dirs, files in os.walk(dirpath):
         for dir in dirs:
             if view_position:
-                num += 1 if isccmlo_view_position(os.path.join(root, dir)) else 0
+                num += 1 if isccmlo_view_position(
+                    os.path.join(root, dir)) else 0
             else:
                 num += 1 if isccmlo(os.path.join(root, dir)) else 0
             den += 1
@@ -143,7 +145,7 @@ def get_detailed_viewcodes(indir: str, samples: int) -> None:
     for imam, index in enumerate(studies.index):
         study_id = studies['study_id'][index]
         get_dicom(key=study_id, dest=indir, server='10.1.2.9', port=11112,
-            title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+                  title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
         if countccmlo(indir, study_id):
             frequency += 1
@@ -190,8 +192,8 @@ def get_broken_studies(ref_file: str, broken_stud_dir: str):
     for study_id in tqdm(study_ids):
         studir = os.path.join(broken_stud_dir, study_id)
         os.mkdir(studir)
-        get_dicom(key=study_id, dest=studir, server='10.1.2.9', 
-            port=11112, title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
+        get_dicom(key=study_id, dest=studir, server='10.1.2.9',
+                  port=11112, title='DCM4CHEE', retrieveLevel='STUDY', silent=True)
 
 
 def see_broken_studies_details(broken_stud_dir: str):
@@ -225,12 +227,14 @@ def see_broken_studies_details(broken_stud_dir: str):
             elif code_value != 'N/A':
                 ccmlo = CODING_SCHEME[code_value]
             try:
-                print(f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}|{ds[0x00181400].value}|{ds[0x00185101]}')
+                print(
+                    f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}|{ds[0x00181400].value}|{ds[0x00185101]}')
             except KeyError:
-                print(f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}')
+                print(
+                    f'{ds[0x00080018].value} => {ccmlo}|{code_value}|{img_laterality}|{ds[0x00080060].value}')
             one_per_study = False
         if len(files) >= 4:
-                    valid_studies_filenumber += 1
+            valid_studies_filenumber += 1
     print('\nMain invalidation causes:')
     print(f'Less than 4 mammograms: {invalid_studies_filenumber}')
     print(f'Other causes: {valid_studies_filenumber}')
@@ -255,11 +259,11 @@ def find_all_studies_associated_with(patient_id: str = "4161741") -> set:
     return associated_studies
 
 
-
 if __name__ == '__main__':
-    #search_view_position("/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive")
-    search_view_position("/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive", True)
-    #search4ccmlo(get_home('data/input/dcm4chee/count'), 2000)
+    # search_view_position("/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive")
+    search_view_position(
+        "/space/Work/william2/deep.piste/home/data/input/dcm4chee/dicom_positive", True)
+    # search4ccmlo(get_home('data/input/dcm4chee/count'), 2000)
     # get_broken_studies(get_home('logs/69'), get_home('data/input/dcm4chee/broken'))
     see_broken_studies_details(get_home('data/input/dcm4chee/broken'))
     # get_detailed_viewcodes(get_home('data/input/dcm4chee/count'), 2000)

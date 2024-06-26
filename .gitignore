@@ -95,3 +95,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Test file structure
+tests/assets/dp_home
+
+# IDE settings
+.vscode

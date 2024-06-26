@@ -2,26 +2,30 @@
 This script aims at extracting studies according to a custom source file containing
 a list of Study UIDs.
 """
-
-import pandas as pd
 import os
 from datetime import datetime
 
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.df2dicom import df2dicom
-from kskit.dicom.deid_mammogram import deidentify_attributes
+import pandas as pd
 
-from dpiste.utils import cleandir 
+from deidcm.dicom.df2dicom import df2dicom
+from deidcm.dicom.deid_mammogram import deidentify_attributes
+
+from dpiste.utils import cleandir
+from dpiste.dicom.get_dicom import get_dicom
 
 # Script Config
 
-SOURCE_FILE_PATH = os.path.join(os.environ['DP_HOME'], 'data', 'input', 'epiconcept', 'source.csv')
+SOURCE_FILE_PATH = os.path.join(
+    os.environ['DP_HOME'], 'data', 'input', 'epiconcept', 'source.csv')
 SOURCE_FILE_ENCODING = 'utf8'
 
-INDIR_EXTRACT = os.path.join(os.environ['DP_HOME'], 'data', 'transform', 'custom_local_pipeline')
+INDIR_EXTRACT = os.path.join(
+    os.environ['DP_HOME'], 'data', 'transform', 'custom_local_pipeline')
 ORG_ROOT = 'replaceme'
 
-OUTDIR_DEID = os.path.join(os.environ['DP_HOME'], 'data', 'output', 'custom_local_pipeline')
+OUTDIR_DEID = os.path.join(
+    os.environ['DP_HOME'], 'data', 'output', 'custom_local_pipeline')
+
 
 def run() -> None:
     """
@@ -50,14 +54,14 @@ def _prepare_source_file() -> pd.DataFrame:
     and return the content as a dataframe.
     """
     df = pd.read_csv(SOURCE_FILE_PATH, encoding=SOURCE_FILE_ENCODING)
-    
+
     df.sort_values(by='BCI', axis=0, ascending=True, inplace=True)
     df.BCI = [i for i in range(1, len(df.BCI) + 1)]
     df.rename(
         columns={
             "BCI": "idFemme",
             "Date MG Expér Inca": "DateMG",
-            "Date MG Antériorité":"DateAntMG",
+            "Date MG Antériorité": "DateAntMG",
             "Antériorité": "anteriorite"
         },
         inplace=True
@@ -70,7 +74,8 @@ def _prepare_source_file() -> pd.DataFrame:
     df.DateAntMG = [_reformat_date(date) for date in df.DateAntMG]
 
     df.study_id = [f'{id}_{date}' for id, date in zip(df.idFemme, df.DateMG)]
-    df.ant_study_id = [f'{id}_{date}' for id, date in zip(df.idFemme, df.DateAntMG)]
+    df.ant_study_id = [f'{id}_{date}' for id,
+                       date in zip(df.idFemme, df.DateAntMG)]
     return df
 
 
@@ -87,10 +92,12 @@ def _process_study(study_id) -> None:
     os.makedirs(deid_study_dir, exist_ok=True)
 
     get_dicom(key=study_id, dest=study_dir, server='10.1.2.9', port=11112,
-                title='DCM4CHEE', retrieveLevel='STUDY', silent=False)
-    
-    study_df = deidentify_attributes(study_dir, deid_study_dir, ORG_ROOT, erase_outdir=False)
-    df2dicom(study_df, deid_study_dir, do_image_deidentification=True, output_file_formats=["png", "dcm"])
+              title='DCM4CHEE', retrieveLevel='STUDY', silent=False)
+
+    study_df = deidentify_attributes(
+        study_dir, deid_study_dir, ORG_ROOT, erase_outdir=False)
+    df2dicom(study_df, deid_study_dir, do_image_deidentification=True,
+             output_file_formats=["png", "dcm"])
 
 
 if __name__ == '__main__':

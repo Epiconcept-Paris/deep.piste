@@ -26,7 +26,7 @@ pip install deep-piste
 1. Download source code
 
 ```bash
-git clone https://github.com/Epiconcept-Paris/kskit.git
+git clone https://github.com/Epiconcept-Paris/deidcm.git
 git clone https://github.com/Epiconcept-Paris/deep.piste.git
 ```
 
@@ -38,10 +38,10 @@ python3 -m venv env
 . env/bin/activate
 ```
 
-3. Install [kskit](https://github.com/Epiconcept-Paris/kskit)
+3. Install [deidcm](https://github.com/Epiconcept-Paris/deidcm)
 
 ```bash
-cd ../kskit
+cd ../deidcm
 pip install -e .
 ```
 
@@ -54,11 +54,11 @@ pip install -e .
 
 ### Checking installation
 
-1. Checking kskit installation
+1. Checking deidcm installation
 
 Open a python interpreter and try to deidentify a dicom file:
 ```python
-from kskit.dicom.deid_mammogram import deidentify_image_png
+from deidcm.dicom.deid_mammogram import deidentify_image_png
 
 deidentify_image_png(
     "/path/to/mammogram.dcm",
@@ -94,7 +94,28 @@ options:
 pip install -e .[quality-tools]
 ```
 
-## Usage
+## Test and Test Coverage
+
+### Tests
+
+Run all tests
+```py
+pytest
+```
+
+### Calculate and Visualize Test Coverage
+
+1. Run test coverage
+```py
+coverage run --omit="*/test*,*/deidcm/*" -m pytest
+```
+
+2. Visualize report in terminal
+```py
+coverage report -i
+```
+
+## Formatter and Linter
 
 Format your files with `python3 -m autopep8 --in-place file/to/format`
 
