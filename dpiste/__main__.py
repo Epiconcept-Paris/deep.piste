@@ -80,7 +80,8 @@ def main(a=None):
         "validated-extraction", help="Invoke initial extractoin validation command")
     validated_parser.set_defaults(func=do_validated_initial_extraction)
 
-# transfrom validated extraction report
+
+    # transfrom validated extraction report
     validated_parser = transform_subs.add_parser(
         "report", help="Invoke initial extractoin validation report")
     validated_parser.set_defaults(func=do_validated_initial_extraction_report)
