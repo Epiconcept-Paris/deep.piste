@@ -11,20 +11,20 @@ import glob
 import hashlib
 import pandas as pd
 
-from kskit import dicom2png
-from kskit.dicom.df2dicom import (df2dicom, df2hdh)
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.deid_mammogram import (
+from deidcm import dicom2png
+from deidcm.dicom.utils import log
+from deidcm.config import Config
+from deidcm.dicom.df2dicom import (df2dicom, df2hdh)
+from deidcm.dicom.deid_mammogram import (
     gen_dicom_uid,
-    load_authorized_words,
     deidentify_attributes,
     hide_text,
     get_text_areas,
     p08_005_update_summary
 )
-from kskit.dicom.utils import log
 
 from dpiste import utils
+from dpiste.dicom.get_dicom import get_dicom
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p06_mammogram_extraction import (
     get_acr5,
@@ -150,11 +150,15 @@ def deidentify_mammograms_hdh(indir: str, outdir: str, org_root: str, exclude_im
     df2hdh(df, outdir, exclude_images)
 
 
-def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: float,
-                       tmp_fol: str, id_worker: int, nb_worker: int, org_root: str,
-                       reset_sftp=False, screening_filter=False,
-                       exclude_images=False, only_positive=False) -> None:
+def p08_001_export_hdh(
+    sftph: str, sftpu: str, batch_size: int, sftp_limit: float,
+        tmp_fol: str, id_worker: int, nb_worker: int, org_root: str,
+        reset_sftp=False, screening_filter=False,
+        exclude_images=False, only_positive=False,
+        recipe_path=None, authorized_words_path=None) -> None:
     """Gets, deidentifies and sends mammograms to the HDH sftp"""
+    deid_config = Config(recipe_path=recipe_path,
+                         authorized_words_path=authorized_words_path)
     indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
     worker_outdir = os.path.join(outdir, str(id_worker))
@@ -198,7 +202,7 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
         init_distant_files(sftp, id_worker)
 
     count = 0
-    log(f'Words ignored by OCR: {load_authorized_words()}')
+    log(f'Words ignored by OCR: {deid_config.authorized_words}')
     for index in studies.index:
         study_id = studies['study_id'][index]
         study_hash = int(hashlib.sha512(
@@ -241,8 +245,10 @@ def p08_001_export_hdh(sftph: str, sftpu: str, batch_size: int, sftp_limit: floa
     log('All done!')
 
 
-def p08_001_export_local(tmp_fol: str, id_worker: int, nb_worker: int, org_root: str, screening_filter=False) -> None:
+def p08_001_export_local(tmp_fol: str, id_worker: int, nb_worker: int, org_root: str, screening_filter=False, recipe_path=None, authorized_words_path=None) -> None:
     """Gets, deidentifies and writes mammograms locally"""
+    deid_config = Config(recipe_path=recipe_path,
+                         authorized_words_path=authorized_words_path)
     indir, outdir = init_local_files(tmp_fol, id_worker)
     worker_indir = os.path.join(indir, str(id_worker))
     worker_outdir = os.path.join(outdir, str(id_worker))
@@ -267,7 +273,7 @@ def p08_001_export_local(tmp_fol: str, id_worker: int, nb_worker: int, org_root:
 
     progress = 0
     count = 0
-    log(f'Words ignored by OCR: {load_authorized_words()}')
+    log(f'Words ignored by OCR: {deid_config.authorized_words}')
     for index in studies.index:
         study_id = studies['study_id'][index]
         study_hash = int(hashlib.sha512(

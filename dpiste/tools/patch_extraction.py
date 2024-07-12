@@ -4,12 +4,12 @@ import os
 import pandas as pd
 import pydicom
 
-from kskit.dicom.get_dicom import get_dicom
-from kskit.dicom.deid_mammogram import gen_dicom_uid
+from deidcm.dicom.deid_mammogram import gen_dicom_uid
 
 from dpiste.dal.screening import depistage_pseudo
 from dpiste.p08_mammogram_deidentification import build_studies
 from dpiste.utils import (cleandir, log)
+from dpiste.dicom.get_dicom import get_dicom
 
 PATCH_HEADERS = [
     "StudyInstanceUID_0020000d",
@@ -20,10 +20,11 @@ PATCH_HEADERS = [
     "ViewCodeSequence_0x00540220_CodingSchemeDesignator_0x00080102"
 ]
 
+
 def run_patch(indir: str, batch_size: str, org_root: str, patch_filepath: str) -> None:
     """
     Orchestrate the patch workflow
-    
+
     Args:
         indir: directory where studies are going to be extracted from the PACS
         batch_size: number of lines to write in the patch file at each cycle
@@ -31,7 +32,7 @@ def run_patch(indir: str, batch_size: str, org_root: str, patch_filepath: str) -
         patch_filepath: filepath of the patch CSV file
     """
     cleandir(indir)
-    
+
     studies = get_studies_df()
     try:
         last_study_uid = calculate_progress(patch_filepath)
@@ -46,7 +47,7 @@ def run_patch(indir: str, batch_size: str, org_root: str, patch_filepath: str) -
         study_id = studies['study_id'][index]
         id_random = studies['id_random'][index]
         deid_study_id = gen_dicom_uid(id_random, study_id, org_root)
-        
+
         if do_retrieve_progress:
             if last_study_uid != deid_study_id:
                 continue
@@ -59,16 +60,19 @@ def run_patch(indir: str, batch_size: str, org_root: str, patch_filepath: str) -
 
         get_dicom(key=study_id, dest=study_dir, server='10.1.2.9', port=11112,
                   title='DCM4CHEE', retrieveLevel='STUDY', silent=False)
-        
-        mammograms_metadata = retrieve_mammograms_metadata(study_id, deid_study_id, id_random, indir, org_root)
+
+        mammograms_metadata = retrieve_mammograms_metadata(
+            study_id, deid_study_id, id_random, indir, org_root)
         if mammograms_metadata:
             batch_mammograms_metadata.extend(mammograms_metadata)
-        
-        batch_mammograms_metadata = save_metadata(batch_mammograms_metadata, batch_size, patch_filepath)
+
+        batch_mammograms_metadata = save_metadata(
+            batch_mammograms_metadata, batch_size, patch_filepath)
         cleandir(indir)
         log(f"{study_id} => Added to batch")
         log(f"progress: {i}/{len(studies)} done")
-    save_metadata(batch_mammograms_metadata, batch_size, patch_filepath, force=True)
+    save_metadata(batch_mammograms_metadata, batch_size,
+                  patch_filepath, force=True)
 
 
 def init_patch_file(patch_filepath: str) -> None:
@@ -110,11 +114,12 @@ def add_metadata_to_patch_file(mammograms_metadata: list, patch_filepath: str) -
             f.write(metadata_line)
 
 
-def save_metadata(batch_mammograms_metadata: list, batch_size: int, patch_filepath: str, force: bool=False) -> list:
+def save_metadata(batch_mammograms_metadata: list, batch_size: int, patch_filepath: str, force: bool = False) -> list:
     """Decide whether or not patch.csv should be updated"""
     if len(batch_mammograms_metadata) >= batch_size or force:
         log("writing batch to file")
-        add_metadata_to_patch_file(batch_mammograms_metadata, patch_filepath=patch_filepath)
+        add_metadata_to_patch_file(
+            batch_mammograms_metadata, patch_filepath=patch_filepath)
         batch_mammograms_metadata = []
     return batch_mammograms_metadata
 
@@ -141,11 +146,11 @@ def calculate_progress(patch_filepath: str) -> str:
     # File does not exist Error
     except IOError:
         raise FileNotFoundError(patch_filepath)
-    
+
     last_study_uid = last_line_splitted[0]
     if not last_study_uid:
         raise ValueError("Cannot determine last StudyUID")
-    
+
     if last_study_uid == PATCH_HEADERS[0]:
         raise ValueError("CSV file only contains headers")
 
@@ -160,4 +165,3 @@ if __name__ == '__main__':
         org_root="replaceme",
         patch_filepath="/space/Work/william2/deep.piste/home/input/dcm4chee/patch.csv"
     )
-    

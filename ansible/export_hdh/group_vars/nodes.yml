@@ -5,7 +5,7 @@ ssh_epi_transfer_passphrase: "{{lookup('passwordstore', 'epitools/hdh_epi_transf
 
 #general
 proxy_host: proxy.admin2.oxa.tld
-proxy_port: 3128 
+proxy_port: 3128
 tmp_dir: "/space/tmp"
 ssh_user: francisco
 ssh_tmp_key: "tempkey"
@@ -24,7 +24,7 @@ sftp_user: HDH_deeppiste
 
 # calculated
 dpiste_git: "{{ dp_code }}/deep.piste"
-kskit_git: "{{ dp_code }}/kskit"
+deidcm_git: "{{ dp_code }}/deidcm"
 input_path: "{{ dp_home }}/data/input"
 transform_path: "{{ dp_home }}/data/transform"
 out_path: "{{ dp_home }}/data/output"
