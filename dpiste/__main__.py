@@ -502,7 +502,7 @@ def do_encrypt_neoscope_extractions(args, *other):
     else:
         filename = args.extractions
     p02_003_encrypt_neoscope_extractions(
-        source=filename, webcam_pwd=args.webcam, clipboard_pwd=args.clipbord)
+        source=filename, webcam_pwd=args.webcam, clipboard_pwd=args.clipboard)
 
 
 def do_neoextract2epifiles(args, *other):
