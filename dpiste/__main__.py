@@ -5,6 +5,7 @@ from tkinter.filedialog import askopenfilename
 from datetime import datetime as dt
 
 from dpiste.p02_initial_extraction import (
+    p02_001_generate_neoscope_key,
     p02_002_neoscope_key_to_clipboard,
     p02_003_encrypt_neoscope_extractions,
     p02_004_send_neoscope_extractions_to_epifiles,
@@ -25,7 +26,7 @@ from .p06_mammogram_extraction import *
 from .p08_mammogram_deidentification import *
 from .p08_test_deid_df2dicom import *
 from .tools.patch_extraction import run_patch
-
+from .encryption import encryption
 
 def main(a=None):
     # Base argument parser
@@ -219,6 +220,11 @@ def main(a=None):
         "create-key", aliases=['key'], help="Created the backup key")
     create_backup_key_parser.set_defaults(func=do_create_backup_key)
 
+    # extract neoscope generate_key command
+    extract_neo_genkey_parser = neoextract_subs.add_parser(
+        "generate-qr-key", help = "generate qr code required for encryption")
+    extract_neo_genkey_parser.set_defaults(func = generate_qr)
+
     # -- generate encrypted mapping table
     backup_mappint_table = back_mapping_subs.add_parser(
         "backup", help="Backup the mapping table")
@@ -285,6 +291,8 @@ def main(a=None):
     # -- decrypt neoscope extractions
     decrypt_neoextract_parser = neoextract_subs.add_parser(
         "decrypt", help="Decrypt neoscope extractions")
+    decrypt_neoextract_parser.add_argument(
+        "-qr", "--qr-code-flag", required=False, help="flag to use qr code if True, else uses password")
     decrypt_neoextract_parser.set_defaults(
         func=do_decrypt_neoscope_extractions)
 
@@ -475,6 +483,8 @@ def main(a=None):
 
 # handlers
 
+def generate_qr(args, *other):
+    p02_001_generate_neoscope_key()
 
 def do_create_backup_key(args, *other):
     p02_012_generate_backup_key()
@@ -526,8 +536,11 @@ def do_epifiles2bigdata(args, *other):
 
 
 def do_decrypt_neoscope_extractions(args, *other):
-    p02_006_decrypt_neoscope_extractions(key=utils.get_password(
-        f"neo_decrypt", f"Key for Neoscope extractions"))
+    if args.qr_code_flag:
+        p02_006_decrypt_neoscope_extractions(key=str(encryption.read_webcam_key(auto_close=True, camera_index=0)))
+    else:
+        p02_006_decrypt_neoscope_extractions(key=utils.get_password(
+            f"neo_decrypt", f"Key for Neoscope extractions"))
 
 
 def do_get_dicom_guid(args, *other):
