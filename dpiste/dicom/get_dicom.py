@@ -64,7 +64,7 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
   ae.add_requested_context(StudyRootQueryRetrieveInformationModelGet)
   ae.add_requested_context(PatientStudyOnlyQueryRetrieveInformationModelGet)
   for cx in store_contexts:
-      if not ae.get_requested_context(cx.abstract_syntax):
+      if cx.abstract_syntax not in [ctx.abstract_syntax for ctx in ae.requested_contexts]:
         ae.add_requested_context(cx.abstract_syntax)
         # Add SCP/SCU Role Selection Negotiation to the extended negotiation
         # We want to act as a Storage SCP
