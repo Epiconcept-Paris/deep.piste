@@ -52,6 +52,10 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
       PlannedImagingAgentAdministrationSRStorage,
       PerformedImagingAgentAdministrationSRStorage,
       EncapsulatedSTLStorage,
+      '1.2.840.10008.5.1.4.1.1.130',
+      '1.2.840.10008.5.1.4.1.1.128',
+      '1.2.840.10008.5.1.4.1.1.128.1',
+      '1.2.840.10008.5.1.4.1.1.481.6'
   ]
   store_contexts = [
       cx for cx in StoragePresentationContexts
@@ -68,6 +72,7 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
         StudyRootQueryRetrieveInformationModelGet,
         PatientStudyOnlyQueryRetrieveInformationModelGet,
     ] + [cx.abstract_syntax for cx in store_contexts]
+  contexts_to_add = [cx for cx in contexts_to_add if (cx not in _exclusion)]
 
   for context in contexts_to_add:
         if context not in requested_contexts:
