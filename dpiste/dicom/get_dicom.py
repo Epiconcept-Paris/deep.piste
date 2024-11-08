@@ -13,6 +13,7 @@ from pynetdicom.sop_class import (
     PlannedImagingAgentAdministrationSRStorage,
     PerformedImagingAgentAdministrationSRStorage,
     EncapsulatedSTLStorage,
+    Verification,
 )
 
 storage_dest = ""
@@ -40,7 +41,7 @@ def info_logger():
   handler.setFormatter(formatter)
   logger.addHandler(handler)
 
-def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False):
+def get_dicom(key, dest, server = "10.1.2.41", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False):
   #info_logger()
   handlers = [(evt.EVT_C_STORE, handle_store)]
   global storage_dest 
@@ -101,8 +102,16 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
   else:
     raise ValueError("Retrieve level must be one of 'SERIES', 'PATIENT', 'STUDY' but {retrieveLevel} was passed")
      
-  # Associate with peer AE at IP 127.0.0.1 and port 11112
-  assoc = ae.associate(server, port, ae_title=title, ext_neg=ext_neg, evt_handlers=handlers)
+  # Associate with peer AE at IP and port 11112
+  if title=='DCM4CHEE':
+     title='DCM4CHEE3'
+  ae.add_requested_context(Verification)
+  if server != '10.1.2.41':
+     if server=='10.1.2.9':
+        server= '10.1.2.41'
+      else:
+        raise ValueError('Has server ip changed?')
+  assoc = ae.associate(server, int(port), ae_title=title, ext_neg=ext_neg, evt_handlers=handlers)
   
   if assoc.is_established:
       # Use the C-GET service to send the identifier
