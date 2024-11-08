@@ -40,14 +40,13 @@ def info_logger():
   handler.setFormatter(formatter)
   logger.addHandler(handler)
 
-def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False, max_requested_contexts = 50):
+def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False):
   #info_logger()
   handlers = [(evt.EVT_C_STORE, handle_store)]
   global storage_dest 
   storage_dest = dest
   # Initialise the Application Entity
   ae = AE()
-  
   
   _exclusion = [
       PlannedImagingAgentAdministrationSRStorage,
@@ -58,7 +57,6 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
       cx for cx in StoragePresentationContexts
       if cx.abstract_syntax not in _exclusion
   ]
-  # Set a limit for the number of requested contexts
   
   requested_contexts = [ctx.abstract_syntax for ctx in ae.requested_contexts]
   # Extended Negotiation - SCP/SCU Role Selection
@@ -72,12 +70,12 @@ def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retr
     ] + [cx.abstract_syntax for cx in store_contexts]
 
   for context in contexts_to_add:
-        if context not in requested_contexts and len(ae.requested_contexts) < max_requested_contexts:
+        if context not in requested_contexts:
             ae.add_requested_context(context)
             requested_contexts.append(context)
 
   for cx in store_contexts:
-      if cx.abstract_syntax not in requested_contexts and len(ae.requested_contexts) < max_requested_contexts:
+      if cx.abstract_syntax not in requested_contexts:
         # Add SCP/SCU Role Selection Negotiation to the extended negotiation
         # We want to act as a Storage SCP
         ext_neg.append(build_role(cx.abstract_syntax, scp_role=True))
