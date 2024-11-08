@@ -107,9 +107,9 @@ def get_dicom(key, dest, server = "10.1.2.41", port = 11112, title = "ANY", retr
      title='DCM4CHEE3'
   ae.add_requested_context(Verification)
   if server != '10.1.2.41':
-     if server=='10.1.2.9':
-        server= '10.1.2.41'
-      else:
+     if server == '10.1.2.9':
+        server = '10.1.2.41'
+     else:
         raise ValueError('Has server ip changed?')
   assoc = ae.associate(server, int(port), ae_title=title, ext_neg=ext_neg, evt_handlers=handlers)
   
