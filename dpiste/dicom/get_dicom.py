@@ -12,9 +12,7 @@ from pynetdicom.sop_class import (
     PatientStudyOnlyQueryRetrieveInformationModelGet,
     PlannedImagingAgentAdministrationSRStorage,
     PerformedImagingAgentAdministrationSRStorage,
-    EncapsulatedSTLStorage,
-    Verification,
-)
+    EncapsulatedSTLStorage)
 
 storage_dest = ""
 
@@ -41,14 +39,20 @@ def info_logger():
   handler.setFormatter(formatter)
   logger.addHandler(handler)
 
-def get_dicom(key, dest, server = "10.1.2.41", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False):
+def get_dicom(key, dest, server = "127.0.0.1", port = 11112, title = "ANY", retrieveLevel = 'SERIES', silent = False):
+
+  ### NEW DCM4CHEE server info ###
+  title='DCM4CHEE3'
+  server = '10.1.2.41'
+  ################################
+
   #info_logger()
   handlers = [(evt.EVT_C_STORE, handle_store)]
-  global storage_dest 
+  global storage_dest
   storage_dest = dest
   # Initialise the Application Entity
   ae = AE()
-  
+
   _exclusion = [
       PlannedImagingAgentAdministrationSRStorage,
       PerformedImagingAgentAdministrationSRStorage,
@@ -56,38 +60,24 @@ def get_dicom(key, dest, server = "10.1.2.41", port = 11112, title = "ANY", retr
       '1.2.840.10008.5.1.4.1.1.130',
       '1.2.840.10008.5.1.4.1.1.128',
       '1.2.840.10008.5.1.4.1.1.128.1',
-      '1.2.840.10008.5.1.4.1.1.481.6'
+      '1.2.840.10008.5.1.4.1.1.481.6',
   ]
   store_contexts = [
       cx for cx in StoragePresentationContexts
-      if cx.abstract_syntax not in _exclusion
-  ]
-  
-  requested_contexts = [ctx.abstract_syntax for ctx in ae.requested_contexts]
+      if cx.abstract_syntax not in _exclusion]
   # Extended Negotiation - SCP/SCU Role Selection
   ext_neg = []
-
-  # All contexts to add
-  contexts_to_add = [
-        PatientRootQueryRetrieveInformationModelGet,
-        StudyRootQueryRetrieveInformationModelGet,
-        PatientStudyOnlyQueryRetrieveInformationModelGet,
-    ] + [cx.abstract_syntax for cx in store_contexts]
-  contexts_to_add = [cx for cx in contexts_to_add if (cx not in _exclusion)]
-
-  for context in contexts_to_add:
-        if context not in requested_contexts:
-            ae.add_requested_context(context)
-            requested_contexts.append(context)
-
+  ae.add_requested_context(PatientRootQueryRetrieveInformationModelGet)
+  ae.add_requested_context(StudyRootQueryRetrieveInformationModelGet)
+  ae.add_requested_context(PatientStudyOnlyQueryRetrieveInformationModelGet)
   for cx in store_contexts:
-      if cx.abstract_syntax not in requested_contexts:
-        # Add SCP/SCU Role Selection Negotiation to the extended negotiation
-        # We want to act as a Storage SCP
-        ext_neg.append(build_role(cx.abstract_syntax, scp_role=True))
-  
-  
-  
+      ae.add_requested_context(cx.abstract_syntax)
+      # Add SCP/SCU Role Selection Negotiation to the extended negotiation
+      # We want to act as a Storage SCP
+      ext_neg.append(build_role(cx.abstract_syntax, scp_role=True))
+
+
+
   # Create our Identifier (query) dataset
   # We need to supply a Unique Key Attribute for each level above the
   #   Query/Retrieve level
@@ -101,16 +91,8 @@ def get_dicom(key, dest, server = "10.1.2.41", port = 11112, title = "ANY", retr
     ds.StudyInstanceUID = key
   else:
     raise ValueError("Retrieve level must be one of 'SERIES', 'PATIENT', 'STUDY' but {retrieveLevel} was passed")
-     
-  # Associate with peer AE at IP and port 11112
-  if title=='DCM4CHEE':
-     title='DCM4CHEE3'
-  ae.add_requested_context(Verification)
-  if server != '10.1.2.41':
-     if server == '10.1.2.9':
-        server = '10.1.2.41'
-     else:
-        raise ValueError('Has server ip changed?')
+
+  # Association with peer AE at ip and port 11112 
   assoc = ae.associate(server, int(port), ae_title=title, ext_neg=ext_neg, evt_handlers=handlers)
   
   if assoc.is_established:
