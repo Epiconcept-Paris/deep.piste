@@ -311,7 +311,7 @@ where ks.date_mammo between "date1" and "date2"
 
 __Adicap codes__ :
 
-```
+```SQL
 SELECT code, libelle
 FROM DICO
 WHERE dico="adks"
@@ -319,7 +319,7 @@ WHERE dico="adks"
 
 __Radiology centers__ :
 
-```
+```SQL
 select id_centre, num_centre, esis_id_centre, esis_date,nom
 from centre
 where (esis_id_centre is not null or esis_date is not null)
@@ -409,22 +409,22 @@ limit 10
 
 ![alt text](pics/nodes.png)
 
-    > ssh_user (name of epiconcept operator on bgdt machines)
-    > ssh_source_key (path to private ssh key to connect to bgdt)
-    > ssh_source_key_pub : idem but public key
-    > python_path : path to python on each one of the bgdt machines, python is to be installed by operator if not done already (Python 3.8 used in 2024)
-    > dp_home : path to the folder (not the deep.piste package) containing _data_ folder with all data required for transfer (see above)
-    > dp_code = dp_home
+    - ssh_user (name of epiconcept operator on bgdt machines)
+    - ssh_source_key (path to private ssh key to connect to bgdt)
+    - ssh_source_key_pub : idem but public key
+    - python_path : path to python on each one of the bgdt machines, python is to be installed by operator if not done already (Python 3.8 used in 2024)
+    - dp_home : path to the folder (not the deep.piste package) containing _data_ folder with all data required for transfer (see above)
+    - dp_code = dp_home
 
   - Epiconcept operator must install Pass on his local workstation and have the 3 following keys:
-    > infra/bgdt : password to sudo on bgdt machines, provided by Epiconcept infra  
-    > infra/sshpassphrase : ssh key passphrase to connect to bgdt machines
-    > epitools/hdh_epi_transfer_passphrase : passphrase for ssh signature key (stored at path bgdth1:/space/Work/operator/github/deep.piste/data/output/hdh)
+    - infra/bgdt : password to sudo on bgdt machines, provided by Epiconcept infra  
+    - infra/sshpassphrase : ssh key passphrase to connect to bgdt machines
+    - epitools/hdh_epi_transfer_passphrase : passphrase for ssh signature key (stored at path bgdth1:/space/Work/operator/github/deep.piste/data/output/hdh)
 
   - Finally, check all lines of roles/node/tasks/main.yml :
-    > update user name when it is hardcoded
-    > check github branches names!
-    > update Python version and paths if you have a different config
+    - update user name when it is hardcoded
+    - check github branches names!
+    - update Python version and paths if you have a different config
 
 * bgdt machines preparation :
   - After getting access rights to SFTP, transfer unchanged files from sftp to bgdt machine with DP_HOME which will be used for transfer : from sftp run command:
