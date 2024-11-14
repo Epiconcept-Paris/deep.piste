@@ -142,7 +142,7 @@ __Epiconcept server is used as a hub for screening data collection before all da
   - Deep.piste package (python -m pip install deep.piste) installed on python3 virtual environment
   - Screening data extracted by CRCDC operator with the following requests : replace _date1_ and _date2_ below by actual dates
 
-[__Women list request__](./docs/SQL_requests/women_list)
+[__Women list request__](./docs/SQL_requests/women_list.sql)
 
 [__Women at risk request__](./docs/SQL_requests/women_at_risk_list.sql)
 
