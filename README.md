@@ -259,7 +259,7 @@ The playbook runs the successive steps to launch transfer. To run transfer from 
 python -m dpiste export hdh sftp -s {{ sftp_server }} -o {{organization id}} -u {{ sftp_user }} -l 100 {{limit size of data to be transferred before transfer stops, in GB. Default = 100}} -t {{ tmp_dir }} -i {{ hosts, servers list defined above }}
 ```
 
-NB : the transfer will stop at the minimum between 95% of available space on SFTP and -l argument, and wait until HDH machine empties SFTP.
+NB : the transfer will stop at the minimum between 95% of available space on SFTP and -l argument, and wait until HDH job starts deleting files from the SFTP.
 
 #### Expected output :
 
